@@ -121,15 +121,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   </noscript>
 
-  <!-- Tema inicial (antes del paint para evitar parpadeo) -->
+  <!-- Tema inicial (antes del paint para evitar parpadeo)
+       Por defecto: OSCURO premium (look de marca); el usuario puede elegir claro con el toggle -->
   <script>
     (function () {
       try {
         var saved = localStorage.getItem("paco_theme");
-        var theme = saved || "light"; /* default siempre claro — el usuario elige oscuro con el toggle */
+        var theme = saved || "dark";
         document.documentElement.setAttribute("data-theme", theme);
       } catch (e) {
-        document.documentElement.setAttribute("data-theme", "light");
+        document.documentElement.setAttribute("data-theme", "dark");
       }
     })();
   </script>
@@ -137,6 +138,11 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <noscript>
+    <div style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#7a1f1f;color:#fff;text-align:center;padding:.8rem 1rem;font-family:Arial,sans-serif;font-size:.9rem;">
+      Esta tienda requiere JavaScript para funcionar. Actívalo o usa un navegador compatible.
+    </div>
+  </noscript>
   <!-- ============ HEADER ============ -->
   <header class="header" id="header">
     <div class="header-inner">
@@ -150,7 +156,7 @@
       <nav class="nav" id="nav" aria-label="Navegación principal">
         <a onclick="navigateTo('home')" class="active" data-page="home">Inicio</a>
         <a onclick="navigateTo('catalogo')" data-page="catalogo">Catálogo</a>
-        <a onclick="navigateTo('promos')" data-page="promos">Promos</a>
+        <a onclick="navigateTo('promos')" data-page="promos">Packs</a>
       </nav>
       <div class="header-actions">
         <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema" aria-pressed="false"
@@ -196,7 +202,7 @@
             <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
           </button>
           <button class="btn btn-ghost" onclick="navigateTo('promos')">
-            <span>Ver Promociones</span>
+            <span>Ver Packs</span>
           </button>
         </div>
       </div>
@@ -388,6 +394,24 @@
       </div>
     </section>
     <section class="cat-section">
+      <!-- Búsqueda rápida + filtros rápidos (filtran todo el catálogo al instante) -->
+      <div class="quick-find" id="quickFind">
+        <div class="search-bar" role="search">
+          <i class="fa-solid fa-magnifying-glass search-bar__icon" aria-hidden="true"></i>
+          <input type="search" id="catalogSearch" placeholder="Buscar perfume, marca o nota..." autocomplete="off" spellcheck="false" aria-label="Buscar en el catálogo" />
+          <button type="button" class="search-bar__clear" id="searchClear" aria-label="Limpiar búsqueda" style="display:none;">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="quick-chips" id="quickChips" role="group" aria-label="Filtros rápidos">
+          <button class="filter-btn quick-chip" data-quick="todos" aria-pressed="true">Todos</button>
+          <button class="filter-btn quick-chip" data-quick="hombre" aria-pressed="false">Para Hombre</button>
+          <button class="filter-btn quick-chip" data-quick="mujer" aria-pressed="false">Para Mujer</button>
+          <button class="filter-btn quick-chip" data-quick="unisex" aria-pressed="false">Unisex</button>
+          <button class="filter-btn quick-chip" data-quick="arabe" aria-pressed="false">Árabes</button>
+          <button class="filter-btn quick-chip" data-quick="disenador" aria-pressed="false">Diseñador</button>
+        </div>
+      </div>
       <!-- Category showcase: tarjetas editoriales grandes -->
       <div class="cat-showcase" id="filtersCategory">
         <button class="filter-btn cat-tile cat-tile--nicho" data-filter="nicho" data-cat="nicho" aria-label="Nicho" aria-pressed="false">
@@ -452,23 +476,76 @@
         </div>
       </div>
 
+      <p class="catalog-results" id="catalogResultsCount" style="display:none;"></p>
+
       <!-- Grid de productos (vacío hasta que se elija categoría) -->
       <div class="product-grid" id="catalogGrid"></div>
     </section>
   </div>
 
-  <!-- ============ PROMOS ============ -->
+  <!-- ============ PACKS DE DECANTS ============ -->
   <div class="page" id="page-promos">
     <section class="page-hero promo-hero">
-      <img src="fondo_promos.webp" alt="Promociones Paco Fragancias" class="page-hero-img" loading="lazy"
+      <img src="fondo_promos.webp" alt="Packs de Decants Paco Fragancias" class="page-hero-img" loading="lazy"
         decoding="async" />
       <div class="page-hero-overlay"></div>
       <div class="page-hero-content">
-        <div class="section-eyebrow page-hero-eyebrow">Ofertas Especiales</div>
-        <h2 class="section-title page-hero-title">Packs &amp; Promociones</h2>
-        <p class="section-subtitle page-hero-subtitle">La mejor forma de descubrir nuevas fragancias a un precio especial.</p>
+        <div class="section-eyebrow page-hero-eyebrow">Colección de Packs</div>
+        <h2 class="section-title page-hero-title">Packs de Decants</h2>
+        <p class="section-subtitle page-hero-subtitle">Elige un pack, personaliza tus perfumes y ahorra hasta 30% frente a comprarlos por separado.</p>
       </div>
     </section>
+
+    <!-- Beneficios -->
+    <section class="packs-benefits" aria-label="Beneficios de los packs">
+      <div class="packs-benefit">
+        <span class="packs-benefit__icon" aria-hidden="true">💰</span>
+        <div>
+          <strong>Ahorra hasta 30%</strong>
+          <span>Precio especial por pack, no por perfume</span>
+        </div>
+      </div>
+      <div class="packs-benefit">
+        <span class="packs-benefit__icon" aria-hidden="true">🎁</span>
+        <div>
+          <strong>Elige tus perfumes</strong>
+          <span>Personaliza tu pack con tus favoritos</span>
+        </div>
+      </div>
+      <div class="packs-benefit">
+        <span class="packs-benefit__icon" aria-hidden="true">⚡</span>
+        <div>
+          <strong>Envío 1-2 días</strong>
+          <span>Despacho rápido a todo el Perú</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cómo funciona -->
+    <section class="packs-how" id="packsComoFunciona">
+      <div class="section-header">
+        <div class="section-eyebrow">Solo 3 pasos</div>
+        <h2 class="section-title">¿Cómo funciona un pack?</h2>
+      </div>
+      <div class="packs-steps">
+        <div class="packs-step">
+          <span class="packs-step__num" aria-hidden="true">01</span>
+          <h3>Elige tu pack</h3>
+          <p>Selecciona la colección (diseñador, árabe o deluxe) y el tamaño de decant que prefieras.</p>
+        </div>
+        <div class="packs-step">
+          <span class="packs-step__num" aria-hidden="true">02</span>
+          <h3>Personaliza tus perfumes</h3>
+          <p>Arma tu pack eligiendo la cantidad de fragancias indicada, a tu gusto.</p>
+        </div>
+        <div class="packs-step">
+          <span class="packs-step__num" aria-hidden="true">03</span>
+          <h3>Recibe en casa</h3>
+          <p>Confirmas por WhatsApp y coordinamos el pago y envío a todo el Perú.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="cat-section">
       <!-- Promo showcase: tarjetas editoriales de packs -->
       <div class="cat-showcase cat-showcase--promos" id="promoFilters">
@@ -504,16 +581,40 @@
         </button>
       </div>
 
-      <!-- Filtros de género (solo para packs Árabe) -->
-      <div class="gender-bar" id="promoGenderGroup" style="display:none;">
-        <span class="gender-bar__label">Filtrar por género</span>
-        <div class="gender-bar__chips" id="promoGenderFilters">
-          <button class="filter-btn gender-chip" data-promo-gender="femenino" aria-pressed="false">Mujer</button>
-          <button class="filter-btn gender-chip" data-promo-gender="masculino" aria-pressed="false">Hombre</button>
+      <!-- Toolbar profesional: filtro de tamaño + orden + contador -->
+      <div class="packs-toolbar">
+        <div class="gender-bar" id="promoGenderGroup" style="display:none;">
+          <span class="gender-bar__label">Filtrar por género</span>
+          <div class="gender-bar__chips" id="promoGenderFilters">
+            <button class="filter-btn gender-chip" data-promo-gender="femenino" aria-pressed="false">Mujer</button>
+            <button class="filter-btn gender-chip" data-promo-gender="masculino" aria-pressed="false">Hombre</button>
+          </div>
+        </div>
+        <div class="packs-toolbar-row" id="packsToolbarRow" style="display:none;">
+          <div class="pack-size-bar" id="packsSizeFilters" role="group" aria-label="Filtrar por tamaño de decant">
+            <span class="pack-size-bar__label">Tamaño</span>
+            <button class="filter-btn pack-size-chip active" data-pack-size="" aria-pressed="true">Todos</button>
+            <button class="filter-btn pack-size-chip" data-pack-size="2ml" aria-pressed="false">2 ml</button>
+            <button class="filter-btn pack-size-chip" data-pack-size="3ml" aria-pressed="false">3 ml</button>
+            <button class="filter-btn pack-size-chip" data-pack-size="5ml" aria-pressed="false">5 ml</button>
+            <button class="filter-btn pack-size-chip" data-pack-size="10ml" aria-pressed="false">10 ml</button>
+          </div>
+          <div class="packs-toolbar-right">
+            <span class="packs-count" id="packsCount" aria-live="polite"></span>
+            <label class="packs-sort">
+              <span class="packs-sort__label" aria-hidden="true">Ordenar</span>
+              <select id="packsSort" aria-label="Ordenar packs">
+                <option value="relevance">Relevancia</option>
+                <option value="price-asc">Precio: menor a mayor</option>
+                <option value="price-desc">Precio: mayor a menor</option>
+                <option value="qty-desc">Más perfumes primero</option>
+              </select>
+            </label>
+          </div>
         </div>
       </div>
 
-      <!-- Grid de promos (vacío hasta que se elija pack) -->
+      <!-- Grid de packs (vacío hasta que se elija pack) -->
       <div class="promo-grid" id="promoGrid"></div>
     </section>
   </div>
@@ -533,7 +634,7 @@
             catálogo</a>
         </div>
         <div id="checkout-form-wrapper" style="display:none;">
-          <form id="checkoutForm" onsubmit="return false;" autocomplete="on">
+          <form id="checkoutForm" onsubmit="event.preventDefault(); confirmarCompra();" autocomplete="on">
             <div class="form-section-title">Datos de entrega</div>
             <div class="form-row">
               <div class="form-group">
@@ -579,11 +680,36 @@
                 <span id="checkoutTotal">S/ 0.00</span>
               </div>
             </div>
-            <button type="button" class="btn-whatsapp" onclick="confirmarWhatsApp()">
+            <div class="pay-methods">
+              <div class="form-section-title">¿Cómo deseas pagar?</div>
+              <div class="pay-methods__grid" id="payMethods" role="radiogroup" aria-label="Método de pago">
+                <button type="button" class="pay-method active" data-pay="whatsapp" role="radio" aria-checked="true">
+                  <span class="pay-method__icon" aria-hidden="true">📲</span>
+                  <span class="pay-method__body">
+                    <strong>Yape / Plin por WhatsApp</strong>
+                    <span>Coordinamos el pago y envío por chat</span>
+                  </span>
+                  <span class="pay-method__check" aria-hidden="true">✓</span>
+                </button>
+                <button type="button" class="pay-method" data-pay="card" role="radio" aria-checked="false">
+                  <span class="pay-method__icon" aria-hidden="true">💳</span>
+                  <span class="pay-method__body">
+                    <strong>Tarjeta (Mercado Pago)</strong>
+                    <span>Te enviamos el link de pago seguro por WhatsApp</span>
+                  </span>
+                  <span class="pay-method__check" aria-hidden="true">✓</span>
+                </button>
+              </div>
+            </div>
+            <button type="button" class="btn-whatsapp" id="payConfirmBtn" onclick="confirmarCompra()">
               <i class="fab fa-whatsapp" aria-hidden="true"></i>
-              <span>Confirmar por WhatsApp</span>
+              <span>Confirmar Pedido</span>
             </button>
-            <p class="checkout-note">Al confirmar, serás redirigido a WhatsApp para coordinar el pago y envío.</p>
+            <p class="checkout-note">Al confirmar serás redirigido a WhatsApp para coordinar el pago y envío.</p>
+            <div class="mp-note" id="mpNote" style="display:none;">
+              <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+              <span>Pago 100% seguro: recibirás en tu chat un link oficial de Mercado Pago para pagar con tarjeta de débito o crédito (Visa, Mastercard, Amex).</span>
+            </div>
           </form>
         </div>
       </div>
@@ -593,7 +719,7 @@
 
   <!-- ============ MODAL PRODUCTO ============ -->
   <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalName">
-    <div class="modal" id="modal">
+    <div class="modal" id="modal" tabindex="-1" role="document">
       <button class="modal-close" onclick="closeModal()" aria-label="Cerrar">
         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
       </button>
@@ -614,13 +740,18 @@
           <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
           <span>Añadir al Carrito</span>
         </button>
+        <div class="modal-trust" id="modalTrust">
+          <span class="modal-trust__item"><i class="fa-solid fa-truck" aria-hidden="true"></i> Envío a todo el Perú</span>
+          <span class="modal-trust__item"><i class="fa-solid fa-lock" aria-hidden="true"></i> Pago Seguro</span>
+          <span class="modal-trust__item"><i class="fa-solid fa-gem" aria-hidden="true"></i> 100% Originales</span>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- ============ MODAL PACK (rediseñado) ============ -->
   <div class="modal-overlay" id="packModalOverlay" role="dialog" aria-modal="true" aria-labelledby="packModalTitle">
-    <div class="modal pack-modal" id="packModal">
+    <div class="modal pack-modal" id="packModal" tabindex="-1" role="document">
       <button class="modal-close" onclick="closePackModal()" aria-label="Cerrar">
         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
       </button>
@@ -669,6 +800,10 @@
       </div>
     </div>
     <div class="cart-footer" id="cartFooter" style="display:none;">
+      <div class="upsell-strip" id="upsellStrip">
+        <p class="upsell-strip__title">🔥 Agrega una muestra y descubre tu próximo favorito</p>
+        <div class="upsell-strip__items" id="upsellItems"></div>
+      </div>
       <div class="cart-total">
         <span>Total</span>
         <span id="cartTotal">S/ 0.00</span>
@@ -693,6 +828,21 @@
     rel="noopener noreferrer" aria-label="Síguenos en Instagram" data-tooltip="Síguenos en Instagram">
     <i class="fab fa-instagram" aria-hidden="true"></i>
   </a>
+
+  <!-- ============ STICKY BOTTOM CART (móvil, compra rápida) ============ -->
+  <div class="sticky-cart" id="stickyCart" aria-live="polite">
+    <div class="sticky-cart__info">
+      <span class="sticky-cart__count" id="stickyCartCount">0</span>
+      <div class="sticky-cart__texts">
+        <span class="sticky-cart__label">Tu pedido</span>
+        <span class="sticky-cart__total" id="stickyCartTotal">S/ 0.00</span>
+      </div>
+    </div>
+    <button class="sticky-cart__btn" id="stickyCartBtn" onclick="goToCheckout()">
+      <span>Finalizar Compra</span>
+      <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+    </button>
+  </div>
 
   <!-- ============ FOOTER ============ -->
   <footer class="footer">
@@ -727,7 +877,7 @@
         <h4>Navegar</h4>
         <a role="button" tabindex="0" onclick="navigateTo('home')">Inicio</a>
         <a role="button" tabindex="0" onclick="navigateTo('catalogo')">Catálogo</a>
-        <a role="button" tabindex="0" onclick="navigateTo('promos')">Promos</a>
+        <a role="button" tabindex="0" onclick="navigateTo('promos')">Packs</a>
       </div>
       <div class="footer-col">
         <h4>Ayuda</h4>
@@ -758,6 +908,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js" defer></script>
+  <script src="productos.js" defer></script>
   <script src="script.js" defer></script>
   <script src="animations.js" defer></script>
 </body>

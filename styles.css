@@ -1,67 +1,123 @@
+﻿/* ============================================================
+   PALETA UNIFICADA (consolidada la session: v1 muerta eliminada)
+   ============================================================ */
 :root {
-  /* Palette */
-  --cream-0:       #fdfaf5;
-  --cream-1:       #f8f3ea;
-  --cream-2:       #ede6d8;
-  --cream-3:       #e2d8c4;
-  --brown-0:       #160d06;
-  --brown-1:       #2e1c0f;
-  --brown-2:       #6b4423;
-  --brown-3:       #9e7050;
-  --gold-deep:     #7a5c2e;
-  --gold:          #b8924a;
-  --gold-light:    #d4ae72;
-  --gold-pale:     #f3e9d2;
-  --gold-glow:     rgba(184,146,74,.22);
-  --surface:       #ffffff;
-  --surface-warm:  #fdf9f3;
-  --surface-alt:   #f4ede0;
-  --text-primary:  #1a0f07;
-  --text-secondary:#5c3d1e;
-  --text-muted:    #9a8270;
-  --text-light:    #c4b09a;
-  --border:        #e8dece;
-  --border-light:  #f0e8d8;
-  --success:       #3a7a4e;
-  --danger:        #a83228;
-  --whatsapp:      #25d366;
-  /* Typography scale */
-  --font-display:  'Cormorant Garamond', Georgia, serif;
-  --font-body:     'Jost', 'Segoe UI', Helvetica, sans-serif;
-  /* Shadows */
-  --shadow-xs:      0 1px 4px rgba(26,15,7,.05);
-  --shadow-sm:      0 3px 12px rgba(26,15,7,.07);
-  --shadow-md:      0 10px 34px rgba(26,15,7,.10);
-  --shadow-lg:      0 24px 60px rgba(26,15,7,.14);
-  --shadow-gold:    0 14px 44px rgba(184,146,74,.22);
-  --shadow-gold-lg: 0 22px 60px rgba(184,146,74,.32);
-  /* Radius */
-  --r-xs:  4px;  --r-sm: 8px;  --r-md: 14px;
-  --r-lg:  20px; --r-xl: 28px; --r-pill: 9999px;
-  /* Transitions */
-  --t-fast:   .18s ease;
-  --t-base:   .30s cubic-bezier(.4,0,.2,1);
-  --t-spring: .45s cubic-bezier(.25,.8,.25,1.2);
-  /* Layout */
-  --max-w: 1320px;
-  --header-h: 70px;
-  --cart-w: 440px;
+  /* Paleta base: blanco dominante, negro elegante */
+  --cream-0:        #ffffff;
+  --cream-1:        #f8f8f6;
+  --cream-2:        #f1f1ee;
+  --cream-3:        #e4e4e1;
+  --brown-0:        #0b0b0b;
+  --brown-1:        #141414;
+  --brown-2:        #2a2a2a;
+  --brown-3:        #555555;
+
+  /* Acento: champagne/greige muy sutil â€” mÃ¡x 5% de uso */
+  --gold-deep:      #1a1a1a;
+  --gold:           #b0a898;
+  --gold-light:     #cec9be;
+  --gold-pale:      #f2f0ec;
+  --gold-glow:      rgba(0,0,0,.06);
+
+  /* Superficies */
+  --surface:        #ffffff;
+  --surface-warm:   #fafaf8;
+  --surface-alt:    #f5f5f2;
+
+  /* Texto */
+  --text-primary:   #0b0b0b;
+  --text-secondary: #333333;
+  --text-muted:     #6f5a47;
+  --text-light:     #aaaaaa;
+
+  /* Bordes */
+  --border:         rgba(11,11,11,.09);
+  --border-light:   rgba(11,11,11,.05);
+
+  /* Sombras â€” mÃ¡s suaves, sin tinte dorado */
+  --shadow-xs:      0 2px 8px rgba(0,0,0,.05);
+  --shadow-sm:      0 4px 18px rgba(0,0,0,.08);
+  --shadow-md:      0 12px 40px rgba(0,0,0,.10);
+  --shadow-lg:      0 28px 80px rgba(0,0,0,.14);
+  --shadow-gold:    0 16px 50px rgba(0,0,0,.11);
+  --shadow-gold-lg: 0 24px 70px rgba(0,0,0,.17);
+
+  /* Radios */
+  --r-xs:  6px;  --r-sm: 10px; --r-md: 16px;
+  --r-lg:  22px; --r-xl: 32px; --r-pill: 9999px;
+
+  /* TipografÃ­a */
+  --font-body: 'Manrope', 'Segoe UI', Helvetica, sans-serif;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+
+  /* Easing premium */
+  --ease-premium:      cubic-bezier(.16,1,.3,1);
+  --t-fast:   .18s var(--ease-premium);
+  --t-base:   .32s var(--ease-premium);
+  --t-spring: .5s  cubic-bezier(.34,1.56,.64,1);
+
+  /* Tokens semÃ¡nticos adicionales */
+  --color-bg:          #ffffff;
+  --color-bg-soft:     #f8f8f6;
+  --color-surface:     #ffffff;
+  --color-text:        #0b0b0b;
+  --color-text-soft:   #444444;
+  --color-text-muted:  #6f5a47;
+  --color-black:       #050505;
+  --color-white:       #ffffff;
+  --color-border:      rgba(5,5,5,.08);
+  --color-border-strong: rgba(5,5,5,.16);
+  --color-accent:      #cec9be;
+  --color-accent-soft: #f2f0ec;
 }
-/* ── RESET & BASE ──────────────────────────────────────────── */
+
+[data-theme="dark"] {
+  --cream-0:        #161616;
+  --cream-1:        #111111;
+  --cream-2:        #1e1e1e;
+  --cream-3:        #252525;
+  --surface:        #1a1a1a;
+  --surface-warm:   #141414;
+  --surface-alt:    #121212;
+  --text-primary:   #f0f0ee;
+  --text-secondary: #d0d0ce;
+  --text-muted:     #b3a490;
+  --text-light:     #606060;
+  --border:         rgba(255,255,255,.08);
+  --border-light:   rgba(255,255,255,.04);
+  --gold-pale:      #1e1e1e;
+  --color-bg:       #111111;
+  --color-bg-soft:  #161616;
+  --color-surface:  #1a1a1a;
+  --color-text:     #f0f0ee;
+  --color-border:   rgba(255,255,255,.08);
+  --color-border-strong: rgba(255,255,255,.14);
+  --shadow-xs:      0 2px 8px rgba(0,0,0,.5);
+  --shadow-sm:      0 4px 18px rgba(0,0,0,.55);
+  --shadow-md:      0 12px 40px rgba(0,0,0,.6);
+}
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior:smooth; font-size:16px; -webkit-text-size-adjust:100%; }
 body {
   font-family: var(--font-body);
   background: var(--cream-1);
-  background-image:
-    radial-gradient(circle at 8% 0%, rgba(184,146,74,.05), transparent 38%),
-    radial-gradient(circle at 95% 4%, rgba(184,146,74,.04), transparent 36%);
-  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.65;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+/* Degradados fijos en una capa propia (sin background-attachment:fixed,
+   que causa repintados en scroll en mÃ³viles) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 8% 0%, rgba(184,146,74,.05), transparent 38%),
+    radial-gradient(circle at 95% 4%, rgba(184,146,74,.04), transparent 36%);
 }
 ::selection { background: var(--gold); color: #fff; }
 ::-webkit-scrollbar { width: 7px; }
@@ -77,9 +133,9 @@ button { cursor: pointer; font-family: var(--font-body); }
   border-radius: var(--r-xs);
   box-shadow: 0 0 0 5px rgba(184,146,74,.2);
 }
-/* Mantiene el anillo elegante también en pastillas y cards redondeadas */
+/* Mantiene el anillo elegante tambiÃ©n en pastillas y cards redondeadas */
 .filter-pill:focus-visible, .product-card:focus-visible, .promo-card:focus-visible { outline-offset: 3px; }
-/* ── PAGE SYSTEM ───────────────────────────────────────────── */
+/* â”€â”€ PAGE SYSTEM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .page { display: none; }
 .page.active { display: block; animation: pageIn .5s cubic-bezier(.22,.7,.3,1) both; }
 @keyframes pageIn {
@@ -87,12 +143,12 @@ button { cursor: pointer; font-family: var(--font-body); }
   60%  { opacity:1; }
   100% { opacity:1; transform:translateY(0); filter: blur(0); }
 }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    HEADER (Dark luxury)
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .header {
   position: sticky; top: 0; z-index: 1000;
-  background: #0d0a06;                       /* negro cálido */
+  background: #0d0a06;                       /* negro cÃ¡lido */
   border-bottom: 1px solid rgba(212,174,114,.12);
   padding: .85rem 2rem;
   transition: padding .35s ease, box-shadow .35s ease;
@@ -105,7 +161,7 @@ button { cursor: pointer; font-family: var(--font-body); }
   max-width: var(--max-w); margin: 0 auto;
   display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
 }
-/* ── Logo ── */
+/* â”€â”€ Logo â”€â”€ */
 .logo { display: flex; align-items: center; gap: .7rem; flex-shrink: 0; transition: transform var(--t-spring); }
 .logo:hover { transform: scale(1.02); }
 .logo-img {
@@ -123,7 +179,7 @@ button { cursor: pointer; font-family: var(--font-body); }
   font-size: .6rem; font-weight: 400; letter-spacing: .12em;
   color: var(--gold-light); text-transform: uppercase; white-space: nowrap; opacity: .8;
 }
-/* ── Nav ── */
+/* â”€â”€ Nav â”€â”€ */
 .nav { display: flex; gap: 2.2rem; align-items: center; list-style: none; }
 .nav a {
   color: rgba(255,255,255,.72); font-size: .82rem; font-weight: 500;
@@ -136,7 +192,7 @@ button { cursor: pointer; font-family: var(--font-body); }
 }
 .nav a:hover, .nav a.active { color: #fff; }
 .nav a:hover::after, .nav a.active::after { width: 100%; }
-/* ── Header actions ── */
+/* â”€â”€ Header actions â”€â”€ */
 .header-actions { display: flex; align-items: center; gap: .4rem; }
 .btn-icon {
   background: none; border: 1.5px solid rgba(255,255,255,.15); color: rgba(255,255,255,.75);
@@ -165,7 +221,7 @@ button { cursor: pointer; font-family: var(--font-body); }
   75%  { transform: scale(1.18); background: var(--gold); }
   100% { transform: scale(1);   background: var(--gold); }
 }
-/* ── Hamburger ── */
+/* â”€â”€ Hamburger â”€â”€ */
 .hamburger {
   display: none; background: none; border: 1.5px solid rgba(255,255,255,.25);
   padding: .45rem .55rem; border-radius: var(--r-sm); flex-direction: column; gap: 4px;
@@ -173,9 +229,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 }
 .hamburger:hover { border-color: var(--gold); background: rgba(184,146,74,.12); }
 .hamburger span { display: block; width: 18px; height: 1.5px; background: rgba(255,255,255,.75); transition: all var(--t-base); border-radius: 2px; }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    HERO
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .hero {
   position: relative; min-height: 96vh; display: flex; align-items: center;
   justify-content: center; text-align: center; padding: 2rem; overflow: hidden; background: #0d0a06;
@@ -187,7 +243,7 @@ button { cursor: pointer; font-family: var(--font-body); }
   transition: filter .8s ease; will-change: transform;
 }
 .hero:hover .hero-video { filter: brightness(.5) saturate(1); }
-/* En móvil el video no se descarga (JS); el <video> muestra su poster.
+/* En mÃ³vil el video no se descarga (JS); el <video> muestra su poster.
    Fondo de respaldo por si el navegador no pinta el poster sin src. */
 @media (max-width: 768px) {
   .hero { background: #0d0a06 url("inicio.webp") center/cover no-repeat; }
@@ -226,9 +282,9 @@ button { cursor: pointer; font-family: var(--font-body); }
   animation: scrollPulse 2s 1s ease-in-out infinite;
 }
 @keyframes scrollPulse { 0%,100% { opacity:.4; transform:scaleY(1); } 50% { opacity:.9; transform:scaleY(1.15); } }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    BUTTONS
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .btn {
   display: inline-flex; align-items: center; gap: .55rem; padding: .9rem 2.1rem;
   font-size: .8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
@@ -246,9 +302,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 .btn-ghost:hover { background: rgba(255,255,255,.16); border-color: var(--gold-light); color: var(--gold-light); transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.22); }
 .btn-outline-dark { background: transparent; color: var(--text-primary); border: 1.5px solid var(--brown-3); }
 .btn-outline-dark:hover { background: var(--text-primary); color: var(--cream-0); border-color: var(--text-primary); transform: translateY(-2px); box-shadow: var(--shadow-md); }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    STATS BAR
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .stats-bar { background: var(--brown-1); border-bottom: 1px solid rgba(255,255,255,.06); }
 .stats-inner {
   max-width: var(--max-w); margin: 0 auto; padding: 1.4rem 2rem;
@@ -258,9 +314,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 .stat-number { font-family: var(--font-display); font-size: 1.65rem; font-weight: 500; color: var(--gold-light); line-height: 1.1; }
 .stat-label { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.55); margin-top: .25rem; }
 .stat-divider { width: 1px; height: 34px; background: rgba(255,255,255,.12); }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SECTIONS
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .section { padding: 6rem 2rem; max-width: var(--max-w); margin: 0 auto; }
 .section-header { text-align: center; margin-bottom: 3.6rem; }
 .section-eyebrow {
@@ -284,9 +340,9 @@ button { cursor: pointer; font-family: var(--font-body); }
     radial-gradient(circle at 20% 50%, rgba(184,146,74,.05) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(184,146,74,.04) 0%, transparent 42%);
 }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    PRODUCT CARDS
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.7rem; }
 .product-card {
   background: var(--surface); border-radius: var(--r-lg); overflow: hidden;
@@ -305,7 +361,7 @@ button { cursor: pointer; font-family: var(--font-body); }
   width: 100%; height: 100%; object-fit: contain; padding: 1.3rem; /* contain = bottle never cropped */
   transition: transform .7s ease;
 }
-.product-card:hover .img-wrapper img { transform: scale(1.035); }
+.product-card:hover .img-wrapper img { transform: scale(1.05); }
 .product-badge {
   position: absolute; top: .85rem; left: .85rem; background: var(--gold); color: #fff;
   font-size: .64rem; font-weight: 700; padding: .28rem .72rem; border-radius: var(--r-pill);
@@ -334,9 +390,9 @@ button { cursor: pointer; font-family: var(--font-body); }
   opacity: 0; transition: opacity var(--t-base); z-index: 3;
 }
 .product-card:hover::before { opacity: 1; }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TRUST CARDS
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .trust-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.8rem; }
 .trust-card {
   text-align: center; padding: 2.6rem 1.8rem; background: var(--surface); border-radius: var(--r-lg);
@@ -358,9 +414,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 .trust-icon { font-size: 1.75rem; }
 .trust-card h4 { font-family: var(--font-display); font-weight: 500; margin-bottom: .55rem; font-size: 1.15rem; color: var(--text-primary); }
 .trust-card p { color: var(--text-muted); font-size: .85rem; line-height: 1.68; }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TIKTOK
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .tiktok-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1.8rem; justify-items: center; }
 .tiktok-card {
   background: #000; border-radius: var(--r-md); overflow: hidden; box-shadow: var(--shadow-md);
@@ -379,9 +435,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 .tiktok-card:has(iframe.loaded) .tiktok-skeleton { opacity: 0; transition: opacity .3s ease; animation: none; }
 @keyframes tiktokPulse { 0%,100% { opacity: .3; } 50% { opacity: .5; } }
 @media (prefers-reduced-motion: reduce) { .tiktok-skeleton { animation: none; opacity: .4; } }
-/* ══════════════════════════════════════════════════════════════
-   PAGE HERO (Catálogo / Promos)
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PAGE HERO (CatÃ¡logo / Promos)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .page-hero { position: relative; min-height: 56vh; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; background: #0d0a06; }
 .page-hero-img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
@@ -394,9 +450,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 }
 .page-hero-content { position: relative; z-index: 2; max-width: 820px; width: 100%; padding: 3rem 2rem 3.6rem; text-align: center; }
 .page-hero-content .section-eyebrow, .page-hero-content .section-title { margin-bottom: .6rem; }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SEARCH
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .search-box-wrapper { margin-top: 1.9rem; display: flex; justify-content: center; }
 .search-box { position: relative; width: 100%; max-width: 460px; }
 .search-icon { position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,.55); font-size: .85rem; pointer-events: none; z-index: 2; }
@@ -423,9 +479,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 .sug-name  { font-weight: 600; color: var(--text-primary); flex:1; font-size:.85rem; }
 .sug-brand { font-size:.72rem; color: var(--text-muted); }
 .search-no-results { padding: 1.2rem; text-align: center; color: var(--text-muted); font-size: .88rem; }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    FILTERS
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .filters-wrapper {
   margin-bottom: 2.8rem; background: var(--surface); border: 1px solid var(--border-light);
   border-radius: var(--r-lg); padding: 1.6rem 2rem; box-shadow: var(--shadow-xs);
@@ -445,9 +501,9 @@ button { cursor: pointer; font-family: var(--font-body); }
   border-color: var(--gold); background: linear-gradient(135deg, var(--gold-pale) 0%, rgba(240,229,200,.5) 100%);
   color: var(--gold-deep); font-weight: 700; box-shadow: 0 4px 14px rgba(184,146,74,.26); transform: translateY(-1px);
 }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    PROMO CARDS
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .promo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -494,7 +550,7 @@ button { cursor: pointer; font-family: var(--font-body); }
 /* Entrada al hacer scroll: fade-up + escala sutil (sobre el reveal existente) */
 .promo-card.reveal-item { transform: translateY(24px) scale(.965); }
 .promo-card.reveal-item.visible { transform: translateY(0) scale(1); }
-/* Banda de imagen (≈40% superior de la tarjeta) */
+/* Banda de imagen (â‰ˆ40% superior de la tarjeta) */
 .promo-media {
   position: relative;
   width: 100%;
@@ -575,7 +631,7 @@ button { cursor: pointer; font-family: var(--font-body); }
   0%, 100% { transform: scale(1); }
   50%      { transform: scale(1.06); }
 }
-/* Botón "Seleccionar Perfumes" */
+/* BotÃ³n "Seleccionar Perfumes" */
 .promo-card .btn-add {
   margin: 0.7rem 0 0;
   display: inline-block;
@@ -600,9 +656,9 @@ button { cursor: pointer; font-family: var(--font-body); }
   box-shadow: var(--shadow-gold);
   transform: translateY(-2px);
 }
-/* ══════════════════════════════════════════════════════════════
-   MODAL — SHARED
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   MODAL â€” SHARED
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 2000; background: rgba(13,10,6,.62);
   backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
@@ -632,7 +688,7 @@ button { cursor: pointer; font-family: var(--font-body); }
   justify-content: center; font-size: 1rem; transition: all var(--t-base); z-index: 6; backdrop-filter: blur(6px);
 }
 .modal-close:hover { background: var(--cream-3); color: var(--text-primary); transform: rotate(90deg); }
-/* ── PRODUCT MODAL — two-column on desktop, balanced image ── */
+/* â”€â”€ PRODUCT MODAL â€” two-column on desktop, balanced image â”€â”€ */
 .modal:not(.pack-modal) { max-width: 820px; }
 @media (min-width: 760px) {
   .modal:not(.pack-modal) { display: grid; grid-template-columns: 0.92fr 1fr; align-items: stretch; }
@@ -690,9 +746,9 @@ button { cursor: pointer; font-family: var(--font-body); }
   transition: all var(--t-spring); font-family: var(--font-body);
 }
 .btn-add-large:hover { background: var(--gold-deep); box-shadow: var(--shadow-gold); transform: translateY(-2px); }
-/* ══════════════════════════════════════════════════════════════
-   MODAL — PACK (rediseñado, flujo unificado)
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   MODAL â€” PACK (rediseÃ±ado, flujo unificado)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .pack-modal { max-width: 760px; max-height: 92vh; display: flex; flex-direction: column; }
 .pack-modal .modal-body { padding: 2.2rem 2rem 1.6rem; display: flex; flex-direction: column; }
 .pack-modal h2 {
@@ -703,7 +759,7 @@ button { cursor: pointer; font-family: var(--font-body); }
   width: 56px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--gold-light), var(--gold));
 }
 .pack-modal-desc { text-align: center; color: var(--text-muted); font-size: .88rem; line-height: 1.62; margin-bottom: 1.2rem; }
-/* Selector de tamaño compacto */
+/* Selector de tamaÃ±o compacto */
 .pack-size-selector {
   display: flex; align-items: center; gap: 1rem; justify-content: center; flex-wrap: wrap;
   background: var(--surface-warm); border: 1px solid var(--border-light);
@@ -744,9 +800,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 .pack-counter-wrap { text-align: center; margin: 0; }
 .pack-counter { display: inline-block; font-size: .82rem; font-weight: 700; color: var(--gold-deep); background: var(--gold-pale); padding: .42rem 1.3rem; border-radius: var(--r-pill); letter-spacing: .04em; }
 .pack-modal #packConfirmBtn { margin-top: .8rem; flex-shrink: 0; }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    CART SIDEBAR
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .cart-overlay { position: fixed; inset: 0; z-index: 3000; background: rgba(13,10,6,.48); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .4s ease; }
 .cart-overlay.active { opacity:1; pointer-events:all; }
 .cart-sidebar {
@@ -798,9 +854,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 .btn-checkout:hover { box-shadow: var(--shadow-gold); transform: translateY(-2px); }
 .btn-checkout i { transition: transform var(--t-base); }
 .btn-checkout:hover i { transform: translateX(4px); }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    CHECKOUT PAGE
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .checkout-wrapper { min-height: 80vh; padding: 4rem 1.5rem; }
 .checkout-container { max-width: 700px; margin: 0 auto; background: var(--surface); border-radius: var(--r-xl); border: 1px solid var(--border-light); box-shadow: var(--shadow-lg); overflow: hidden; animation: pageIn .5s ease; }
 .checkout-header { background: var(--brown-1); padding: 2.6rem 2rem 2.1rem; text-align: center; }
@@ -829,9 +885,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 .btn-whatsapp i { font-size: 1.15rem; }
 .btn-whatsapp:hover { background: #1ebe5b; box-shadow: 0 12px 34px rgba(37,211,102,.42); transform: translateY(-2px); }
 .checkout-note { font-size: .73rem; color: var(--text-muted); text-align: center; margin-top: .9rem; line-height: 1.6; }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TOAST
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .toast {
   position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(120px);
   background: var(--brown-1); color: #fff; padding: .85rem 1.5rem .85rem 1.15rem; border-radius: var(--r-pill);
@@ -855,9 +911,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 .toast-error .toast-icon { background: #d24b4b; }
 .toast-info { border-left-color: var(--gold); }
 .toast-info .toast-icon { background: var(--gold); color: #3a2a12; }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    FOOTER
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .footer { background: var(--brown-0); border-top: 1px solid rgba(255,255,255,.05); padding: 4.5rem 2rem 1.9rem; color: rgba(255,255,255,.6); margin-top: 3rem; }
 .footer-inner { max-width: var(--max-w); margin: 0 auto 2.6rem; display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 3rem; }
 .footer-logo { display: flex; align-items: center; gap: .65rem; margin-bottom: 1rem; }
@@ -876,23 +932,23 @@ button { cursor: pointer; font-family: var(--font-body); }
 .footer-admin:hover { opacity: 1; }
 .footer-signature a { color: var(--gold); font-weight: 600; transition: color var(--t-fast); }
 .footer-signature a:hover { color: var(--gold-light); }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SCROLL REVEAL
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .reveal-item { opacity: 0; transform: translateY(22px); transition: opacity .65s ease, transform .65s ease; will-change: opacity, transform; }
 .reveal-item.visible { opacity: 1; transform: translateY(0); will-change: auto; }
-/* ══════════════════════════════════════════════════════════════
-   PERFORMANCE — render skipping for offscreen blocks
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PERFORMANCE â€” render skipping for offscreen blocks
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .section-trust,
 #contenido,
 .footer {
   content-visibility: auto;
   contain-intrinsic-size: auto 600px;
 }
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    RESPONSIVE
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 @media (max-width: 1024px) { .footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; } }
 @media (max-width: 900px) {
   .nav { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); flex-direction: column; padding: 1.5rem; border-bottom: 1px solid var(--border); gap: .8rem; box-shadow: var(--shadow-md); z-index: 999; }
@@ -942,9 +998,9 @@ button { cursor: pointer; font-family: var(--font-body); }
   #checkout-form-wrapper { padding: 1.6rem 1rem; }
   .modal h2 { font-size: 1.5rem; }
 }
-/* ══════════════════════════════════════════════════════════════
-   REDUCED MOTION — respeta preferencias de accesibilidad
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   REDUCED MOTION â€” respeta preferencias de accesibilidad
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: .001ms !important;
@@ -955,9 +1011,9 @@ button { cursor: pointer; font-family: var(--font-body); }
   .reveal-item { opacity: 1 !important; transform: none !important; }
   .hero-video { transform: none !important; }
 }
-/* ══════════════════════════════════════════════════════════════
-   EFECTO 3D SUTIL + BRILLO — solo dispositivos con hover real
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   EFECTO 3D SUTIL + BRILLO â€” solo dispositivos con hover real
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   /* Barrido de brillo sutil sobre la imagen, sin deformar la card */
   .img-wrapper::after {
@@ -968,9 +1024,9 @@ button { cursor: pointer; font-family: var(--font-body); }
   .product-card:hover .img-wrapper::after { transform: translateX(130%); }
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SKELETON LOADERS (pulso dorado, fade-out al cargar)
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 @keyframes skeletonShimmer {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
@@ -996,9 +1052,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 }
 .promo-img.img-loaded { animation: none; background-image: none; background: var(--cream-1); }
 
-/* ══════════════════════════════════════════════════════════════
-   FLY-TO-CART (miniatura que vuela al ícono del carrito)
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FLY-TO-CART (miniatura que vuela al Ã­cono del carrito)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .fly-to-cart {
   position: fixed; width: 56px; height: 56px; border-radius: 14px;
   object-fit: cover; z-index: 6000; pointer-events: none; background: #fff;
@@ -1011,9 +1067,9 @@ button { cursor: pointer; font-family: var(--font-body); }
   .img-wrapper img { opacity: 1 !important; }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   BOTÓN "VOLVER ARRIBA"
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   BOTÃ“N "VOLVER ARRIBA"
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .back-to-top {
   position: fixed; right: 20px; bottom: 20px; width: 48px; height: 48px;
   border-radius: 50%; border: none; cursor: pointer; z-index: 4500;
@@ -1028,9 +1084,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 .back-to-top:active { transform: translateY(0) scale(.96); }
 @media (max-width: 560px) { .back-to-top { right: 14px; bottom: 14px; width: 44px; height: 44px; } }
 
-/* ══════════════════════════════════════════════════════════════
-   VALIDACIÓN EN TIEMPO REAL — CHECKOUT
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   VALIDACIÃ“N EN TIEMPO REAL â€” CHECKOUT
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .form-group { position: relative; }
 .form-group input {
   transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
@@ -1043,9 +1099,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 .form-group.field-valid .field-status,
 .form-group.field-invalid .field-status { display: inline-flex; }
 .form-group.field-valid .field-status { background: var(--success, #3a9c6e); }
-.form-group.field-valid .field-status::before { content: "✓"; }
+.form-group.field-valid .field-status::before { content: "âœ“"; }
 .form-group.field-invalid .field-status { background: #d24b4b; }
-.form-group.field-invalid .field-status::before { content: "✗"; }
+.form-group.field-invalid .field-status::before { content: "âœ—"; }
 .form-group.field-valid input {
   border-color: var(--success, #3a9c6e);
   box-shadow: 0 0 0 3px rgba(58,156,110,.12);
@@ -1054,7 +1110,7 @@ button { cursor: pointer; font-family: var(--font-body); }
   border-color: #d24b4b;
   box-shadow: 0 0 0 3px rgba(210,75,75,.12);
 }
-/* deja espacio para el ícono dentro del input */
+/* deja espacio para el Ã­cono dentro del input */
 .form-group.field-valid input,
 .form-group.field-invalid input { padding-right: 2.4rem; }
 
@@ -1063,9 +1119,9 @@ button { cursor: pointer; font-family: var(--font-body); }
   pointer-events: none;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   CATALOG HINT (género sin categoría)
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   CATALOG HINT (gÃ©nero sin categorÃ­a)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .catalog-hint {
   grid-column: 1 / -1; text-align: center; padding: 3rem 1.5rem;
   display: flex; flex-direction: column; align-items: center; gap: .6rem;
@@ -1076,13 +1132,13 @@ button { cursor: pointer; font-family: var(--font-body); }
   color: var(--text-muted); font-size: .96rem; max-width: 360px;
   line-height: 1.65; font-style: italic;
 }
-/* Grupo de género en catálogo: transición suave al aparecer */
+/* Grupo de gÃ©nero en catÃ¡logo: transiciÃ³n suave al aparecer */
 #catalogGenderGroup {
   animation: pageIn .35s cubic-bezier(.22,.7,.3,1) both;
 }
-/* ══════════════════════════════════════════════════════════════
-   ESTADOS VACÍOS (catálogo / búsqueda)
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   ESTADOS VACÃOS (catÃ¡logo / bÃºsqueda)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .empty-state {
   grid-column: 1 / -1; text-align: center; padding: 3.5rem 1.5rem;
   display: flex; flex-direction: column; align-items: center; gap: .5rem;
@@ -1100,7 +1156,7 @@ button { cursor: pointer; font-family: var(--font-body); }
   color: var(--text-muted); font-size: .92rem; max-width: 420px; line-height: 1.6;
 }
 
-/* Botón "Seguir comprando" del carrito vacío */
+/* BotÃ³n "Seguir comprando" del carrito vacÃ­o */
 .btn-empty-action {
   margin-top: 1.1rem; padding: .65rem 1.4rem; border-radius: var(--r-pill);
   border: 1.5px solid var(--gold); background: transparent; color: var(--gold-deep);
@@ -1111,9 +1167,9 @@ button { cursor: pointer; font-family: var(--font-body); }
   background: var(--gold); color: #fff; box-shadow: var(--shadow-gold); transform: translateY(-2px);
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TOOLTIPS ELEGANTES (CSS puro, dorado con flecha)
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 [data-tooltip] { position: relative; }
 [data-tooltip]::after {
   content: attr(data-tooltip);
@@ -1145,43 +1201,25 @@ button { cursor: pointer; font-family: var(--font-body); }
 }
 .product-badge[data-tooltip]::after { font-size: .64rem; }
 @media (hover: none) {
-  /* en táctil no hay hover: evitamos tooltips atascados */
+  /* en tÃ¡ctil no hay hover: evitamos tooltips atascados */
   [data-tooltip]::after, [data-tooltip]::before { display: none; }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   MODO OSCURO — controlado por el toggle vía [data-theme="dark"]
-   (el tema inicial lo fija un script inline en <head> según
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   MODO OSCURO â€” controlado por el toggle vÃ­a [data-theme="dark"]
+   (el tema inicial lo fija un script inline en <head> segÃºn
    localStorage o prefers-color-scheme; el toggle lo sobrescribe)
-══════════════════════════════════════════════════════════════ */
-/* Transición suave en todo el sitio al cambiar de tema */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* TransiciÃ³n suave en todo el sitio al cambiar de tema */
 body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 .cart-sidebar, .header, .footer, input, textarea, select, .toast {
   transition: background-color .4s ease, color .4s ease, border-color .4s ease, box-shadow .4s ease;
 }
 
 [data-theme="dark"] {
-  --cream-0:       #241c12;
-  --cream-1:       #1a120c;
-  --cream-2:       #2a2218;
-  --cream-3:       #34291c;
-  --surface:       #2a2218;
-  --surface-warm:  #241c12;
-  --surface-alt:   #201810;
-  --text-primary:  #f0ebe3;
-  --text-secondary:#d2c5b0;
-  --text-muted:    #b5a690;
-  --text-light:    #968670;
-  --border:        #3a2e1f;
-  --border-light:  #322716;
-  --gold-pale:     #38301d;
-  --shadow-xs:     0 1px 4px rgba(0,0,0,.40);
-  --shadow-sm:     0 3px 12px rgba(0,0,0,.45);
-  --shadow-md:     0 10px 34px rgba(0,0,0,.50);
-  --shadow-lg:     0 24px 60px rgba(0,0,0,.55);
-}
-[data-theme="dark"] body {
   background: var(--cream-1);
+}
+[data-theme="dark"] body::before {
   background-image:
     radial-gradient(circle at 8% 0%, rgba(184,146,74,.08), transparent 38%),
     radial-gradient(circle at 95% 4%, rgba(184,146,74,.06), transparent 36%);
@@ -1193,9 +1231,9 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 [data-theme="dark"] input, [data-theme="dark"] textarea, [data-theme="dark"] select { background: var(--surface-warm); color: var(--text-primary); }
 [data-theme="dark"] .toast { background: #2a2218; }
 
-/* ══════════════════════════════════════════════════════════════
-   BOTÓN TOGGLE DE TEMA (header)
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   BOTÃ“N TOGGLE DE TEMA (header)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .theme-toggle {
   position: relative; width: 40px; height: 40px; flex-shrink: 0;
   border-radius: 50%; border: 1px solid rgba(212,174,114,.3);
@@ -1221,15 +1259,15 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
   color: #fff; box-shadow: 0 3px 12px rgba(184,146,74,.4);
 }
 
-/* Animación de escala al activar un chip de filtro de promo */
+/* AnimaciÃ³n de escala al activar un chip de filtro de promo */
 @keyframes chipPop { 0% { transform: scale(1); } 45% { transform: scale(1.12); } 100% { transform: scale(1); } }
 .filter-btn.chip-pop { animation: chipPop .3s ease; }
 
-/* ══════════════════════════════════════════════════════════════
-   FILTROS — PASTILLAS VISUALES (catálogo y promos)
-   Las imágenes traen el texto incrustado (Canva); el código NO superpone
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FILTROS â€” PASTILLAS VISUALES (catÃ¡logo y promos)
+   Las imÃ¡genes traen el texto incrustado (Canva); el cÃ³digo NO superpone
    texto ni iconos sobre la foto real. El icono/degradado es solo fallback.
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .filter-group:has(.filter-pills) { flex: 1 1 100%; width: 100%; min-width: 0; align-items: stretch; }
 .filter-group:has(.filter-pills) .filter-group-label { text-align: center; }
 .filter-pills {
@@ -1239,7 +1277,7 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
   gap: .9rem;
   width: 100%;
 }
-/* La pastilla redefine por completo el chip base; proporción vertical 3:4 */
+/* La pastilla redefine por completo el chip base; proporciÃ³n vertical 3:4 */
 .filter-pill {
   position: relative; overflow: hidden;
   padding: 0; aspect-ratio: 3 / 4; height: auto;
@@ -1266,8 +1304,8 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 }
 .pill-bg img.img-loaded { opacity: 1; }
 .pill-icon { font-size: 2.4rem; line-height: 1; filter: drop-shadow(0 2px 6px rgba(0,0,0,.28)); }
-/* Etiqueta glassmorphism SOLO en la pastilla "Todos / Lo Más Solicitado"
-   (las demás llevan el texto incrustado en la propia imagen) */
+/* Etiqueta glassmorphism SOLO en la pastilla "Todos / Lo MÃ¡s Solicitado"
+   (las demÃ¡s llevan el texto incrustado en la propia imagen) */
 .pill-label {
   position: absolute; z-index: 2; left: 50%; bottom: .7rem; transform: translateX(-50%);
   width: max-content; max-width: calc(100% - 1.2rem); text-align: center;
@@ -1291,7 +1329,7 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
   transform: translateY(-2px);
 }
 .filter-pill.active .pill-label { background: var(--gold); color: #fff; border-color: var(--gold-light); }
-/* Shimmer diagonal — solo dispositivos con hover real */
+/* Shimmer diagonal â€” solo dispositivos con hover real */
 @media (hover: hover) {
   .filter-pill::after {
     content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
@@ -1310,19 +1348,19 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 @media (max-width: 900px) and (min-width: 601px) {
   .filter-pills { grid-template-columns: repeat(auto-fit, minmax(130px, 150px)); gap: .7rem; }
 }
-/* Móvil: 2 columnas */
+/* MÃ³vil: 2 columnas */
 @media (max-width: 600px) {
   .filter-pills { grid-template-columns: repeat(2, 1fr); justify-content: stretch; gap: .7rem; }
   .pill-icon { font-size: 2rem; }
   .pill-label { font-size: .72rem; padding: .28rem .7rem; }
 }
 /* Con filtros de promo en pastillas (full-width), el separador vertical sobra */
-#promoGenderSep { display: none !important; }
+#promoGenderSep { display: none; }
 #promoGenderGroup { width: 100%; justify-content: center; }
 
-/* ══════════════════════════════════════════════════════════════
-   RESEÑAS / TESTIMONIOS
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   RESEÃ‘AS / TESTIMONIOS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .section-reviews { background: var(--surface-alt); }
 /* Carrusel horizontal con scroll-snap + flechas */
 .reviews-carousel { position: relative; max-width: var(--max-w); margin: 0 auto; }
@@ -1382,9 +1420,9 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
   .review-card { width: 82vw; }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   RECOMENDADOR POR CLIMA / OCASIÓN
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   RECOMENDADOR POR CLIMA / OCASIÃ“N
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .section-reco {
   background:
     radial-gradient(circle at 50% 35%, rgba(212,174,114,.10), transparent 60%),
@@ -1465,7 +1503,7 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
   box-shadow: 0 8px 20px rgba(184,146,74,.34);
 }
 .quiz-opt.selected::after {
-  content: '✓'; position: absolute; top: .5rem; right: .7rem; font-size: .8rem; font-weight: 800;
+  content: 'âœ“'; position: absolute; top: .5rem; right: .7rem; font-size: .8rem; font-weight: 800;
   animation: quizCheck .3s cubic-bezier(.28,.84,.42,1.4) both;
 }
 @keyframes quizCheck { from { transform: scale(0); } to { transform: scale(1); } }
@@ -1474,10 +1512,10 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 @media (max-width: 480px) { .quiz-opts { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .quiz-in, .quiz-opt.selected::after { animation: none; } }
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    POLISH MODALES / CARRITO (brillo, micro-check, swipe)
-══════════════════════════════════════════════════════════════ */
-/* Brillo al hover en botones principales de añadir */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* Brillo al hover en botones principales de aÃ±adir */
 .btn-add-large::before, .btn-checkout::before {
   content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,.32) 50%, transparent 62%);
@@ -1485,16 +1523,16 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 }
 .btn-add-large:hover::before, .btn-checkout:hover::before { transform: translateX(130%); }
 
-/* Micro-check ✓ tras añadir */
-.btn-add-large.added { background: var(--success, #3a9c6e) !important; }
+/* Micro-check âœ“ tras aÃ±adir */
+.btn-add-large.added { background: var(--success, #3a9c6e); }
 .btn-add-large.added > * { opacity: 0; }
 .btn-add-large.added::after {
-  content: '✓ ¡Añadido!'; position: absolute; inset: 0; z-index: 2;
+  content: 'âœ“ Â¡AÃ±adido!'; position: absolute; inset: 0; z-index: 2;
   display: flex; align-items: center; justify-content: center;
   color: #fff; font-weight: 700; letter-spacing: .04em; font-size: .85rem;
 }
 
-/* Animación del precio del pack al cambiar tamaño */
+/* AnimaciÃ³n del precio del pack al cambiar tamaÃ±o */
 .price-anim { animation: priceFade .35s ease; }
 @keyframes priceFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -1512,16 +1550,16 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
   .pack-counter.complete { animation: none; }
 }
 
-/* Swipe-to-delete (móvil): fondo rojo revelado al deslizar el item */
+/* Swipe-to-delete (mÃ³vil): fondo rojo revelado al deslizar el item */
 @media (max-width: 768px) {
   .cart-item { touch-action: pan-y; }
   .cart-item.swiping { transition: none; }
-  .cart-item.swipe-reset { transition: transform .25s ease; transform: translateX(0) !important; }
+  .cart-item.swipe-reset { transition: transform .25s ease; transform: translateX(0); }
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    EFECTOS 3D Y MICROINTERACCIONES PREMIUM
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 /* Ripple dorado en botones */
 .btn, .btn-add, .btn-add-large, .btn-checkout, .btn-whatsapp, .btn-empty-action, .btn-outline-dark {
   position: relative; overflow: hidden;
@@ -1538,7 +1576,7 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 }
 @media (prefers-reduced-motion: reduce) { .ripple-ink { display: none; } }
 
-/* Partículas doradas del hero */
+/* PartÃ­culas doradas del hero */
 .hero-particles { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
 .hero-particles span {
   position: absolute; bottom: -12px; width: 8px; height: 8px; border-radius: 50%;
@@ -1563,9 +1601,9 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 .hero-particles span:nth-child(10){ left: 64%; width: 7px; height: 7px;  animation-duration: 13.5s; animation-delay: 4.5s; }
 @media (prefers-reduced-motion: reduce) { .hero-particles { display: none; } }
 
-/* ══════════════════════════════════════════════════════════════
-   STOCK CHIP · FILA DE PRECIO
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   STOCK CHIP Â· FILA DE PRECIO
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .product-price-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: auto; padding-top: .65rem; }
 .product-price-row .product-price { margin-top: 0; padding-top: 0; }
 .stock-chip {
@@ -1576,9 +1614,9 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 [data-theme="dark"] .stock-chip { background: rgba(212,174,114,.12); color: var(--gold-light); }
 @media (max-width: 400px) { .stock-chip { display: none; } }
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    INSTAGRAM FLOTANTE
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .ig-fab {
   position: fixed; left: 20px; bottom: 20px; z-index: 4500;
   width: 48px; height: 48px; border-radius: 50%;
@@ -1597,9 +1635,9 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 .ig-fab:hover[data-tooltip]::after { transform: translateY(-50%) translateX(0); }
 @media (max-width: 560px) { .ig-fab { left: 14px; bottom: 14px; width: 44px; height: 44px; } }
 
-/* ══════════════════════════════════════════════════════════════
-   TOAST CON ACCIÓN (recordatorio de carrito)
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   TOAST CON ACCIÃ“N (recordatorio de carrito)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .toast-emoji { font-size: 1.1rem; line-height: 1; flex: 0 0 auto; }
 .toast-action {
   flex: 0 0 auto; margin-left: .3rem; padding: .35rem .8rem; border-radius: var(--r-pill);
@@ -1609,11 +1647,11 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 }
 .toast-action:hover { background: var(--gold-deep); transform: translateY(-1px); }
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    EXTENDED DESIGN TOKENS
    Variables adicionales para gradientes, glassmorphism y easing.
    Complementan el sistema existente sin reemplazarlo.
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 :root {
   /* Easing curves (usa cubic-bezier en lugar de palabras clave) */
   --ease-out-expo:   cubic-bezier(.19,1,.22,1);
@@ -1640,11 +1678,11 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
   --glow-gold-lg:  0 0 60px rgba(184,146,74,.55);
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    GLASSMORPHISM UTILITIES
-   .glass → panel translúcido claro
-   .glass-dark → panel translúcido oscuro (sobre fondos dark)
-══════════════════════════════════════════════════════════════ */
+   .glass â†’ panel translÃºcido claro
+   .glass-dark â†’ panel translÃºcido oscuro (sobre fondos dark)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .glass {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
@@ -1660,10 +1698,10 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
   border-radius: var(--r-lg);
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TEXT UTILITIES
-══════════════════════════════════════════════════════════════ */
-/* Texto con gradiente dorado — úsalo en <span class="text-gradient-gold"> */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* Texto con gradiente dorado â€” Ãºsalo en <span class="text-gradient-gold"> */
 .text-gradient-gold {
   background: var(--gradient-gold);
   -webkit-background-clip: text;
@@ -1672,19 +1710,19 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
   color: transparent;
 }
 
-/* text-wrap: balance mejora el salto de línea en títulos */
+/* text-wrap: balance mejora el salto de lÃ­nea en tÃ­tulos */
 .text-balance { text-wrap: balance; }
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    INFINITE MARQUEE
    Uso:
    <div class="marquee-wrap">
      <div class="marquee-track">
-       <span>Árabe</span><span>·</span><span>Diseñador</span>...
+       <span>Ãrabe</span><span>Â·</span><span>DiseÃ±ador</span>...
        (duplicar el contenido para el loop seamless)
      </div>
    </div>
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .marquee-wrap {
   overflow: hidden;
   mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
@@ -1716,21 +1754,21 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 .marquee-wrap:hover .marquee-track { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
 
-/* ══════════════════════════════════════════════════════════════
-   BRAND STRIP — Marquee preconfigurado para la home
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   BRAND STRIP â€” Marquee preconfigurado para la home
    Insertar entre .hero y .stats-bar:
    <div class="brand-strip"><div class="marquee-wrap">...</div></div>
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .brand-strip {
   background: var(--brown-1);
   border-bottom: 1px solid rgba(212,174,114,.1);
   padding: .9rem 0;
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SKELETON LOADER MEJORADO
-   .skeleton → bloque de carga animado (usable en cualquier el.)
-══════════════════════════════════════════════════════════════ */
+   .skeleton â†’ bloque de carga animado (usable en cualquier el.)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .skeleton {
   background: linear-gradient(90deg,
     var(--cream-2) 25%,
@@ -1754,9 +1792,9 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; background: var(--cream-2); } }
 
-/* ══════════════════════════════════════════════════════════════
-   EMPTY STATE — Mejorado
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   EMPTY STATE â€” Mejorado
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .empty-state {
   grid-column: 1 / -1;
   text-align: center;
@@ -1783,9 +1821,9 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
   line-height: 1.75;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   CATALOG HINT — mejorado (cuando hay género sin categoría)
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   CATALOG HINT â€” mejorado (cuando hay gÃ©nero sin categorÃ­a)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .catalog-hint {
   grid-column: 1 / -1;
   text-align: center;
@@ -1800,9 +1838,9 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
 }
 @media (prefers-reduced-motion: reduce) { .catalog-hint-icon { animation: none; } }
 
-/* ══════════════════════════════════════════════════════════════
-   DARK MODE — mejoras adicionales para filter pills
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   DARK MODE â€” mejoras adicionales para filter pills
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 [data-theme="dark"] .filters-wrapper {
   background: var(--surface);
   border-color: var(--border);
@@ -1823,98 +1861,30 @@ body, .product-card, .promo-card, .trust-card, .modal, .pack-modal,
   color: var(--gold-light);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   RESPONSIVE — ajustes menores para tokens nuevos
-══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   RESPONSIVE â€” ajustes menores para tokens nuevos
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 @media (max-width: 768px) {
   .marquee-track { animation-duration: 18s; }
 }
 
-/* ╔══════════════════════════════════════════════════════════════╗
-   ║  REDESIGN v2 — PALETA BLANCO/NEGRO PREMIUM                  ║
-   ║  Todos los overrides posteriores al CSS original.            ║
-   ║  Las variables CSS de :root posteriores sobreescriben        ║
-   ║  las anteriores, los selectores de clase mantienen           ║
-   ║  la misma especificidad o la aumentan.                        ║
-   ╚══════════════════════════════════════════════════════════════╝ */
+/* â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+   â•‘  REDESIGN v2 â€” PALETA BLANCO/NEGRO PREMIUM                  â•‘
+   â•‘  Todos los overrides posteriores al CSS original.            â•‘
+   â•‘  Las variables CSS de :root posteriores sobreescriben        â•‘
+   â•‘  las anteriores, los selectores de clase mantienen           â•‘
+   â•‘  la misma especificidad o la aumentan.                        â•‘
+   â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ── 1. NUEVAS VARIABLES DE DISEÑO ─────────────────────────── */
-:root {
-  /* Paleta base: blanco dominante, negro elegante */
-  --cream-0:        #ffffff;
-  --cream-1:        #f8f8f6;
-  --cream-2:        #f1f1ee;
-  --cream-3:        #e4e4e1;
-  --brown-0:        #0b0b0b;
-  --brown-1:        #141414;
-  --brown-2:        #2a2a2a;
-  --brown-3:        #555555;
+/* â”€â”€ 1. NUEVAS VARIABLES DE DISEÃ‘O â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-  /* Acento: champagne/greige muy sutil — máx 5% de uso */
-  --gold-deep:      #1a1a1a;
-  --gold:           #b0a898;
-  --gold-light:     #cec9be;
-  --gold-pale:      #f2f0ec;
-  --gold-glow:      rgba(0,0,0,.06);
-
-  /* Superficies */
-  --surface:        #ffffff;
-  --surface-warm:   #fafaf8;
-  --surface-alt:    #f5f5f2;
-
-  /* Texto */
-  --text-primary:   #0b0b0b;
-  --text-secondary: #333333;
-  --text-muted:     #767676;
-  --text-light:     #aaaaaa;
-
-  /* Bordes */
-  --border:         rgba(11,11,11,.09);
-  --border-light:   rgba(11,11,11,.05);
-
-  /* Sombras — más suaves, sin tinte dorado */
-  --shadow-xs:      0 2px 8px rgba(0,0,0,.05);
-  --shadow-sm:      0 4px 18px rgba(0,0,0,.08);
-  --shadow-md:      0 12px 40px rgba(0,0,0,.10);
-  --shadow-lg:      0 28px 80px rgba(0,0,0,.14);
-  --shadow-gold:    0 16px 50px rgba(0,0,0,.11);
-  --shadow-gold-lg: 0 24px 70px rgba(0,0,0,.17);
-
-  /* Radios */
-  --r-xs:  6px;  --r-sm: 10px; --r-md: 16px;
-  --r-lg:  22px; --r-xl: 32px; --r-pill: 9999px;
-
-  /* Tipografía */
-  --font-body: 'Manrope', 'Segoe UI', Helvetica, sans-serif;
-
-  /* Easing premium */
-  --ease-premium:      cubic-bezier(.16,1,.3,1);
-  --t-fast:   .18s var(--ease-premium);
-  --t-base:   .32s var(--ease-premium);
-  --t-spring: .5s  cubic-bezier(.34,1.56,.64,1);
-
-  /* Tokens semánticos adicionales */
-  --color-bg:          #ffffff;
-  --color-bg-soft:     #f8f8f6;
-  --color-surface:     #ffffff;
-  --color-text:        #0b0b0b;
-  --color-text-soft:   #444444;
-  --color-text-muted:  #767676;
-  --color-black:       #050505;
-  --color-white:       #ffffff;
-  --color-border:      rgba(5,5,5,.08);
-  --color-border-strong: rgba(5,5,5,.16);
-  --color-accent:      #cec9be;
-  --color-accent-soft: #f2f0ec;
-}
-
-/* ── 2. BASE ────────────────────────────────────────────────── */
+/* â”€â”€ 2. BASE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 body {
   background: var(--color-bg);
   background-image: none; /* elimina radiales dorados anteriores */
 }
 
-/* ── 3. HEADER — negro refinado, sin tinte marrón ─────────── */
+/* â”€â”€ 3. HEADER â€” negro refinado, sin tinte marrÃ³n â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .header {
   background: var(--color-black);
   border-bottom: 1px solid rgba(255,255,255,.07);
@@ -1926,7 +1896,7 @@ body {
 .nav a:hover, .nav a.active { color: #fff; }
 .nav a::after { background: #fff; }
 
-/* ── 4. BOTONES ─────────────────────────────────────────────── */
+/* â”€â”€ 4. BOTONES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /* btn-gold: blanco en hero (fondo oscuro) */
 .hero .btn-gold,
 .page-hero .btn-gold {
@@ -1962,13 +1932,13 @@ body {
   box-shadow: var(--shadow-md);
 }
 
-/* ── 5. HERO ────────────────────────────────────────────────── */
+/* â”€â”€ 5. HERO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .hero { background: #080808; }
 .hero h1 em { color: rgba(255,255,255,.78); font-style: italic; }
 .hero-eyebrow { color: rgba(255,255,255,.55); }
 .hero-line { background: rgba(255,255,255,.25); }
 
-/* ── 6. PAGE HERO (catálogo/promos) ─────────────────────────── */
+/* â”€â”€ 6. PAGE HERO (catÃ¡logo/promos) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /* Especificidad: .page-hero .selector tiene (0,2,0) > .section-* (0,1,0) */
 .page-hero .section-eyebrow,
 .page-hero-eyebrow {
@@ -1986,7 +1956,7 @@ body {
 .page-hero .section-subtitle,
 .page-hero-subtitle { color: rgba(255,255,255,.72); }
 
-/* ── 7. STATS BAR ───────────────────────────────────────────── */
+/* â”€â”€ 7. STATS BAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .stats-bar {
   background: #050505;
   border-bottom: 1px solid rgba(255,255,255,.06);
@@ -1999,12 +1969,12 @@ body {
 .stat-label { color: rgba(255,255,255,.45); letter-spacing: .1em; }
 .stat-divider { background: rgba(255,255,255,.1); }
 
-/* ── 8. SECCIÓN — tipografía ─────────────────────────────────── */
+/* â”€â”€ 8. SECCIÃ“N â€” tipografÃ­a â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .section-eyebrow { color: var(--text-muted); }
 .section-eyebrow::before, .section-eyebrow::after { background: var(--color-accent); }
 .section-title { color: var(--color-text); }
 
-/* ── 9. PRODUCT CARDS ───────────────────────────────────────── */
+/* â”€â”€ 9. PRODUCT CARDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .product-card {
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-xs);
@@ -2045,7 +2015,7 @@ body {
   box-shadow: 0 6px 20px rgba(0,0,0,.16);
 }
 
-/* ── 10. PROMO CARDS ────────────────────────────────────────── */
+/* â”€â”€ 10. PROMO CARDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .promo-card {
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-xs);
@@ -2077,7 +2047,7 @@ body {
 }
 .promo-badge { background: #1a1a1a; }
 
-/* ── 11. TRUST CARDS ────────────────────────────────────────── */
+/* â”€â”€ 11. TRUST CARDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .trust-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -2088,7 +2058,7 @@ body {
 .trust-icon-wrap { background: var(--color-bg-soft); }
 .trust-card:hover .trust-icon-wrap { background: var(--color-black); }
 
-/* ── 12. REVIEWS ────────────────────────────────────────────── */
+/* â”€â”€ 12. REVIEWS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .review-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -2099,13 +2069,13 @@ body {
   color: #fff;
 }
 
-/* ── 13. FILTROS EXISTENTES — desactivar estilos pill viejos ── */
+/* â”€â”€ 13. FILTROS EXISTENTES â€” desactivar estilos pill viejos â”€â”€ */
 /* Los cat-tile reemplazan a .filter-pill; ocultamos estilos legacy */
 .filter-pill { all: unset; } /* reset limpio */
 .pill-bg, .pill-icon, .pill-label { display: none; } /* eliminar pill markup si existe */
 .filters-wrapper { display: none; } /* panel viejo oculto */
 
-/* ── 14. CAT-SECTION — contenedor general de catálogo/promos ─ */
+/* â”€â”€ 14. CAT-SECTION â€” contenedor general de catÃ¡logo/promos â”€ */
 .cat-section {
   padding: 3.5rem 0 5rem;
   max-width: var(--max-w);
@@ -2114,12 +2084,130 @@ body {
 }
 @media (max-width: 640px) { .cat-section { padding-inline: 1rem; padding-top: 2.5rem; } }
 
-/* ── 15. CAT-SHOWCASE — grid editorial de categorías ──────────
-   Desktop: Fila 1 → Nicho (2/3) + Árabe (1/3)
-            Fila 2 → Deluxe + Diseñador + Tester
-   Inspiración: editorial de lujo, Louvi Parfums style.
-   NO se copian imágenes ni textos. Solo la estructura.
-   ─────────────────────────────────────────────────────────── */
+/* â”€â”€ 14.1 BÃšSQUEDA RÃPIDA + CHIPS â€” catÃ¡logo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Busca en todo el catÃ¡logo en tiempo real (nombre, marca, notas)
+   y filtra al instante con chips horizontales (hombre/mujer/...). */
+.quick-find { display: grid; gap: .9rem; margin-bottom: 1.8rem; }
+.search-bar {
+  position: relative; display: flex; align-items: center;
+  background: var(--surface); border: 1.5px solid var(--border-light);
+  border-radius: var(--r-pill); padding-left: 1.05rem;
+  transition: border-color var(--t-base), box-shadow var(--t-base);
+}
+.search-bar:focus-within { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,146,74,.16); }
+.search-bar__icon { color: var(--gold); font-size: .85rem; flex: 0 0 auto; }
+.search-bar input {
+  flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+  color: var(--text-primary); font-family: var(--font-body); font-size: .9rem;
+  padding: .7rem .75rem;
+}
+.search-bar input::placeholder { color: var(--text-muted); }
+.search-bar input::-webkit-search-cancel-button { display: none; }
+.search-bar__clear {
+  flex: 0 0 auto; margin-right: .4rem; width: 1.7rem; height: 1.7rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 50%; background: transparent; color: var(--text-muted);
+  font-size: .75rem; cursor: pointer; transition: background var(--t-base), color var(--t-base);
+}
+.search-bar__clear:hover { background: var(--border-light); color: var(--text-primary); }
+.quick-chips {
+  display: flex; gap: .55rem; overflow-x: auto; scrollbar-width: none;
+  padding: .15rem .1rem .4rem;
+}
+.quick-chips::-webkit-scrollbar { display: none; }
+.quick-chip {
+  flex: 0 0 auto; border: 1.5px solid var(--border-light); background: var(--surface);
+  color: var(--text-secondary); border-radius: var(--r-pill);
+  padding: .5rem 1.1rem; font-size: .78rem; font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; font-family: var(--font-body); cursor: pointer;
+  transition: all var(--t-base); white-space: nowrap;
+}
+.quick-chip:hover { border-color: var(--gold-light); color: var(--gold-deep); }
+.quick-chip.active {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold-deep));
+  border-color: transparent; color: #fff;
+  box-shadow: 0 5px 14px rgba(184,146,74,.35);
+}
+.catalog-results { text-align: center; color: var(--text-muted); font-size: .8rem; margin: 0 0 1.2rem; }
+.product-grid { transition: opacity .16s ease, transform .16s ease; }
+.product-grid.switching { opacity: 0; transform: translateY(5px); }
+
+/* â”€â”€ 14.2 CONFIANZA â€” modal producto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Tres sellos discretos debajo del botÃ³n de compra. */
+.modal-trust {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1.15rem;
+  margin-top: 1rem; padding-top: .85rem; border-top: 1px dashed var(--border-light);
+}
+.modal-trust__item {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-size: .68rem; color: var(--text-muted); font-weight: 600; letter-spacing: .02em;
+}
+.modal-trust__item i { color: var(--gold); font-size: .78rem; }
+
+/* â”€â”€ 14.3 UPSELLING â€” carrito â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Franja "agrega una muestra" con sugerencias aleatorias de 2ml. */
+.upsell-strip {
+  margin-bottom: .95rem; padding: .85rem .95rem .95rem;
+  border: 1px dashed rgba(184,146,74,.45); border-radius: var(--r-md);
+  background: linear-gradient(135deg, rgba(184,146,74,.1), rgba(184,146,74,.03));
+}
+.upsell-strip__title {
+  margin: 0 0 .7rem; font-size: .74rem; font-weight: 700; letter-spacing: .03em;
+  color: var(--gold-deep);
+}
+.upsell-strip__items { display: flex; gap: .6rem; overflow-x: auto; scrollbar-width: none; padding-bottom: .15rem; }
+.upsell-strip__items::-webkit-scrollbar { display: none; }
+.upsell-item {
+  flex: 0 0 auto; display: flex; align-items: center; gap: .5rem;
+  width: min(200px, 62vw); padding: .35rem .5rem .35rem .35rem;
+  background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--r-pill);
+}
+.upsell-item img {
+  width: 36px; height: 36px; flex: 0 0 auto; object-fit: contain;
+  border-radius: 50%; background: var(--cream-0);
+}
+.upsell-item__info { flex: 1; min-width: 0; }
+.upsell-item__name {
+  font-size: .68rem; font-weight: 700; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.upsell-item__meta { font-size: .6rem; color: var(--text-muted); }
+.upsell-item__add {
+  flex: 0 0 auto; border: 0; border-radius: var(--r-pill); cursor: pointer;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold-deep)); color: #fff;
+  font-family: var(--font-body); font-size: .64rem; font-weight: 700;
+  padding: .42rem .6rem; letter-spacing: .02em;
+  transition: transform var(--t-base), box-shadow var(--t-base);
+}
+.upsell-item__add:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(184,146,74,.4); }
+
+/* â”€â”€ 14.4 BADGE BESTSELLER â€” cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Dorado brillante con animaciÃ³n sutil; el badge regular (new/top)
+   se desplaza a la derecha para no superponerse. */
+.product-badge.bestseller {
+  background: linear-gradient(135deg, #d9a52e, #b8860b 45%, #e0b64e);
+  background-size: 220% 220%;
+  animation: shimmerGold 3s ease infinite;
+  color: #fff; letter-spacing: .06em;
+  box-shadow: 0 4px 14px rgba(196,148,32,.45);
+}
+.product-badge.bestseller:hover { transform: translateY(-1px) scale(1.04); }
+@keyframes shimmerGold {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.product-badge--right { left: auto; right: .85rem; }
+@media (prefers-reduced-motion: reduce) {
+  .product-badge.bestseller { animation: none; }
+}
+
+/* â”€â”€ 15. CAT-SHOWCASE â€” grid editorial de categorÃ­as â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Desktop: Fila 1 â†’ Nicho (2/3) + Ãrabe (1/3)
+            Fila 2 â†’ Deluxe + DiseÃ±ador + Tester
+   InspiraciÃ³n: editorial de lujo, Louvi Parfums style.
+   NO se copian imÃ¡genes ni textos. Solo la estructura.
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .cat-showcase {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -2127,7 +2215,7 @@ body {
   gap: 1rem;
   margin-bottom: 0;
 }
-/* Posición editorial — SOLO el showcase de catálogo (no el de promos) */
+/* PosiciÃ³n editorial â€” SOLO el showcase de catÃ¡logo (no el de promos) */
 .cat-showcase:not(.cat-showcase--promos) .cat-tile:nth-child(1) { grid-column: 1 / 4; grid-row: 1; }
 .cat-showcase:not(.cat-showcase--promos) .cat-tile:nth-child(2) { grid-column: 4 / 7; grid-row: 1; }
 .cat-showcase:not(.cat-showcase--promos) .cat-tile:nth-child(3) { grid-column: 1 / 3; grid-row: 2; }
@@ -2145,7 +2233,7 @@ body {
   height: 460px;
 }
 
-/* ── 16. CAT-TILE — tarjeta editorial de categoría ────────── */
+/* â”€â”€ 16. CAT-TILE â€” tarjeta editorial de categorÃ­a â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .cat-tile {
   position: relative;
   overflow: hidden;
@@ -2272,7 +2360,7 @@ body {
   outline-offset: 3px;
 }
 
-/* ── 17. GENDER BAR — chips de género ───────────────────────── */
+/* â”€â”€ 17. GENDER BAR â€” chips de gÃ©nero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .gender-bar {
   display: flex;
   align-items: center;
@@ -2322,7 +2410,7 @@ body {
   outline-offset: 2px;
 }
 
-/* ── 18. CATALOG HINT — sin categoría + género activo ───────── */
+/* â”€â”€ 18. CATALOG HINT â€” sin categorÃ­a + gÃ©nero activo â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .catalog-hint {
   grid-column: 1 / -1;
   text-align: center;
@@ -2332,7 +2420,7 @@ body {
 .catalog-hint-icon { font-size: 2rem; margin-bottom: 1rem; opacity: .4; animation: floatUpDown 2.8s ease-in-out infinite; }
 .catalog-hint-text { color: var(--text-muted); font-size: .9rem; max-width: 320px; margin: 0 auto; }
 
-/* ── 19. EMPTY STATE mejorado ─────────────────────────────────── */
+/* â”€â”€ 19. EMPTY STATE mejorado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .empty-state {
   grid-column: 1 / -1;
   padding: 5rem 2rem;
@@ -2349,7 +2437,7 @@ body {
 }
 .empty-state-text { color: var(--text-muted); font-size: .88rem; max-width: 360px; margin: 0 auto; line-height: 1.75; }
 
-/* ── 20. FOOTER ─────────────────────────────────────────────── */
+/* â”€â”€ 20. FOOTER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .footer {
   background: var(--color-black);
   border-top: 1px solid rgba(255,255,255,.06);
@@ -2362,7 +2450,7 @@ body {
 .social-links a { color: rgba(255,255,255,.45); border-color: rgba(255,255,255,.12); }
 .social-links a:hover { color: #fff; border-color: rgba(255,255,255,.4); background: rgba(255,255,255,.08); }
 
-/* ── 21. MODAL — entrada premium ──────────────────────────────── */
+/* â”€â”€ 21. MODAL â€” entrada premium â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .modal-overlay { background: rgba(5,5,5,.68); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .modal {
   background: var(--color-surface);
@@ -2389,7 +2477,7 @@ body {
 }
 .btn-add-large:hover { background: #222; box-shadow: var(--shadow-md); }
 
-/* ── 22. CART SIDEBAR ───────────────────────────────────────── */
+/* â”€â”€ 22. CART SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .cart-sidebar {
   background: var(--color-surface);
   border-left: 1px solid var(--color-border);
@@ -2404,7 +2492,7 @@ body {
   letter-spacing: .03em;
 }
 
-/* ── 23. SEARCH INPUT ───────────────────────────────────────── */
+/* â”€â”€ 23. SEARCH INPUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .search-box input:focus {
   border-color: rgba(255,255,255,.55);
   background: rgba(255,255,255,.18);
@@ -2418,7 +2506,7 @@ body {
 }
 .search-suggestion-item:hover { background: var(--color-bg-soft); }
 
-/* ── 24. BACK TO TOP ─────────────────────────────────────────── */
+/* â”€â”€ 24. BACK TO TOP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .back-to-top {
   background: var(--color-black);
   color: #fff;
@@ -2427,39 +2515,14 @@ body {
 }
 .back-to-top:hover { background: #222; transform: translateY(-4px); box-shadow: var(--shadow-lg); }
 
-/* ── 25. IG FAB ─────────────────────────────────────────────── */
+/* â”€â”€ 25. IG FAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .ig-fab {
   background: var(--color-black);
   box-shadow: 0 8px 26px rgba(0,0,0,.25);
 }
 .ig-fab:hover { background: #222; box-shadow: 0 12px 36px rgba(0,0,0,.35); }
 
-/* ── 26. DARK MODE — ajustes sobre nueva paleta ─────────────── */
-[data-theme="dark"] {
-  --cream-0:        #161616;
-  --cream-1:        #111111;
-  --cream-2:        #1e1e1e;
-  --cream-3:        #252525;
-  --surface:        #1a1a1a;
-  --surface-warm:   #141414;
-  --surface-alt:    #121212;
-  --text-primary:   #f0f0ee;
-  --text-secondary: #d0d0ce;
-  --text-muted:     #888888;
-  --text-light:     #606060;
-  --border:         rgba(255,255,255,.08);
-  --border-light:   rgba(255,255,255,.04);
-  --gold-pale:      #1e1e1e;
-  --color-bg:       #111111;
-  --color-bg-soft:  #161616;
-  --color-surface:  #1a1a1a;
-  --color-text:     #f0f0ee;
-  --color-border:   rgba(255,255,255,.08);
-  --color-border-strong: rgba(255,255,255,.14);
-  --shadow-xs:      0 2px 8px rgba(0,0,0,.5);
-  --shadow-sm:      0 4px 18px rgba(0,0,0,.55);
-  --shadow-md:      0 12px 40px rgba(0,0,0,.6);
-}
+/* â”€â”€ 26. DARK MODE â€” ajustes sobre nueva paleta â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 [data-theme="dark"] body {
   background: var(--color-bg);
   background-image: none;
@@ -2488,7 +2551,7 @@ body {
 }
 [data-theme="dark"] .filters-wrapper { display: none; }
 
-/* ── 27. RESPONSIVE — CAT SHOWCASE ───────────────────────────── */
+/* â”€â”€ 27. RESPONSIVE â€” CAT SHOWCASE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 1024px) {
   .cat-showcase {
     grid-template-columns: repeat(4, 1fr);
@@ -2536,14 +2599,14 @@ body {
   .cat-showcase .cat-tile:nth-child(1) { height: 200px; }
 }
 
-/* ── 28. REVEAL — clases de animación para GSAP ──────────────── */
+/* â”€â”€ 28. REVEAL â€” clases de animaciÃ³n para GSAP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .js-reveal { opacity: 0; transform: translateY(30px); }
 .js-reveal.is-visible {
   opacity: 1; transform: translateY(0);
   transition: opacity .7s var(--ease-premium), transform .7s var(--ease-premium);
 }
 
-/* ── 29. REDUCED MOTION ──────────────────────────────────────── */
+/* â”€â”€ 29. REDUCED MOTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (prefers-reduced-motion: reduce) {
   .cat-tile__img img,
   .cat-tile__body,
@@ -2552,168 +2615,168 @@ body {
   .js-reveal, .js-reveal.is-visible { opacity: 1; transform: none; transition: none; }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   AUTOCRÍTICA v1 — 20 mejoras visuales/UX post-audit
-   Director de diseño senior: refinamiento del resultado.
-   ══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   AUTOCRÃTICA v1 â€” 20 mejoras visuales/UX post-audit
+   Director de diseÃ±o senior: refinamiento del resultado.
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* 1. Page-hero más impactante: altura de 56vh → 65vh */
-.page-hero { min-height: 65vh !important; }
+/* 1. Page-hero mÃ¡s impactante: altura de 56vh â†’ 65vh */
+.page-hero { min-height: 65vh; }
 
-/* 2. Page hero overlay más profundo para mejor legibilidad */
+/* 2. Page hero overlay mÃ¡s profundo para mejor legibilidad */
 .page-hero-overlay {
   background: linear-gradient(
     to top,
     rgba(0,0,0,.70) 0%,
     rgba(0,0,0,.30) 50%,
     rgba(0,0,0,.08) 100%
-  ) !important;
+  );
 }
 
 /* 3. Section eyebrows: warmth sutil con champagne en lugar de gris plano */
-.section-eyebrow { color: var(--gold) !important; }          /* #b0a898 champagne */
-.section-eyebrow::before, .section-eyebrow::after { background: var(--gold) !important; }
+.section-eyebrow { color: var(--gold); }          /* #b0a898 champagne */
+.section-eyebrow::before, .section-eyebrow::after { background: var(--gold); }
 
-/* 4. Cat-tile: nombre más grande en tiles grandes (fila 1) */
+/* 4. Cat-tile: nombre mÃ¡s grande en tiles grandes (fila 1) */
 .cat-showcase:not(.cat-showcase--promos) .cat-tile:nth-child(1) .cat-tile__name,
 .cat-showcase:not(.cat-showcase--promos) .cat-tile:nth-child(2) .cat-tile__name {
   font-size: clamp(2rem, 3.5vw, 3rem);
 }
 
-/* 5. Cat-tile estado activo: anillo de selección más visible */
+/* 5. Cat-tile estado activo: anillo de selecciÃ³n mÃ¡s visible */
 .cat-tile[aria-pressed="true"] {
   box-shadow: 0 0 0 3px rgba(255,255,255,.9),
               0 0 0 6px rgba(255,255,255,.22),
-              var(--shadow-lg) !important;
+              var(--shadow-lg);
 }
 
-/* 6. Gender bar: separador superior más elegante */
+/* 6. Gender bar: separador superior mÃ¡s elegante */
 .gender-bar {
-  border-top: 1px solid var(--color-border) !important;
-  margin-top: 2rem !important;
-  padding-top: 1.5rem !important;
+  border-top: 1px solid var(--color-border);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
 }
 
-/* 7. Gender chip seleccionado: transición más visible */
+/* 7. Gender chip seleccionado: transiciÃ³n mÃ¡s visible */
 .gender-chip.active,
 .gender-chip[aria-pressed="true"] {
-  background: var(--color-black) !important;
-  color: #fff !important;
-  border-color: var(--color-black) !important;
-  box-shadow: 0 4px 14px rgba(0,0,0,.18) !important;
+  background: var(--color-black);
+  color: #fff;
+  border-color: var(--color-black);
+  box-shadow: 0 4px 14px rgba(0,0,0,.18);
   transform: translateY(-1px);
 }
 
-/* 8. Product card: hover más dramático */
+/* 8. Product card: hover mÃ¡s dramÃ¡tico */
 .product-card:hover {
-  transform: translateY(-4px) !important;
-  box-shadow: 0 24px 70px rgba(0,0,0,.13) !important;
+  transform: translateY(-4px);
+  box-shadow: 0 24px 70px rgba(0,0,0,.13);
 }
 
-/* 9. Btn-add: letra más espaciada, más premium */
+/* 9. Btn-add: letra mÃ¡s espaciada, mÃ¡s premium */
 .btn-add {
-  letter-spacing: .06em !important;
-  font-weight: 600 !important;
-  font-size: .73rem !important;
-  text-transform: uppercase !important;
+  letter-spacing: .06em;
+  font-weight: 600;
+  font-size: .73rem;
+  text-transform: uppercase;
 }
 
 /* 10. Product badge deluxe: color champagne distinguido */
 .product-badge.deluxe {
-  background: #8a7d6e !important;
-  letter-spacing: .08em !important;
+  background: #8a7d6e;
+  letter-spacing: .08em;
 }
 
-/* 11. Cat-showcase: gap un poco más generoso en desktop */
+/* 11. Cat-showcase: gap un poco mÃ¡s generoso en desktop */
 @media (min-width: 1024px) {
-  .cat-showcase { gap: 1.2rem !important; }
+  .cat-showcase { gap: 1.2rem; }
 }
 
 /* 12. Page-hero content: padding inferior para que el texto no toque el borde */
 .page-hero-content {
-  padding-bottom: 3rem !important;
-  width: 100% !important;
-  max-width: 680px !important;
+  padding-bottom: 3rem;
+  width: 100%;
+  max-width: 680px;
 }
 
 /* 13. Promo-card hover consistente con product-card */
 .promo-card:hover {
-  transform: translateY(-4px) !important;
-  box-shadow: 0 24px 70px rgba(0,0,0,.13) !important;
+  transform: translateY(-4px);
+  box-shadow: 0 24px 70px rgba(0,0,0,.13);
 }
 
-/* 14. Footer links: espaciado de línea más cómodo */
-.footer-col p { line-height: 1.85 !important; }
-.footer-link, .footer-col a { letter-spacing: .02em !important; }
+/* 14. Footer links: espaciado de lÃ­nea mÃ¡s cÃ³modo */
+.footer-col p { line-height: 1.85; }
+.footer-link, .footer-col a { letter-spacing: .02em; }
 
-/* 15. Stats bar: números más grandes y elegantes */
-.stat-number { font-size: 2rem !important; letter-spacing: -.01em !important; }
+/* 15. Stats bar: nÃºmeros mÃ¡s grandes y elegantes */
+.stat-number { font-size: 2rem; letter-spacing: -.01em; }
 
 /* 16. Hero principal: padding inferior para evitar q el texto quede muy abajo */
-.hero-content { padding-bottom: 5rem !important; }
+.hero-content { padding-bottom: 5rem; }
 
-/* 17. Botón outline-dark en hero: definición más clara */
+/* 17. BotÃ³n outline-dark en hero: definiciÃ³n mÃ¡s clara */
 .btn-outline-dark {
-  border: 1.5px solid rgba(255,255,255,.38) !important;
-  color: rgba(255,255,255,.88) !important;
+  border: 1.5px solid rgba(255,255,255,.38);
+  color: rgba(255,255,255,.88);
 }
 .btn-outline-dark:hover {
-  background: rgba(255,255,255,.12) !important;
-  border-color: rgba(255,255,255,.7) !important;
-  color: #fff !important;
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.7);
+  color: #fff;
 }
 
-/* 18. Cat-tile en promos: texto más centrado verticalmente */
+/* 18. Cat-tile en promos: texto mÃ¡s centrado verticalmente */
 .cat-showcase--promos .cat-tile__body {
-  padding: 2.2rem 2rem 2rem !important;
-  justify-content: flex-end !important;
+  padding: 2.2rem 2rem 2rem;
+  justify-content: flex-end;
 }
 
-/* 19. Catalog/promos section: más aire encima del showcase */
-.cat-section { padding-top: 2.5rem !important; }
+/* 19. Catalog/promos section: mÃ¡s aire encima del showcase */
+.cat-section { padding-top: 2.5rem; }
 
-/* 20. Trust-card icon wrap: hover transition más suave */
+/* 20. Trust-card icon wrap: hover transition mÃ¡s suave */
 .trust-icon-wrap {
-  transition: background .3s var(--ease-premium), transform .3s var(--ease-premium) !important;
+  transition: background .3s var(--ease-premium), transform .3s var(--ease-premium);
 }
 .trust-card:hover .trust-icon-wrap {
-  transform: scale(1.08) !important;
+  transform: scale(1.08);
 }
 
-/* ── DARK MODE ajustes para autocrítica ─────────────────────── */
-[data-theme="dark"] .section-eyebrow { color: var(--gold) !important; }
+/* â”€â”€ DARK MODE ajustes para autocrÃ­tica â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+[data-theme="dark"] .section-eyebrow { color: var(--gold); }
 [data-theme="dark"] .section-eyebrow::before,
-[data-theme="dark"] .section-eyebrow::after { background: var(--gold) !important; }
+[data-theme="dark"] .section-eyebrow::after { background: var(--gold); }
 [data-theme="dark"] .gender-chip.active,
 [data-theme="dark"] .gender-chip[aria-pressed="true"] {
-  background: #fff !important;
-  color: #050505 !important;
-  border-color: #fff !important;
+  background: #fff;
+  color: #050505;
+  border-color: #fff;
 }
 [data-theme="dark"] .btn-outline-dark {
-  border-color: rgba(255,255,255,.3) !important;
-  color: rgba(255,255,255,.8) !important;
+  border-color: rgba(255,255,255,.3);
+  color: rgba(255,255,255,.8);
 }
 
-/* ── RESPONSIVE FIXES adicionales ───────────────────────────── */
+/* â”€â”€ RESPONSIVE FIXES adicionales â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 768px) {
-  .page-hero { min-height: 55vh !important; }
-  .page-hero-content { padding-bottom: 2rem !important; max-width: 100% !important; }
-  .stat-number { font-size: 1.6rem !important; }
-  .cat-section { padding-top: 1.5rem !important; }
-  .cat-showcase--promos .cat-tile__body { padding: 1.5rem 1.2rem 1.2rem !important; }
+  .page-hero { min-height: 55vh; }
+  .page-hero-content { padding-bottom: 2rem; max-width: 100%; }
+  .stat-number { font-size: 1.6rem; }
+  .cat-section { padding-top: 1.5rem; }
+  .cat-showcase--promos .cat-tile__body { padding: 1.5rem 1.2rem 1.2rem; }
 }
 
 @media (max-width: 480px) {
-  .page-hero { min-height: 50vh !important; }
-  .gender-bar { margin-top: 1.2rem !important; }
+  .page-hero { min-height: 50vh; }
+  .gender-bar { margin-top: 1.2rem; }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   FIXES v10 — Todas las correcciones del ciclo actual
-   ══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FIXES v10 â€” Todas las correcciones del ciclo actual
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ── A. IMÁGENES POR CATEGORÍA — object-position específico ── */
+/* â”€â”€ A. IMÃGENES POR CATEGORÃA â€” object-position especÃ­fico â”€â”€ */
 /* Ajuste fino de encuadre para que cada fragancia se vea bien */
 .cat-tile--nicho     .cat-tile__img img { object-position: center 15%; }
 .cat-tile--arabe     .cat-tile__img img { object-position: center 10%; }
@@ -2721,19 +2784,19 @@ body {
 .cat-tile--disenador .cat-tile__img img { object-position: center 12%; }
 .cat-tile--tester    .cat-tile__img img { object-position: center 18%; }
 
-/* Tiles grandes (fila 1 del catálogo) — más acercamiento vertical */
+/* Tiles grandes (fila 1 del catÃ¡logo) â€” mÃ¡s acercamiento vertical */
 .cat-showcase:not(.cat-showcase--promos) .cat-tile:nth-child(1) .cat-tile__img img { object-position: center 8%; }
 .cat-showcase:not(.cat-showcase--promos) .cat-tile:nth-child(2) .cat-tile__img img { object-position: center 12%; }
 
-/* ── B. SEPARACIÓN ENTRE FILTROS Y GRID DE RESULTADOS ─────── */
+/* â”€â”€ B. SEPARACIÃ“N ENTRE FILTROS Y GRID DE RESULTADOS â”€â”€â”€â”€â”€â”€â”€ */
 /* Aire profesional entre los filtros de cat-tile/gender y el grid */
 #catalogGrid,
 #promoGrid {
   margin-top: clamp(2rem, 4vw, 3.5rem);
-  min-height: 2px; /* evita colapso de margen cuando está vacío */
+  min-height: 2px; /* evita colapso de margen cuando estÃ¡ vacÃ­o */
 }
 
-/* ── C. RESPONSIVE 1024px — corregir scoping `:not` ──────── */
+/* â”€â”€ C. RESPONSIVE 1024px â€” corregir scoping `:not` â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 1024px) {
   .cat-showcase:not(.cat-showcase--promos) .cat-tile:nth-child(1) { grid-column: 1 / 3; }
   .cat-showcase:not(.cat-showcase--promos) .cat-tile:nth-child(2) { grid-column: 3 / 5; }
@@ -2750,7 +2813,7 @@ body {
   .cat-showcase--promos { grid-template-columns: repeat(3, 1fr); grid-template-rows: 360px; }
 }
 
-/* ── D. TIKTOK FALLBACK — tarjeta elegante cuando no carga ── */
+/* â”€â”€ D. TIKTOK FALLBACK â€” tarjeta elegante cuando no carga â”€â”€ */
 .tiktok-card--fallback {
   background: #0d0d0d;
   display: flex;
@@ -2793,7 +2856,7 @@ body {
   letter-spacing: .04em;
 }
 
-/* ── E. RESPONSIVE FIJO 768px — cat-showcase ──────────────── */
+/* â”€â”€ E. RESPONSIVE FIJO 768px â€” cat-showcase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 768px) {
   /* Layout 2 columnas: Nicho full-width, pares en dos columnas */
   .cat-showcase:not(.cat-showcase--promos) { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
@@ -2809,52 +2872,52 @@ body {
   .cat-showcase--promos .cat-tile:last-child:nth-child(3) { grid-column: 1 / 3; }
 }
 
-/* ── F. OVERLAY MÁS SUAVE en tiles pequeños (fila 2) ───────── */
+/* â”€â”€ F. OVERLAY MÃS SUAVE en tiles pequeÃ±os (fila 2) â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .cat-showcase:not(.cat-showcase--promos) .cat-tile:nth-child(3) .cat-tile__img::after,
 .cat-showcase:not(.cat-showcase--promos) .cat-tile:nth-child(4) .cat-tile__img::after,
 .cat-showcase:not(.cat-showcase--promos) .cat-tile:nth-child(5) .cat-tile__img::after {
   background: linear-gradient(to top, rgba(0,0,0,.85) 0%, rgba(0,0,0,.35) 50%, rgba(0,0,0,.08) 100%);
 }
 
-/* ── G. PAGE-HERO texto blanco garantizado ──────────────────── */
+/* â”€â”€ G. PAGE-HERO texto blanco garantizado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .page-hero .section-eyebrow,
 .page-hero .page-hero-eyebrow {
-  color: rgba(255,255,255,.65) !important;
+  color: rgba(255,255,255,.65);
 }
 .page-hero .section-title,
 .page-hero .page-hero-title {
-  color: #fff !important;
+  color: #fff;
 }
 .page-hero .section-subtitle,
 .page-hero .page-hero-subtitle {
-  color: rgba(255,255,255,.55) !important;
+  color: rgba(255,255,255,.55);
 }
 
-/* ── H. CATALOG/PROMO GRID — ancho máximo y centrado ────────── */
+/* â”€â”€ H. CATALOG/PROMO GRID â€” ancho mÃ¡ximo y centrado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 #catalogGrid,
 #promoGrid {
   max-width: 100%;
 }
 
-/* ── I. PERFORMANCE — reducir blur/shadow en mobile ────────── */
+/* â”€â”€ I. PERFORMANCE â€” reducir blur/shadow en mobile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 768px) {
   .cat-tile { will-change: auto; }
   .cat-tile__img img { will-change: auto; }
-  .hero-video { filter: brightness(.4) saturate(.8); } /* menos filtros = más rápido */
+  .hero-video { filter: brightness(.4) saturate(.8); } /* menos filtros = mÃ¡s rÃ¡pido */
 }
 
-/* ── J. TIKTOK SKELETON — beige en lugar de gold para modo claro */
+/* â”€â”€ J. TIKTOK SKELETON â€” beige en lugar de gold para modo claro */
 .tiktok-skeleton { background: #ece9e4; }
 [data-theme="dark"] .tiktok-skeleton { background: #1a1a1a; }
 
-/* ── K. SEARCH CSS — neutralizado (elementos eliminados del HTML) */
+/* â”€â”€ K. SEARCH CSS â€” neutralizado (elementos eliminados del HTML) */
 .search-box-wrapper,
 .search-box,
 .search-suggestions,
 .search-suggestion-item,
-.search-no-results { display: none !important; }
+.search-no-results { display: none; }
 
-/* ── L. PRODUCT/PROMO GRID ENTRY — animación suave ─────────── */
+/* â”€â”€ L. PRODUCT/PROMO GRID ENTRY â€” animaciÃ³n suave â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 #catalogGrid .product-card,
 #promoGrid .promo-card {
   animation: cardIn .35s var(--ease-premium) both;
@@ -2868,40 +2931,40 @@ body {
   #promoGrid .promo-card { animation: none; }
 }
 
-/* ── M. RESPONSIVE 480px — promos en columna única ─────────── */
+/* â”€â”€ M. RESPONSIVE 480px â€” promos en columna Ãºnica â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 480px) {
   .cat-showcase--promos { grid-template-columns: 1fr; }
   .cat-showcase--promos .cat-tile { grid-column: 1; height: 190px; }
   .cat-showcase--promos .cat-tile:last-child:nth-child(3) { grid-column: 1; }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   FIXES v11 — TikTok embed oficial, separación de promos,
-   responsive real y encuadre de imágenes (ciclo 2)
-   ══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FIXES v11 â€” TikTok embed oficial, separaciÃ³n de promos,
+   responsive real y encuadre de imÃ¡genes (ciclo 2)
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ── N. TIKTOK — blockquote oficial forzado a llenar la card ──
+/* â”€â”€ N. TIKTOK â€” blockquote oficial forzado a llenar la card â”€â”€
    TikTok inyecta su propio iframe con min-width/max-width fijos
    (~325-605px). Forzamos que blockquote + section + iframe se
-   adapten al tamaño real de la card (aspect-ratio 9/16) para que
+   adapten al tamaÃ±o real de la card (aspect-ratio 9/16) para que
    nunca desborde el grid ni quede con huecos. */
 .tiktok-card .tiktok-embed {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  height: 100% !important;
-  margin: 0 !important;
-  border: 0 !important;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  border: 0;
   position: relative;
   z-index: 1;
 }
 .tiktok-card .tiktok-embed section,
 .tiktok-card .tiktok-embed iframe {
-  width: 100% !important;
-  height: 100% !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  max-width: 100% !important;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
   border: 0;
   display: block;
 }
@@ -2911,19 +2974,19 @@ body {
   opacity: 0; transition: opacity .3s ease; animation: none; pointer-events: none;
 }
 
-/* Grid de TikTok: nunca queda vacío ni desborda — 1/2/3-4 columnas reales */
+/* Grid de TikTok: nunca queda vacÃ­o ni desborda â€” 1/2/3-4 columnas reales */
 .tiktok-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 @media (max-width: 480px) {
   .tiktok-grid { grid-template-columns: 1fr; gap: 1.2rem; }
   .tiktok-card { max-width: 340px; margin-inline: auto; width: 100%; }
 }
 
-/* ── O. PROMOS/CATÁLOGO — separación profesional bajo los filtros ──
-   Reemplaza la separación corta del bloque B: ahora con aire real,
-   línea divisoria sutil y solo cuando el grid tiene contenido. */
+/* â”€â”€ O. PROMOS/CATÃLOGO â€” separaciÃ³n profesional bajo los filtros â”€â”€
+   Reemplaza la separaciÃ³n corta del bloque B: ahora con aire real,
+   lÃ­nea divisoria sutil y solo cuando el grid tiene contenido. */
 #catalogGrid:not(:empty),
 #promoGrid:not(:empty) {
-  margin-top: clamp(3rem, 6vw, 5.5rem) !important;
+  margin-top: clamp(3rem, 6vw, 5.5rem);
   padding-top: clamp(1.5rem, 3vw, 2.5rem);
   border-top: 1px solid rgba(0,0,0,.08);
 }
@@ -2934,41 +2997,41 @@ body {
 @media (max-width: 600px) {
   #catalogGrid:not(:empty),
   #promoGrid:not(:empty) {
-    margin-top: clamp(2.25rem, 8vw, 3rem) !important;
+    margin-top: clamp(2.25rem, 8vw, 3rem);
     padding-top: 1.25rem;
   }
 }
 
-/* ── P. ENCUADRE DE IMÁGENES — ajuste fino por categoría (ciclo 2) ── */
+/* â”€â”€ P. ENCUADRE DE IMÃGENES â€” ajuste fino por categorÃ­a (ciclo 2) â”€â”€ */
 .cat-tile--arabe     .cat-tile__img img { object-position: center center; }
 .cat-tile--disenador .cat-tile__img img { object-position: center 45%; }
 .cat-tile--tester    .cat-tile__img img { object-position: center 60%; }
 .cat-tile--deluxe    .cat-tile__img img { object-position: center 25%; }
 .cat-tile--nicho     .cat-tile__img img { object-position: center 15%; }
 
-/* ── Q. ANTI-OVERFLOW HORIZONTAL — salvaguarda global ──────── */
+/* â”€â”€ Q. ANTI-OVERFLOW HORIZONTAL â€” salvaguarda global â”€â”€â”€â”€â”€â”€â”€â”€ */
 html, body { overflow-x: hidden; max-width: 100vw; }
 .tiktok-card, .cat-tile, .product-card, .promo-card { max-width: 100%; }
 
-/* ── S. BUG REAL — menú hamburguesa móvil con texto blanco
+/* â”€â”€ S. BUG REAL â€” menÃº hamburguesa mÃ³vil con texto blanco
    sobre fondo blanco (ilegible). La regla ".nav a" del bloque
    "HEADER negro refinado" (color blanco, pensada para el header
    de escritorio con fondo negro) tiene la misma especificidad que
-   la regla mobile y, por venir después en el archivo, la pisaba
-   en el dropdown ≤900px (fondo claro). Restauramos el color
-   correcto del tema para el menú abierto en mobile/tablet. ── */
+   la regla mobile y, por venir despuÃ©s en el archivo, la pisaba
+   en el dropdown â‰¤900px (fondo claro). Restauramos el color
+   correcto del tema para el menÃº abierto en mobile/tablet. â”€â”€ */
 @media (max-width: 900px) {
   .nav a { color: var(--text-secondary); }
   .nav a:hover, .nav a.active { color: var(--gold); }
 }
 
-/* ── T. BUG REAL — FAB de Instagram tapa el botón "Ir al
-   Checkout" en mobile cuando el carrito está abierto (mismo
-   z-index alto + posición fixed inferior-izquierda). Lo ocultamos
-   mientras el carrito está activo para no bloquear el tap-target. */
+/* â”€â”€ T. BUG REAL â€” FAB de Instagram tapa el botÃ³n "Ir al
+   Checkout" en mobile cuando el carrito estÃ¡ abierto (mismo
+   z-index alto + posiciÃ³n fixed inferior-izquierda). Lo ocultamos
+   mientras el carrito estÃ¡ activo para no bloquear el tap-target. */
 body:has(#cartSidebar.active) #igFab { display: none; }
 
-/* ── R. TIKTOK FALLBACK — botón premium blanco/negro ───────── */
+/* â”€â”€ R. TIKTOK FALLBACK â€” botÃ³n premium blanco/negro â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tiktok-fallback__text { text-transform: none; font-size: .95rem; letter-spacing: 0; }
 .tiktok-fallback__btn {
   display: inline-block;
@@ -2984,3 +3047,512 @@ body:has(#cartSidebar.active) #igFab { display: none; }
   transition: background .25s ease, color .25s ease;
 }
 .tiktok-fallback:hover .tiktok-fallback__btn { background: transparent; color: #fff; }
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PACKS DE DECANTS â€” secciÃ³n renovada (arquitectura nueva)
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+/* â”€â”€ A. BENEFICIOS â€” franja bajo el hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.packs-benefits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  max-width: var(--max-w);
+  margin: -3rem auto 0;
+  padding: 0 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+.packs-benefit {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--r-lg);
+  padding: 1.15rem 1.35rem;
+  box-shadow: var(--shadow-md);
+  transition: transform var(--t-base), box-shadow var(--t-base), border-color var(--t-base);
+}
+.packs-benefit:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold-light);
+  box-shadow: var(--shadow-gold);
+}
+.packs-benefit__icon {
+  flex-shrink: 0;
+  width: 46px; height: 46px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.35rem;
+  border-radius: var(--r-md);
+  background: linear-gradient(135deg, var(--gold-pale), rgba(240,229,200,.45));
+}
+.packs-benefit strong {
+  display: block;
+  font-size: .88rem;
+  color: var(--text-primary);
+  letter-spacing: .01em;
+}
+.packs-benefit span:last-child {
+  display: block;
+  font-size: .74rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-top: .1rem;
+}
+
+/* â”€â”€ B. CÃ“MO FUNCIONA â€” 3 pasos editoriales â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.packs-how {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem 1.5rem;
+}
+.packs-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.4rem;
+  margin-top: 2.2rem;
+}
+.packs-step {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--r-lg);
+  padding: 2rem 1.6rem 1.7rem;
+  overflow: hidden;
+  transition: transform var(--t-base), box-shadow var(--t-base), border-color var(--t-base);
+}
+.packs-step:hover {
+  transform: translateY(-5px);
+  border-color: var(--gold-light);
+  box-shadow: var(--shadow-gold);
+}
+.packs-step__num {
+  position: absolute;
+  top: -0.45rem;
+  right: 0.7rem;
+  font-family: var(--font-display);
+  font-size: 4.2rem;
+  font-weight: 300;
+  color: var(--gold-pale);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+[data-theme="dark"] .packs-step__num { color: rgba(255,255,255,.05); }
+.packs-step h3 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--text-primary);
+  margin-bottom: .55rem;
+  position: relative;
+}
+.packs-step h3::after {
+  content: '';
+  display: block;
+  width: 34px; height: 2px;
+  background: linear-gradient(90deg, var(--gold-light), var(--gold));
+  margin-top: .6rem;
+  border-radius: 2px;
+}
+.packs-step p {
+  font-size: .84rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* â”€â”€ C. TOOLBAR â€” tamaÃ±o + orden + contador â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.packs-toolbar {
+  max-width: var(--max-w);
+  margin: 2.4rem auto 0;
+  padding: 0 1.5rem;
+}
+.packs-toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.15rem 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+.pack-size-bar {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+.pack-size-bar__label {
+  font-size: .65rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+  margin-right: .35rem;
+}
+.pack-size-chip {
+  padding: .45rem 1.05rem;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: .76rem;
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all .22s var(--ease-premium);
+}
+.pack-size-chip:hover {
+  border-color: var(--gold);
+  color: var(--gold-deep);
+  background: var(--gold-pale);
+}
+.pack-size-chip.active,
+.pack-size-chip[aria-pressed="true"] {
+  background: linear-gradient(135deg, var(--gold), var(--gold-deep));
+  border-color: transparent;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(184,146,74,.3);
+}
+.packs-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+.packs-count {
+  font-size: .76rem;
+  color: var(--text-muted);
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.packs-sort {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+}
+.packs-sort__label {
+  font-size: .65rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.packs-sort select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--r-pill);
+  padding: .5rem 2.2rem .5rem 1.05rem;
+  font-family: var(--font-body);
+  font-size: .78rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color .22s var(--ease-premium), box-shadow .22s var(--ease-premium);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239a8270' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.95rem center;
+}
+.packs-sort select:hover { border-color: var(--gold); }
+.packs-sort select:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-color: var(--gold);
+}
+
+/* â”€â”€ D. CARD â€” mini-selector de tamaÃ±o + precio c/u â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.promo-size-picker {
+  display: flex;
+  justify-content: center;
+  gap: .4rem;
+  flex-wrap: wrap;
+  margin: .15rem 0 .1rem;
+}
+.promo-size-chip {
+  padding: .34rem .85rem;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: .72rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .2s var(--ease-premium);
+}
+.promo-size-chip:hover {
+  border-color: var(--gold);
+  color: var(--gold-deep);
+  background: var(--gold-pale);
+}
+.promo-size-chip.active,
+.promo-size-chip[aria-pressed="true"] {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 3px 10px rgba(184,146,74,.28);
+}
+.promo-per-decant {
+  display: block;
+  font-size: .68rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: .04em;
+  margin-top: -0.3rem;
+  margin-bottom: .1rem;
+}
+
+/* â”€â”€ E. RESPONSIVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+@media (max-width: 900px) {
+  .packs-benefits { grid-template-columns: 1fr; margin-top: -1.5rem; }
+  .packs-benefit { padding: 1rem 1.2rem; }
+  .packs-steps { grid-template-columns: 1fr; gap: 1rem; }
+  .packs-how { padding-top: 3rem; }
+  .packs-toolbar-row { flex-direction: column; align-items: flex-start; }
+  .packs-toolbar-right { width: 100%; justify-content: space-between; }
+}
+@media (max-width: 480px) {
+  .packs-toolbar-right { flex-direction: column; align-items: flex-start; gap: .7rem; }
+  .packs-count { order: -1; }
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PREMIUM MOBILE â€” Fragance Obsession (ciclo TikTok)
+   Fondo oscuro elegante + sticky bar + mÃ©todos de pago
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+/* â”€â”€ A. CHIP DE PRESENTACIÃ“N en cards (Caja Sellada / Tester) â”€â”€ */
+.presentation-chip {
+  position: absolute;
+  top: .85rem;
+  left: .85rem;
+  z-index: 2;
+  background: rgba(10,10,10,.82);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #e8e6e1;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: .3rem .75rem;
+  border-radius: var(--r-pill);
+  border: 1px solid rgba(255,255,255,.14);
+}
+
+/* â”€â”€ B. MÃ‰TODOS DE PAGO (checkout hÃ­brido) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.pay-methods {
+  margin: 1.4rem 0 1rem;
+}
+.pay-methods__grid {
+  display: grid;
+  gap: .7rem;
+  margin-top: .8rem;
+}
+.pay-method {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  width: 100%;
+  text-align: left;
+  padding: .95rem 1.1rem;
+  background: var(--surface);
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all var(--t-fast);
+}
+.pay-method:hover {
+  border-color: var(--gold-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.pay-method.active {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, var(--gold-pale) 0%, rgba(240,229,200,.35) 100%);
+  box-shadow: 0 0 0 3px rgba(184,146,74,.16);
+}
+[data-theme="dark"] .pay-method.active {
+  background: rgba(184,146,74,.12);
+  border-color: var(--gold-light);
+}
+/* MÃ©todo de pago no disponible (sin link real de pasarela configurado) */
+.pay-method.is-disabled { opacity: .42; filter: grayscale(.55); pointer-events: none; }
+.pay-method__icon {
+  flex-shrink: 0;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  border-radius: 12px;
+  background: var(--surface-alt);
+}
+.pay-method__body { display: flex; flex-direction: column; gap: .1rem; }
+.pay-method__body strong { font-size: .88rem; color: var(--text-primary); }
+.pay-method__body span { font-size: .74rem; color: var(--text-muted); line-height: 1.45; }
+.pay-method__check {
+  margin-left: auto;
+  flex-shrink: 0;
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-light);
+  color: transparent;
+  font-size: .7rem;
+  transition: all var(--t-fast);
+}
+.pay-method.active .pay-method__check {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #fff;
+}
+.mp-note {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  margin: 0 0 1rem;
+  padding: .8rem 1rem;
+  border-radius: var(--r-md);
+  background: rgba(184,146,74,.08);
+  border: 1px dashed rgba(184,146,74,.4);
+  font-size: .76rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.mp-note i { color: var(--gold); margin-top: .2rem; }
+.btn-whatsapp {
+  background: linear-gradient(135deg, #25d366, #1eb958);
+}
+.btn-whatsapp:hover {
+  background: linear-gradient(135deg, #1eb958, #179c49);
+  box-shadow: 0 10px 30px rgba(37,211,102,.32);
+}
+
+/* â”€â”€ C. STICKY BOTTOM CART (solo mÃ³vil â‰¤768px) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.sticky-cart {
+  position: fixed;
+  left: .75rem;
+  right: .75rem;
+  bottom: .75rem;
+  z-index: 940;
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  padding: .65rem .65rem .65rem 1rem;
+  border-radius: var(--r-lg);
+  background: rgba(13,13,13,.92);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 18px 50px rgba(0,0,0,.45);
+  transform: translateY(calc(100% + 1.5rem));
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .45s cubic-bezier(.22,.7,.3,1), opacity .3s ease;
+}
+.sticky-cart.visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: all;
+}
+.sticky-cart__info { display: flex; align-items: center; gap: .7rem; min-width: 0; }
+.sticky-cart__count {
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: #1a1005;
+  font-weight: 800;
+  font-size: .95rem;
+}
+.sticky-cart__texts { display: flex; flex-direction: column; min-width: 0; }
+.sticky-cart__label {
+  font-size: .62rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+}
+.sticky-cart__total {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+.sticky-cart__btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .85rem 1.3rem;
+  border: none;
+  border-radius: var(--r-pill);
+  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 55%, var(--gold-deep) 100%);
+  color: #1a1005;
+  font-family: var(--font-body);
+  font-size: .8rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
+  box-shadow: 0 10px 26px rgba(184,146,74,.35);
+}
+.sticky-cart__btn:active { transform: scale(.96); }
+/* El sticky bar no tapa contenido: los botones flotantes compiten con Ã©l */
+@media (max-width: 768px) {
+  body:has(#stickyCart.visible) #igFab { display: none; }
+  body:has(#stickyCart.visible) .back-to-top { display: none; }
+}
+@media (min-width: 769px) {
+  .sticky-cart { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sticky-cart { transition: none; }
+}
+
+/* â”€â”€ D. MÃ“VIL â€” tipografÃ­a y botones mÃ¡s grandes (tap-friendly) â”€â”€ */
+@media (max-width: 600px) {
+  .btn-add {
+    min-height: 44px;
+    font-size: .74rem;
+  }
+  .modal .btn-add-large {
+    min-height: 52px;
+    font-size: .86rem;
+  }
+  .size-option { padding: .6rem .9rem; }
+}
+
+/* ============================================================
+   CART ITEMS — clases extraidas (antes estilos inline en JS)
+   ============================================================ */
+.cart-item .cart-gift-wrap { position: relative; display: inline-block; }
+.cart-item .cart-gift-thumb {
+  position: absolute; bottom: -4px; right: -4px;
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid var(--surface); object-fit: cover;
+  box-shadow: 0 2px 6px rgba(0,0,0,.18);
+}
+.cart-item .cart-gift-note { font-size: .7rem; color: var(--gold); margin-top: 2px; }
+.cart-item .cart-pack-strip {
+  display: flex; gap: 6px; overflow-x: auto;
+  padding-top: 6px; margin-top: 6px;
+  border-top: 1px dashed var(--border-light);
+}
+.cart-item .cart-pack-item { flex: 0 0 auto; text-align: center; width: 55px; }
+.cart-item .cart-pack-thumb {
+  width: 36px; height: 36px; border-radius: 6px;
+  object-fit: cover; display: block; margin: 0 auto;
+}
+.cart-item .cart-pack-name {
+  font-size: .62rem; line-height: 1.2; margin-top: 2px;
+  max-width: 55px; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; color: var(--text-muted);
+}
