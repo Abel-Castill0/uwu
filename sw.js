@@ -1,9 +1,9 @@
-/* Service Worker — Paco Fragancias
+/* Service Worker — Fragance Obsession
  * - Cache-first: CSS, JS, fuentes (assets versionados/estables)
  * - Stale-while-revalidate: imágenes
  * - Network-first con fallback a offline.html: navegación
  */
-const VERSION = "paco-v13-local";
+const VERSION = "fo-v14-local";
 const CORE_CACHE = `core-${VERSION}`;
 const IMG_CACHE = `img-${VERSION}`;
 const FONT_CACHE = `font-${VERSION}`;

@@ -1,11 +1,11 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0d0a06" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>Admin · Paco Fragancias</title>
+  <title>Admin · Fragance Obsession</title>
   <link rel="icon" type="image/webp" href="logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,7 +13,7 @@
     href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600;700&display=swap" />
   <script>
     (function () {
-      try { var t = localStorage.getItem("paco_theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); document.documentElement.setAttribute("data-theme", t); }
+      try { var t = localStorage.getItem("fo_theme") || localStorage.getItem("paco_theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); document.documentElement.setAttribute("data-theme", t); }
       catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
     })();
   </script>
@@ -60,7 +60,7 @@
   <!-- LOGIN -->
   <div id="loginView">
     <form class="adm-login" id="loginForm" autocomplete="off">
-      <img src="logo.webp" alt="Paco Fragancias" width="60" height="60" />
+      <img src="logo.webp" alt="Fragance Obsession" width="60" height="60" />
       <h2>Panel de Administración</h2>
       <p>Ingresa la contraseña para ver los pedidos.</p>
       <input type="password" id="admPass" placeholder="Contraseña" aria-label="Contraseña" />
@@ -105,8 +105,9 @@
   <script>
     (function () {
       "use strict";
-      var PASS = "paco2024";
-      var KEY = "paco_pedidos";
+      var PASS = "paco2024"; /* TODO: contraseña heredada de la marca anterior — pedir al cliente la nueva */
+      var KEY = "fo_pedidos";
+      var KEY_OLD = "paco_pedidos";
       var $ = function (id) { return document.getElementById(id); };
 
       function pad(n) { return String(n).padStart(2, "0"); }
@@ -130,6 +131,9 @@
       function getOrders() {
         var arr = null;
         try { arr = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+        if (!Array.isArray(arr) || !arr.length) {
+          try { arr = JSON.parse(localStorage.getItem(KEY_OLD)); } catch (e2) {}
+        }
         if (Array.isArray(arr) && arr.length) return arr;
         return demoSeed(); // demo solo si no hay pedidos reales (no se persiste)
       }
@@ -191,7 +195,7 @@
       $("loginForm").addEventListener("submit", function (e) {
         e.preventDefault();
         if ($("admPass").value === PASS) {
-          sessionStorage.setItem("paco_admin", "1");
+          sessionStorage.setItem("fo_admin", "1");
           showPanel();
         } else {
           $("admErr").textContent = "Contraseña incorrecta.";
@@ -202,7 +206,7 @@
         $("panelView").style.display = "block";
         render();
       }
-      $("logoutBtn").addEventListener("click", function () { sessionStorage.removeItem("paco_admin"); location.reload(); });
+      $("logoutBtn").addEventListener("click", function () { sessionStorage.removeItem("fo_admin"); location.reload(); });
       $("fEstado").addEventListener("change", render);
       $("fFecha").addEventListener("change", render);
       // Cambiar estado al hacer clic (cicla Pendiente→Enviado→Entregado)
@@ -226,11 +230,11 @@
       $("downloadBtn").addEventListener("click", function () {
         var blob = new Blob([asText()], { type: "text/plain;charset=utf-8" });
         var a = document.createElement("a");
-        a.href = URL.createObjectURL(blob); a.download = "pedidos_paco.txt"; a.click();
+        a.href = URL.createObjectURL(blob); a.download = "pedidos_fo.txt"; a.click();
         URL.revokeObjectURL(a.href);
       });
 
-      if (sessionStorage.getItem("paco_admin") === "1") showPanel();
+      if (sessionStorage.getItem("fo_admin") === "1") showPanel();
     })();
   </script>
 </body>

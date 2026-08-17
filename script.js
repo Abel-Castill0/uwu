@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   "use strict";
   /* ══════════════════════════════════════════════════════════════
      DATA — PRODUCTOS
@@ -8,8 +8,8 @@
      DATA — productos y packs viven en productos.js
      (edita ese archivo para agregar/quitar perfumes, no este)
   ══════════════════════════════════════════════════════════════ */
-  const products = window.PACO_PRODUCTS || [];
-  const promos = window.PACO_PROMOS || [];
+  const products = window.FO_PRODUCTS || window.PACO_PRODUCTS || [];
+  const promos = window.FO_PROMOS || window.PACO_PROMOS || [];
   /* ══════════════════════════════════════════════════════════════
      CONSTANTES
   ══════════════════════════════════════════════════════════════ */
@@ -19,7 +19,7 @@
      Edita ambas constantes en este archivo. */
   const WHATSAPP_NUMBER = "51994467586";
   const MERCADOPAGO_LINK = ""; /* ej. "https://mpago.la/XXXXX" */
-  const SITE_URL = "https://pacofragancias.com/";
+  const SITE_URL = "https://pacofragancias.com/"; /* TODO: reemplazar por el dominio real de Fragance Obsession */
   // Modo desarrollo (solo localhost): habilita logs de diagnóstico.
   const IS_DEV = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
 
@@ -60,10 +60,10 @@
     const img = product.cardImage ? SITE_URL + product.cardImage : META.ogImage;
     const url = SITE_URL + "?producto=" + product.id;
     setMeta({
-      title: `${product.name} · Paco Fragancias`,
+      title: `${product.name} · Fragance Obsession`,
       desc: `Compra ${product.name} de ${product.brand} en decant. ${desde}Envíos a todo el Perú.`,
       ogTitle: `${product.name} · ${product.brand}`,
-      ogDesc: `${product.name} de ${product.brand} en decant. ${desde}Paco Fragancias.`,
+      ogDesc: `${product.name} de ${product.brand} en decant. ${desde}Fragance Obsession.`,
       ogImage: img,
       ogUrl: url,
       canonical: url,
@@ -129,7 +129,7 @@
   /* currentSearchTerm eliminado — búsqueda removida */
 
   try {
-    const saved = localStorage.getItem("paco_cart_v4");
+    const saved = localStorage.getItem("fo_cart_v4") || localStorage.getItem("paco_cart_v4");
     if (saved) cart = JSON.parse(saved);
   } catch (e) {
     cart = [];
@@ -141,7 +141,7 @@
   const $ = (id) => document.getElementById(id);
 
   function saveCart() {
-    try { localStorage.setItem("paco_cart_v4", JSON.stringify(cart)); } catch (e) { /* almacenamiento no disponible */ }
+    try { localStorage.setItem("fo_cart_v4", JSON.stringify(cart)); } catch (e) { /* almacenamiento no disponible */ }
   }
   function getCartTotal() {
     return cart.reduce((sum, i) => sum + i.price * i.qty, 0);
@@ -993,7 +993,7 @@
     }
     if (page === "checkout") renderCheckoutPage();
     if (page === "home") renderFeatured();
-    track("page_view", { page_title: "Paco Fragancias · " + page, page_path: "/" + (page === "home" ? "" : page) });
+    track("page_view", { page_title: "Fragance Obsession · " + page, page_path: "/" + (page === "home" ? "" : page) });
     const nav = $("nav");
     nav.classList.remove("open");
     const hb = $("hamburger");
@@ -1086,7 +1086,7 @@
       .map(createProductCard)
       .join("");
     observeRevealElements();
-    window.PacoAnimations?.refresh?.();
+    window.FraganceAnimations?.refresh?.();
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -1161,7 +1161,7 @@
       }
       grid.classList.remove("switching");
       observeRevealElements();
-      window.PacoAnimations?.refresh?.();
+      window.FraganceAnimations?.refresh?.();
     }, 160);
   }
 
@@ -1306,7 +1306,7 @@
       .join("");
 
     observeRevealElements();
-    window.PacoAnimations?.refresh?.();
+    window.FraganceAnimations?.refresh?.();
   }
 
   function applyCardPackSize(promoId, size) {
@@ -1846,10 +1846,10 @@
         estado: "Pendiente",
       };
       let arr = [];
-      try { arr = JSON.parse(localStorage.getItem("paco_pedidos")) || []; } catch (e) { arr = []; }
+      try { arr = JSON.parse(localStorage.getItem("fo_pedidos")) || JSON.parse(localStorage.getItem("paco_pedidos")) || []; } catch (e) { arr = []; }
       if (!Array.isArray(arr)) arr = [];
       arr.unshift(pedido);
-      localStorage.setItem("paco_pedidos", JSON.stringify(arr));
+      localStorage.setItem("fo_pedidos", JSON.stringify(arr));
     } catch (e) { /* almacenamiento no disponible */ }
   }
 
@@ -1859,7 +1859,7 @@
     if (!("Notification" in window)) return;
     const show = () => {
       try {
-        new Notification("Paco Fragancias", {
+        new Notification("Fragance Obsession", {
           body: "✅ Pedido enviado a WhatsApp. Te contactaremos pronto.",
           icon: "logo.webp",
           badge: "logo.webp",
@@ -1985,7 +1985,7 @@
       const dark = document.documentElement.getAttribute("data-theme") === "dark";
       const next = dark ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", next);
-      try { localStorage.setItem("paco_theme", next); } catch (e) { /* storage no disponible */ }
+      try { localStorage.setItem("fo_theme", next); } catch (e) { /* storage no disponible */ }
       // Animación de rotación del ícono
       btn.classList.remove("rotating");
       void btn.offsetWidth;
@@ -2302,8 +2302,8 @@
   }
   function maybeRemindCart() {
     try {
-      if (cart.length > 0 && !sessionStorage.getItem("paco_cart_reminded")) {
-        sessionStorage.setItem("paco_cart_reminded", "1");
+      if (cart.length > 0 && !sessionStorage.getItem("fo_cart_reminded")) {
+        sessionStorage.setItem("fo_cart_reminded", "1");
         setTimeout(showCartReminder, 1600);
       }
     } catch (e) { /* sessionStorage no disponible */ }
@@ -2366,7 +2366,7 @@
     const data = {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      name: "Fragancias Destacadas · Paco Fragancias",
+      name: "Fragancias Destacadas · Fragance Obsession",
       itemListElement: featured.map((p, i) => ({
         "@type": "ListItem",
         position: i + 1,

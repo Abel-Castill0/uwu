@@ -1,5 +1,5 @@
-/* animations.js — Paco Fragancias v2
-   Expone window.PacoAnimations = { refresh, destroy }
+﻿/* animations.js — Fragance Obsession v2
+   Expone window.FraganceAnimations = { refresh, destroy }
    para que script.js llame refresh() después de cada render.
    Vanilla JS, sin build step, sin dependencias externas propias.
 */
@@ -40,7 +40,7 @@
       touchMultiplier: 1.3,
     });
 
-    window.__paco_lenis = _lenis;
+    window.__fo_lenis = _lenis;
     document.documentElement.style.scrollBehavior = "auto";
 
     /* Parchamos scrollTo para que navigateTo() use Lenis */
@@ -283,7 +283,7 @@
   }
 
   /* ══════════════════════════════════════════════════════════
-     8. PUBLIC API — window.PacoAnimations
+     8. PUBLIC API — window.FraganceAnimations
      refresh()  → llamar después de cada renderizado dinámico
      destroy()  → limpiar todo (Lenis, observers, ScrollTrigger)
   ══════════════════════════════════════════════════════════ */
@@ -301,7 +301,7 @@
     if (hasGsap()) { ScrollTrigger.getAll().forEach(function (st) { st.kill(); }); }
   }
 
-  window.PacoAnimations = { refresh: refresh, destroy: destroy };
+  window.FraganceAnimations = { refresh: refresh, destroy: destroy };
 
   /* ── Boot ─────────────────────────────────────────────── */
   ready(function () {

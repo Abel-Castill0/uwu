@@ -1,11 +1,11 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0d0a06" />
   <meta name="robots" content="noindex, follow" />
-  <title>¡Pedido Confirmado! · Paco Fragancias</title>
+  <title>¡Pedido Confirmado! · Fragance Obsession</title>
   <link rel="icon" type="image/webp" href="logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,7 +14,7 @@
   <script>
     (function () {
       try {
-        var t = localStorage.getItem("paco_theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        var t = localStorage.getItem("fo_theme") || localStorage.getItem("paco_theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
         document.documentElement.setAttribute("data-theme", t);
       } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
     })();
@@ -48,7 +48,7 @@
 </head>
 <body>
   <main class="ty-wrap">
-    <img src="logo.webp" alt="Paco Fragancias" class="ty-logo" width="72" height="72" decoding="async" />
+    <img src="logo.webp" alt="Fragance Obsession" class="ty-logo" width="72" height="72" decoding="async" />
     <div class="ty-check" aria-hidden="true">✓</div>
     <h1 class="ty-title">¡Pedido Confirmado!</h1>
     <p class="ty-sub">Te contactaremos por WhatsApp para coordinar el pago y envío. Gracias por confiar en nosotros.</p>

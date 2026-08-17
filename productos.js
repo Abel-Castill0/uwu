@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════════════════════════
+﻿/* ══════════════════════════════════════════════════════════════
    productos.js - CATÁLOGO DE FRAGANCE OBSESSION
    --------------------------------------------------------------
    ⚠️ MANTENIMIENTO FÁCIL: edita SOLO este archivo para agregar,
@@ -17,7 +17,7 @@
 /* ──────────────────────────────────────────────────────────────
    PRODUCTOS DEL CATÁLOGO (180 fragancias)
    ────────────────────────────────────────────────────────────── */
-window.PACO_PRODUCTS = [
+window.FO_PRODUCTS = [
     { id: 1, name: "Tropical Vibe", brand: "Rayhaan", category: "arabe", gender: "unisex", notes: "Mango, Piña, Bergamota, Coco, Vainilla, Almizcle, Sándalo, Vetiver", description: "Explosión tropical fresca y adictiva con mango, piña y coco cremoso sobre una base amaderada.", fullSizes: { "100ml": 195 }, decantSizes: { "2ml": 11.90, "3ml": 14.90, "5ml": 19.90, "10ml": 34.90, "30ml": 89.90 }, fullImage: "img/perfumes/tropical_vibe_ryhaan.webp", decantImage: "img/perfumes/tropical_vibe_ryhaan2.webp", cardImage: "img/perfumes/tropical_vibe_ryhaan.webp", featured: true, badge: "new", badgeText: "Nuevo" },
     { id: 2, name: "Jean Lowe Azure", brand: "Maison Alhambra", category: "arabe", gender: "unisex", notes: "Bergamota, Limón, Pimienta Rosa, Lavanda, Geranio, Jazmín, Sándalo, Almizcle, Ámbar", description: "Elegancia cítrica y amaderada con un corazón aromático de lavanda y geranio.", fullSizes: { "100ml": 165 }, decantSizes: { "2ml": 11.90, "3ml": 14.90, "5ml": 19.90, "10ml": 34.90, "30ml": 89.90 }, fullImage: "img/perfumes/jean_lowe_azure.webp", decantImage: "img/perfumes/jean_lowe_azure2.webp", cardImage: "img/perfumes/jean_lowe_azure.webp", featured: true, badge: "top", badgeText: "Top" },
     { id: 3, name: "Jean Lowe Immortel", brand: "Maison Alhambra", category: "arabe", gender: "masculino", notes: "Jengibre, Pomelo, Bergamota, Romero, Notas Acuáticas, Salvia, Geranio, Ambroxan, Ámbar, Ládano", description: "Fresco y aromático con un toque acuático. Inspiración del lujo francés con carácter propio.", fullSizes: { "100ml": 165 }, decantSizes: { "2ml": 11.90, "3ml": 14.90, "5ml": 19.90, "10ml": 34.90, "30ml": 89.90 }, fullImage: "img/perfumes/jean_lowe_immortel.webp", decantImage: "img/perfumes/jean_lowe_immortel2.webp", cardImage: "img/perfumes/jean_lowe_immortel.webp", featured: false, badge: null, badgeText: "" },
@@ -200,7 +200,7 @@ window.PACO_PRODUCTS = [
     { id: 180, name: "Club de Nuit Urban Man", brand: "Armaf", category: "arabe", gender: "masculino", notes: "Bergamota, Limón, Lavanda, Jengibre, Vetiver, Cedro, Almizcle, Ámbar", description: "Frescura urbana y elegante. Cítricos vibrantes con lavanda y jengibre sobre un fondo amaderado y limpio.", fullSizes: { "105ml": 175 }, decantSizes: { "2ml": 11.90, "3ml": 14.90, "5ml": 19.90, "10ml": 34.90, "30ml": 89.90 }, fullImage: "img/perfumes/club_de_nuit_urban_man.webp", decantImage: "img/perfumes/club_de_nuit_urban_man2.webp", cardImage: "img/perfumes/club_de_nuit_urban_man.webp", featured: false, badge: "new", badgeText: "Nuevo" },
 ];
 
-window.PACO_PROMOS = [
+window.FO_PROMOS = [
     { id: "group-disenador-3u", type: "group", category: "disenador", name: "3 Decants Diseñador", desc: "Elige el tamaño y 3 perfumes de diseñador.", icon: "⭐", image: "img/promos/disenador_3u.webp", allowedCategories: ["disenador"], quantity: 3, options: [ { size: "2ml", price: 49.90 }, { size: "3ml", price: 79.90 }, { size: "5ml", price: 99.90 }, { size: "10ml", price: 189.90 } ] },
     { id: "group-disenador-5u", type: "group", category: "disenador", name: "5 Decants Diseñador", desc: "Elige el tamaño y 5 perfumes de diseñador.", icon: "⭐", image: "img/promos/disenador_5u.webp", allowedCategories: ["disenador"], quantity: 5, options: [ { size: "2ml", price: 89.90 }, { size: "3ml", price: 129.90 }, { size: "5ml", price: 159.90 }, { size: "10ml", price: 289.90 } ] },
     { id: "group-disenador-10u", type: "group", category: "disenador", name: "10 Decants Diseñador", desc: "Elige el tamaño y 10 perfumes de diseñador.", icon: "⭐", image: "img/promos/disenador_10u.webp", allowedCategories: ["disenador"], quantity: 10, options: [ { size: "2ml", price: 149.90 }, { size: "3ml", price: 229.90 }, { size: "5ml", price: 299.90 }, { size: "10ml", price: 549.90 } ] },
@@ -221,7 +221,7 @@ window.PACO_PROMOS = [
    Para marcar otro perfume como bestseller, agrégalo aquí con el
    texto que quieras mostrar (o usa "Más Vendido" por defecto).
    ────────────────────────────────────────────────────────────── */
-window.PACO_BESTSELLERS = {
+window.FO_BESTSELLERS = {
   2: "Tendencia en TikTok",
   15: "Más Vendido",
   19: "Tendencia en TikTok",
@@ -231,9 +231,9 @@ window.PACO_BESTSELLERS = {
   64: "Más Vendido",
   69: "Tendencia en TikTok",
 };
-(window.PACO_PRODUCTS || []).forEach(function (p) {
-  if (p && window.PACO_BESTSELLERS[p.id] !== undefined) {
+(window.FO_PRODUCTS || []).forEach(function (p) {
+  if (p && window.FO_BESTSELLERS[p.id] !== undefined) {
     p.bestseller = true;
-    p.bestsellerLabel = window.PACO_BESTSELLERS[p.id];
+    p.bestsellerLabel = window.FO_BESTSELLERS[p.id];
   }
 });
