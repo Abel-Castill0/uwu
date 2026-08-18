@@ -680,14 +680,15 @@
                 <input type="text" id="chReferencia" placeholder="Al costado del banco" />
               </div>
             </div>
-            <div class="checkout-summary">
-              <div class="form-section-title">Resumen del Pedido</div>
-              <div id="checkoutSummaryItems"></div>
-              <div class="checkout-summary-total">
-                <span>Total a Pagar</span>
-                <span id="checkoutTotal">S/ 0.00</span>
-              </div>
-            </div>
+<div class="checkout-summary">
+        <div class="form-section-title">Resumen del Pedido</div>
+        <div id="checkoutSummaryItems"></div>
+        <div class="checkout-breakdown" id="checkoutBreakdown"></div>
+        <div class="checkout-summary-total">
+          <span>Total a Pagar</span>
+          <span id="checkoutTotal">S/ 0.00</span>
+        </div>
+      </div>
             <div class="pay-methods">
               <div class="form-section-title">¿Cómo deseas pagar?</div>
               <div class="pay-methods__grid" id="payMethods" role="radiogroup" aria-label="Método de pago">
@@ -812,6 +813,7 @@
         <p class="upsell-strip__title">🔥 Agrega una muestra y descubre tu próximo favorito</p>
         <div class="upsell-strip__items" id="upsellItems"></div>
       </div>
+      <div class="cart-breakdown" id="cartBreakdown"></div>
       <div class="cart-total">
         <span>Total</span>
         <span id="cartTotal">S/ 0.00</span>
@@ -924,6 +926,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js" defer></script>
   <script src="config.js" defer></script>
+  <script src="descuentos.js" defer></script>
   <script src="productos.js" defer></script>
   <script src="script.js" defer></script>
   <script src="animations.js" defer></script>

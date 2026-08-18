@@ -3,7 +3,7 @@
  * - Stale-while-revalidate: imágenes
  * - Network-first con fallback a offline.html: navegación
  */
-const VERSION = "fo-v17-local";
+const VERSION = "fo-v18-local";
 const CORE_CACHE = `core-${VERSION}`;
 const IMG_CACHE = `img-${VERSION}`;
 const FONT_CACHE = `font-${VERSION}`;
@@ -16,6 +16,7 @@ const CORE_ASSETS = [
   "script.js",
   "productos.js",
   "config.js",
+  "descuentos.js",
   "animations.js",
   "offline.html",
   "logo.webp",

@@ -31,6 +31,11 @@
       '</svg>';
     return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   }
+  /* Imagen específica por tamaño de decant (vial "5ml" / "10 ml").
+     Si no hay variante para ese tamaño, cae a la imagen base del producto. */
+  function sizeImage(p, size) {
+    return (p && p.sizeImages && p.sizeImages[size]) || (p && p.cardImage) || "";
+  }
   /* ⚠️ Valores del negocio centralizados en config.js (window.FO_CONFIG).
      Edita SOLO config.js. Los fallbacks evitan romper si falta el archivo. */
   const FO = window.FO_CONFIG || {};
@@ -162,7 +167,36 @@
     try { localStorage.setItem("fo_cart_v4", JSON.stringify(cart)); } catch (e) { /* almacenamiento no disponible */ }
   }
   function getCartTotal() {
-    return cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+    return calcularDescuentos(cart).subtotalFinal;
+  }
+  /* Desglose visual del carrito/checkout: subtotal, descuentos, envío y vial. */
+  function breakdownHTML(d) {
+    var rows = [];
+    rows.push(
+      '<div class="bd-row"><span>Subtotal</span><span>' + formatPrice(d.subtotalOriginal) + "</span></div>",
+    );
+    if (d.detalleCantidad) {
+      rows.push(
+        '<div class="bd-row bd-disc"><span>' + esc(d.detalleCantidad.pct) + "% por " + esc(d.detalleCantidad.cant) + " decants</span><span>−" + formatPrice(d.detalleCantidad.monto) + "</span></div>",
+      );
+    }
+    d.detalleMarcas.forEach(function (m) {
+      rows.push(
+        '<div class="bd-row bd-disc"><span>' + esc(m.pct) + "% en " + esc(m.marca) + " (" + esc(m.cant) + " ítems)</span><span>−" + formatPrice(m.monto) + "</span></div>",
+      );
+    });
+    if (d.aplicaEnvioGratis) {
+      rows.push('<div class="bd-row bd-good"><span>Envío</span><span>GRATIS</span></div>');
+    }
+    if (d.vialGratisAgregado) {
+      rows.push('<div class="bd-row bd-good"><span>🎁 Vial de regalo</span><span>S/ 0.00</span></div>');
+    }
+    return rows.join("");
+  }
+  function renderBreakdown(containerId) {
+    var el = $(containerId);
+    if (!el) return;
+    el.innerHTML = cart.length ? breakdownHTML(calcularDescuentos(cart)) : "";
   }
   function getCartCount() {
     return cart.reduce((sum, i) => sum + i.qty, 0);
@@ -278,7 +312,7 @@
         type,
         name: product.name,
         brand: product.brand,
-        image: type === "full" ? product.fullImage : product.decantImage,
+        image: type === "full" ? product.fullImage : sizeImage(product, size),
         size,
         price,
         qty,
@@ -403,6 +437,7 @@
     } else {
       footer.style.display = "block";
       total.textContent = formatPrice(getCartTotal());
+      renderBreakdown("cartBreakdown");
     }
     updateStickyCart();
   }
@@ -616,9 +651,16 @@
     if (tabSwitch) tabSwitch.style.display = hasDecants ? "" : "none";
     const isFull = currentModalView === "full";
     const sizes = isFull ? product.fullSizes : product.decantSizes;
-    const image = isFull ? product.fullImage : product.decantImage;
+    if (!sizes || Object.keys(sizes).length === 0) {
+      currentModalSize = null;
+    } else if (!sizes[currentModalSize]) {
+      currentModalSize = Object.keys(sizes)[0];
+    }
+    // La imagen del modal cambia según el tamaño seleccionado (5ml/10ml)
     const modalImg = $("modalImage").querySelector("img");
-    modalImg.src = image || cardImg(product);
+    modalImg.src =
+      (isFull ? product.fullImage : sizeImage(product, currentModalSize)) ||
+      cardImg(product);
     modalImg.alt = product.name;
     $("modalName").textContent = product.name;
     $("modalBrand").textContent = product.brand;
@@ -626,11 +668,6 @@
       "✨ " + product.description + (product.notes ? "\n\nNotas: " + product.notes : "");
     $("tabFull").classList.toggle("active", isFull);
     $("tabDecant").classList.toggle("active", !isFull);
-    if (!sizes || Object.keys(sizes).length === 0) {
-      currentModalSize = null;
-    } else {
-      if (!sizes[currentModalSize]) currentModalSize = Object.keys(sizes)[0];
-    }
     const sizeContainer = $("modalSizes");
     sizeContainer.innerHTML = Object.keys(sizes)
       .map(
@@ -665,7 +702,7 @@
     const flyImg =
       currentModalView === "full"
         ? currentModalProduct.fullImage
-        : currentModalProduct.decantImage;
+        : sizeImage(currentModalProduct, currentModalSize);
     flyToCart(flyImg, this);
     addToCart(currentModalProduct.id, currentModalView, currentModalSize);
     // micro-check ✓ antes de cerrar
@@ -1417,6 +1454,7 @@
 
     if (totalEl) {
       totalEl.textContent = formatPrice(getCartTotal());
+      renderBreakdown("checkoutBreakdown");
     }
   }
 
@@ -1723,7 +1761,21 @@
       mensaje += `  Cantidad: ${item.qty} | Precio: ${formatPrice(item.price * item.qty)}\n`;
     });
 
-    mensaje += `\n💰 *TOTAL: ${formatPrice(getCartTotal())}*\n`;
+    const d = calcularDescuentos(cart);
+    if (d.descuentoTotal > 0) {
+      mensaje += `\n🏷️ *DESCUENTOS APLICADOS:*\n`;
+      if (d.detalleCantidad) {
+        mensaje += `  ✦ ${d.detalleCantidad.pct}% por ${d.detalleCantidad.cant} decants: −${formatPrice(d.detalleCantidad.monto)}\n`;
+      }
+      d.detalleMarcas.forEach((m) => {
+        mensaje += `  ✦ ${m.pct}% en ${m.marca} (${m.cant} ítems): −${formatPrice(m.monto)}\n`;
+      });
+    }
+    mensaje += `\n🚚 *Envío:* ${d.aplicaEnvioGratis ? "GRATIS" : "A coordinar (Lima Metropolitana)"}\n`;
+    if (d.vialGratisAgregado) {
+      mensaje += `🎁 *Vial de regalo incluido (S/ 0.00)*\n`;
+    }
+    mensaje += `\n💰 *TOTAL: ${formatPrice(d.subtotalFinal)}*\n`;
     mensaje += `✅ ¡Gracias por tu pedido! Quedo atento para coordinar el envío. 🙌`;
     return mensaje;
   }

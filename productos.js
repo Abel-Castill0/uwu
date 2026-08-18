@@ -178,4 +178,39 @@
       p.featured = true;
     }
   });
+
+  /* ════════════════════════════════════════════════════════════════
+     Imágenes reales por producto (carpeta img/perfumes/):
+     · main  = foto base (frasco o imagen principal del perfume)
+     · sizes = variantes por tamaño de decant (vial "5ml" y "10 ml")
+     Se aplican sobre FO_PRODUCTS: cardImage/fullImage/decantImage
+     usan "main" y "sizeImages" guarda las variantes por tamaño.
+     ════════════════════════════════════════════════════════════════ */
+  w.FO_PRODUCT_IMAGES = {
+    1: { main: "img/perfumes/Comteporary.png", sizes: { "5": "img/perfumes/Comteporary decant premium 5ml.png", "10": "img/perfumes/Comteporary decant premium 10 ml.png" } },
+    2: { main: "img/perfumes/Crab Apple Blossom.png", sizes: { "5": "img/perfumes/Crab Apple Blossom decant premium 5ml.png", "10": "img/perfumes/Crab Apple Blossom decant premium 10 ml.png" } },
+    3: { main: "img/perfumes/Rock rose.png", sizes: { "5": "img/perfumes/Rock rose decant premium 5ml.png", "10": "img/perfumes/Rock rose decant premium 10 ml.png" } },
+    4: { main: "img/perfumes/Angel Share Paradis.png", sizes: { "5": "img/perfumes/Angel Share Paradis decant premium 5ml.png", "10": "img/perfumes/Angel Share Paradis decant premium 10 ml.png" } },
+    5: { main: "img/perfumes/Angel Share on the Rocks.png", sizes: { "5": "img/perfumes/Angel Share on the Rocks decant premium 5ml.png", "10": "img/perfumes/Angel Share on the Rocks decant premium 10 ml.png" } },
+    6: { main: "img/perfumes/Angel Share edp.png", sizes: { "5": "img/perfumes/Angel Share edp decant premium 5ml.png", "10": "img/perfumes/Angel Share edp decant premium 10 ml.png" } },
+    7: { main: "img/perfumes/Apple Brandy.png", sizes: { "5": "img/perfumes/Apple Brandy decant premium 5ml.png", "10": "img/perfumes/Apple Brandy decant premium 10 ml.png" } },
+    8: { main: "img/perfumes/P_RNSTAR.png", sizes: { "5": "img/perfumes/P_RNSTAR decant premium 5ml.png", "10": "img/perfumes/P_RNSTAR decant premium 10 ml.png" } },
+    9: { main: "img/perfumes/ICHIGO ICHIE.png", sizes: { "5": "img/perfumes/ICHIGO ICHIE decant premium 5ml.png", "10": "img/perfumes/ICHIGO ICHIE decant premium 10 ml.png" } },
+    10: { main: "img/perfumes/LAST BIRTHDAY CAKE.png", sizes: { "5": "img/perfumes/LAST BIRTHDAY CAKE decant premium 5ml.png", "10": "img/perfumes/LAST BIRTHDAY CAKE decant premium 10 ml.png" } },
+    11: { main: "img/perfumes/BLACK MANGO.png", sizes: { "5": "img/perfumes/BLACK MANGO decant premium 5ml.png", "10": "img/perfumes/BLACK MANGO decant premium 10 ml.png" } },
+    12: { main: "img/perfumes/GOLD JUICE.png", sizes: { "5": "img/perfumes/GOLD JUICE decant premium 5ml.png", "10": "img/perfumes/GOLD JUICE decant premium 10 ml.png" } },
+    13: { main: "img/perfumes/INDECENT CHERRY.png", sizes: { "5": "img/perfumes/INDECENT CHERRY decant premium 5ml.png", "10": "img/perfumes/INDECENT CHERRY decant premium 10 ml.png" } },
+    14: { main: "img/perfumes/BLACK GUAVA.png", sizes: { "5": "img/perfumes/BLACK GUAVA decant premium 5ml.png", "10": "img/perfumes/BLACK GUAVA decant premium 10 ml.png" } },
+    15: { main: "", sizes: { "5": "img/perfumes/OUD MARACUJA decant premium 5ml.png", "10": "img/perfumes/OUD MARACUJA decant premium 10 ml.png" } }
+  };
+  Object.entries(w.FO_PRODUCT_IMAGES).forEach(([id, imgs]) => {
+    const p = w.FO_PRODUCTS.find((x) => x.id === Number(id));
+    if (!p) return;
+    /* Sin foto base (ej. Oud Maracuja) se usa el vial 5ml como imagen principal */
+    const main = imgs.main || imgs.sizes["5"] || "";
+    p.cardImage = main;
+    p.fullImage = main;
+    p.decantImage = main;
+    p.sizeImages = imgs.sizes || {};
+  });
 })(window);

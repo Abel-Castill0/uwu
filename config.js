@@ -26,6 +26,32 @@ window.FO_CONFIG = {
      false = se mantiene la lógica actual (sin acumulación). */
   ACUMULAR_PROMOS: false,
 
+  /* ── DESCUENTOS Y PROMOCIONES ──────────────────────────────────
+     Reglas que se aplican en el carrito y el checkout.
+     Cambia los valores aquí; el resto del sitio se adapta solo. */
+  DESCUENTOS: {
+    ACTIVOS: true, // false desactiva TODOS los descuentos de abajo
+
+    /* Descuento por cantidad de decants (excluyente entre sí):
+       · 2 a 5 decants  → min2 %
+       · 6 o más        → min6 %
+       Se aplica sobre el subtotal de los decants. */
+    POR_CANTIDAD: { activo: true, min2: 5, min6: 10 },
+
+    /* Descuento por marca repetida:
+       3+ unidades de la misma marca → porcentaje % sobre esa marca. */
+    POR_MARCA: { activo: true, minItems: 3, porcentaje: 10 },
+
+    /* Beneficio por umbral de compra (subtotal final >= monto):
+       vial de regalo (línea informativa, no altera stock)
+       + envío gratis (mensaje en carrito/checkout/WhatsApp). */
+    UMBRAL: { activo: true, monto: 199, vialGratis: true, envioGratis: true },
+
+    /* false = se aplica SOLO la regla de mayor descuento (cantidad o marca).
+       true  = ambos descuentos se suman. */
+    ACUMULAR_DESCUENTOS: false,
+  },
+
   /* Próximos lanzamientos para la sección "PRÓXIMAMENTE" (aún no construida). */
   PROXIMAMENTE: [],
 };
