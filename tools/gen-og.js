@@ -17,7 +17,7 @@ const ROOT = path.resolve(__dirname, "..");
     <rect x="40" y="40" width="${W - 80}" height="${H - 80}" rx="18" fill="none" stroke="#E2D8C4" stroke-width="2"/>
     <text x="${W / 2}" y="430" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="62" font-style="italic" fill="#B8924A">Decants Premium de Fragancias</text>
     <text x="${W / 2}" y="498" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="30" letter-spacing="6" fill="#5C3D1E">ARABES  ·  DISENADOR  ·  NICHO</text>
-    <text x="${W / 2}" y="556" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="22" letter-spacing="3" fill="#9A8270">pacofragancias.pe · Lima, Peru</text>
+    <text x="${W / 2}" y="556" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="22" letter-spacing="3" fill="#9A8270">fraganceobsession.pe · Lima, Peru</text>
   </svg>`;
   const logo = await sharp(path.join(ROOT, "logo.webp"))
     .resize(220, 220, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })

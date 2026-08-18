@@ -102,10 +102,11 @@
     <div class="adm-orders" id="ordersList"></div>
   </div>
 
+  <script src="config.js"></script>
   <script>
     (function () {
       "use strict";
-      var PASS = "paco2024"; /* TODO: contraseña heredada de la marca anterior — pedir al cliente la nueva */
+      var PASS = (window.FO_CONFIG && window.FO_CONFIG.ADMIN_PASSWORD) || "cambiar-esta-password"; /* ⚠️ definida en config.js — cambiar antes de publicar */
       var KEY = "fo_pedidos";
       var KEY_OLD = "paco_pedidos";
       var $ = function (id) { return document.getElementById(id); };

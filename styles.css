@@ -3612,3 +3612,219 @@ select:focus-visible, textarea:focus-visible {
 /* Icono del toggle de tema: reacción al hover */
 .theme-toggle:hover .theme-icon { transform: rotate(-25deg); }
 .theme-toggle.rotating .theme-icon { transform: rotate(360deg); }
+
+/* ============================================================
+   TOPBAR + MARQUEE + FABS + REDISEÑO DE FILTROS — 2026
+   ============================================================ */
+
+/* ---------- Topbar ---------- */
+.topbar {
+  background: linear-gradient(90deg, #241a0d, #3a2a12 50%, #241a0d);
+  border-bottom: 1px solid rgba(212,174,114,.18);
+  font-size: .76rem; letter-spacing: .02em;
+}
+.topbar-inner {
+  max-width: 1200px; margin: 0 auto; padding: .35rem 2rem;
+  display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap;
+  color: rgba(255,255,255,.82);
+}
+.topbar-item { display: inline-flex; align-items: center; gap: .45rem; text-decoration: none; color: inherit; }
+.topbar-item i { color: var(--gold-light); }
+.topbar-wa { font-weight: 600; }
+.topbar-wa:hover { color: var(--gold-light); }
+.topbar-social { margin-left: auto; display: inline-flex; gap: .35rem; }
+.topbar-social a {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.08); color: rgba(255,255,255,.85);
+  font-size: .85rem; text-decoration: none;
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.topbar-social a:hover { background: var(--gold); color: #0d0a06; transform: translateY(-2px); }
+
+/* ---------- Marquee de promos ---------- */
+.promo-marquee {
+  background: linear-gradient(90deg, var(--gold-deep), var(--gold) 50%, var(--gold-deep));
+  overflow: hidden; padding: .38rem 0; position: relative;
+  border-bottom: 1px solid rgba(13,10,6,.25);
+}
+.promo-marquee__track {
+  display: inline-flex; gap: 2.5rem; white-space: nowrap;
+  animation: marqueeScroll 32s linear infinite; will-change: transform;
+}
+.promo-marquee__track span {
+  color: #0d0a06; font-weight: 700; font-size: .78rem; letter-spacing: .04em;
+}
+@keyframes marqueeScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .promo-marquee__track { animation: none; flex-wrap: wrap; justify-content: center; gap: .6rem 1.4rem; }
+}
+
+/* ---------- Filtros del catálogo: píldoras premium ---------- */
+.quick-chips { gap: .5rem; scroll-snap-type: x proximity; }
+.quick-chip, .gender-chip, .pack-size-chip {
+  border-radius: 999px; flex: 0 0 auto; scroll-snap-align: start;
+  display: inline-flex; align-items: center; gap: .45rem;
+  transition: all var(--t-fast);
+}
+.quick-chip i, .gender-chip i { font-size: .82em; opacity: .85; }
+.quick-chip { padding: .55rem 1.15rem; font-size: .84rem; font-weight: 600; }
+.gender-chip { padding: .5rem 1rem; font-size: .82rem; font-weight: 600; }
+.pack-size-chip { padding: .45rem .95rem; font-size: .8rem; font-weight: 600; }
+.quick-chip:hover, .gender-chip:hover, .pack-size-chip:hover {
+  border-color: var(--gold); color: var(--gold-light); transform: translateY(-2px);
+}
+.quick-chip.active, .quick-chip[aria-pressed="true"],
+.gender-chip.active, .gender-chip[aria-pressed="true"],
+.pack-size-chip.active, .pack-size-chip[aria-pressed="true"] {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: #0d0a06; border-color: transparent; font-weight: 700;
+  box-shadow: 0 6px 18px rgba(184,146,74,.38);
+  transform: translateY(-1px);
+}
+.quick-chip.active i, .quick-chip[aria-pressed="true"] i,
+.gender-chip.active i, .gender-chip[aria-pressed="true"] i { opacity: 1; }
+
+/* Cat-tiles: activo con resplandor dorado */
+.cat-tile.active, .cat-tile[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px var(--gold), 0 14px 34px rgba(184,146,74,.3) !important;
+  transform: translateY(-4px) scale(1.01) !important;
+}
+
+/* Toolbar de packs: sticky con blur */
+.packs-toolbar {
+  position: sticky; top: 74px; z-index: 950;
+  background: rgba(20,15,9,.72);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid rgba(212,174,114,.14); border-radius: 16px;
+  padding: .7rem .9rem; margin-bottom: 1.4rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+[data-theme="dark"] .packs-toolbar {
+  background: rgba(10,8,5,.78);
+  border-color: rgba(212,174,114,.18);
+}
+.packs-toolbar-row { gap: .8rem; }
+.pack-size-bar { scroll-snap-type: x proximity; }
+.packs-sort select {
+  background: var(--surface); color: var(--text-primary);
+  border: 1.5px solid var(--border-light); border-radius: 999px;
+  padding: .5rem .9rem; font-size: .8rem; cursor: pointer;
+  transition: border-color var(--t-fast);
+}
+.packs-sort select:hover { border-color: var(--gold); }
+.packs-count {
+  font-size: .8rem; color: var(--gold-light); font-weight: 600;
+  padding: .45rem .8rem; border-radius: 999px;
+  background: rgba(212,174,114,.1); border: 1px dashed rgba(212,174,114,.35);
+}
+
+/* Contador de resultados del catálogo */
+#catalogResultsCount {
+  font-size: .84rem; color: var(--text-muted); margin: .2rem 0 .6rem;
+  letter-spacing: .02em;
+}
+#catalogResultsCount strong { color: var(--gold-deep); }
+[data-theme="dark"] #catalogResultsCount strong { color: var(--gold-light); }
+
+/* ---------- FAB de WhatsApp ---------- */
+.wa-fab {
+  position: fixed; right: 20px; bottom: 20px; z-index: 4500;
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #2ee05d, #1fb954);
+  color: #fff; font-size: 1.5rem; text-decoration: none;
+  box-shadow: 0 10px 26px rgba(31,185,84,.45);
+  opacity: 0; transform: translateY(14px) scale(.85); pointer-events: none;
+  transition: opacity .5s ease, transform .5s cubic-bezier(.34,1.56,.64,1), box-shadow var(--t-base);
+}
+.wa-fab.visible { opacity: 1; transform: none; pointer-events: auto; }
+.wa-fab:hover { transform: translateY(-3px) scale(1.06); box-shadow: 0 14px 30px rgba(31,185,84,.55); }
+.wa-fab::after {
+  content: ""; position: absolute; inset: -4px; border-radius: 50%;
+  border: 2px solid rgba(46,224,93,.6); animation: waPulse 2.4s ease-out infinite;
+}
+@keyframes waPulse {
+  0%   { transform: scale(.85); opacity: 1; }
+  70%  { transform: scale(1.25); opacity: 0; }
+  100% { transform: scale(1.25); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .wa-fab::after { animation: none; } }
+
+/* ---------- Footer: métodos de pago ---------- */
+.footer-payments {
+  font-size: .8rem; color: rgba(255,255,255,.75); letter-spacing: .03em;
+}
+.footer-payments strong {
+  color: var(--gold-light); font-weight: 700;
+  border: 1px solid rgba(212,174,114,.3); border-radius: 999px;
+  padding: .1rem .55rem; margin: 0 .1rem; font-size: .72rem;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .topbar-inner { padding: .35rem 1rem; gap: 1rem; }
+  .topbar-social { display: none; }
+  .packs-toolbar { top: 62px; }
+}
+@media (max-width: 640px) {
+  .topbar-shipping { display: none; }
+  .topbar-inner { justify-content: center; }
+  .promo-marquee__track { gap: 1.8rem; animation-duration: 26s; }
+  .packs-toolbar { top: 108px; padding: .6rem .7rem; border-radius: 14px; }
+  .pack-size-bar, .gender-bar__chips { scroll-snap-type: x proximity; }
+  .wa-fab { right: 14px; bottom: 5.7rem; width: 48px; height: 48px; font-size: 1.35rem; }
+  .ig-fab { bottom: 5.7rem; }
+}
+@media (min-width: 1200px) {
+  .topbar-inner { padding-left: 2.5rem; padding-right: 2.5rem; }
+}
+
+/* ============================================================
+   CATÁLOGO REAL 2026 — 2 colecciones (Nicho + Diseñador)
+   ============================================================ */
+
+/* Mosaico editorial equilibrado con 2 tiles */
+.cat-showcase:not(.cat-showcase--promos) {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 460px;
+}
+.cat-showcase:not(.cat-showcase--promos) .cat-tile {
+  grid-column: auto; grid-row: 1; height: 460px;
+}
+.cat-showcase--promos {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 460px;
+}
+
+/* Los perfumes no tienen género declarado: se ocultan los filtros */
+#catalogGenderGroup, #promoGenderGroup { display: none !important; }
+
+/* Strip de promociones del catálogo (promos oficiales del negocio) */
+.promo-strip {
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0 0 1.8rem;
+  border: 1px solid rgba(212,174,114,.16);
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+}
+.promo-strip .packs-benefit { padding: .8rem 1rem; }
+.promo-strip .packs-benefit__icon { font-size: 1.3rem; }
+.promo-strip strong { font-size: .82rem; letter-spacing: .01em; }
+.promo-strip .packs-benefit span:last-child { font-size: .72rem; }
+@media (max-width: 900px) {
+  .cat-showcase:not(.cat-showcase--promos),
+  .cat-showcase--promos { grid-template-rows: 340px; }
+  .cat-showcase:not(.cat-showcase--promos) .cat-tile,
+  .cat-showcase--promos .cat-tile { height: 340px; }
+  .promo-strip { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .cat-showcase:not(.cat-showcase--promos),
+  .cat-showcase--promos { grid-template-columns: 1fr; grid-template-rows: 260px 260px; }
+  .cat-showcase:not(.cat-showcase--promos) .cat-tile,
+  .cat-showcase--promos .cat-tile { height: 260px; grid-row: auto; }
+  .promo-strip { grid-template-columns: 1fr; }
+}

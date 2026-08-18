@@ -14,12 +14,29 @@
      CONSTANTES
   ══════════════════════════════════════════════════════════════ */
   const PLACEHOLDER_IMG = "img/perfumes/placeholder.webp";
-  /* ⚠️ NÚMERO DE WHATSAPP DEL VENDEDOR (formato internacional sin "+")
-     MERCADO PAGO: aquí va tu link de pago cuando lo generes.
-     Edita ambas constantes en este archivo. */
-  const WHATSAPP_NUMBER = "51994467586";
-  const MERCADOPAGO_LINK = ""; /* ej. "https://mpago.la/XXXXX" */
-  const SITE_URL = "https://pacofragancias.com/"; /* TODO: reemplazar por el dominio real de Fragance Obsession */
+  /* Imagen por defecto elegante: monograma dorado sobre gradiente oscuro.
+     Se genera en SVG (data URI) cuando el perfume no tiene foto propia. */
+  function cardImg(p) {
+    const label = ((p && (p.name || p.brand)) || "Fragance Obsession").replace(/[^\w\s-]/g, "");
+    const initials = label.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "FO";
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">' +
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" stop-color="#231a12"/><stop offset="0.55" stop-color="#161009"/><stop offset="1" stop-color="#0c0806"/>' +
+      '</linearGradient></defs>' +
+      '<rect width="600" height="600" fill="url(#g)"/>' +
+      '<rect x="24" y="24" width="552" height="552" fill="none" stroke="#d4af37" stroke-opacity="0.28" stroke-width="3"/>' +
+      '<text x="300" y="298" text-anchor="middle" dominant-baseline="central" font-family="Georgia, \'Times New Roman\', serif" font-size="170" fill="#d4af37" fill-opacity="0.9">' + initials + '</text>' +
+      '<text x="300" y="500" text-anchor="middle" font-family="Georgia, \'Times New Roman\', serif" font-size="24" letter-spacing="6" fill="#d4af37" fill-opacity="0.5">FRAGANCE OBSESSION</text>' +
+      '</svg>';
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  }
+  /* ⚠️ Valores del negocio centralizados en config.js (window.FO_CONFIG).
+     Edita SOLO config.js. Los fallbacks evitan romper si falta el archivo. */
+  const FO = window.FO_CONFIG || {};
+  const WHATSAPP_NUMBER = FO.WHATSAPP_NUMBER || "51994467586";
+  const MERCADOPAGO_LINK = ""; /* ej. "https://mpago.la/XXXXX" — link de pago cuando exista */
+  const SITE_URL = FO.SITE_URL || "https://fraganceobsession.pe/";
   // Modo desarrollo (solo localhost): habilita logs de diagnóstico.
   const IS_DEV = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
 
@@ -108,6 +125,7 @@
     hombre: (p) => !p.tester && isProduct(p) && p.gender === "masculino",
     mujer: (p) => !p.tester && isProduct(p) && p.gender === "femenino",
     unisex: (p) => !p.tester && isProduct(p) && p.gender === "unisex",
+    nicho: (p) => !p.tester && isProduct(p) && p.category === "nicho",
     arabe: (p) => !p.tester && isProduct(p) && p.category === "arabe",
     disenador: (p) => !p.tester && isProduct(p) && p.category === "disenador",
   };
@@ -422,7 +440,7 @@
         const price = p.decantSizes["2ml"];
         return `
           <div class="upsell-item">
-            <img src="${esc(p.cardImage || p.decantImage)}" alt="${esc(p.name)}" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+            <img src="${esc(p.cardImage || p.decantImage || cardImg(p))}" alt="${esc(p.name)}" loading="lazy" decoding="async" onerror="this.style.display='none'" />
             <div class="upsell-item__info">
               <div class="upsell-item__name">${esc(p.name)}</div>
               <div class="upsell-item__meta">2ml · ${esc(p.brand)}</div>
@@ -557,7 +575,8 @@
     const product = getProductById(productId);
     if (!product) return;
     currentModalProduct = product;
-    currentModalView = "full";
+    currentModalView =
+      product.fullSizes && Object.keys(product.fullSizes).length > 0 ? "full" : "decant";
     currentModalSize =
       Object.keys(product.fullSizes)[0] || Object.keys(product.decantSizes)[0];
     updateModalContent();
@@ -599,12 +618,12 @@
     const sizes = isFull ? product.fullSizes : product.decantSizes;
     const image = isFull ? product.fullImage : product.decantImage;
     const modalImg = $("modalImage").querySelector("img");
-    modalImg.src = image;
+    modalImg.src = image || cardImg(product);
     modalImg.alt = product.name;
     $("modalName").textContent = product.name;
     $("modalBrand").textContent = product.brand;
     $("modalNotes").textContent =
-      "✨ " + product.description + "\n\nNotas: " + product.notes;
+      "✨ " + product.description + (product.notes ? "\n\nNotas: " + product.notes : "");
     $("tabFull").classList.toggle("active", isFull);
     $("tabDecant").classList.toggle("active", !isFull);
     if (!sizes || Object.keys(sizes).length === 0) {
@@ -734,8 +753,8 @@
       productGrid.innerHTML = '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;padding:1.5rem;">Selecciona un tamaño para ver los perfumes disponibles</p>';
       counterEl.style.display = "none";
       confirmBtn.style.display = "none";
-      if (presetSize && promo.options.some((o) => o.size === presetSize)) {
-        selectPackSize(presetSize);
+      if (presetSize && promo.options.some((o) => o.size === Number(presetSize))) {
+        selectPackSize(Number(presetSize));
       }
     } else {
       sizeSelector.style.display = "none";
@@ -798,7 +817,7 @@
     grid.innerHTML = eligible
       .map((prod) => {
         const isSelected = selectedPackProducts.includes(prod.id);
-        const imgSrc = prod.cardImage || PLACEHOLDER_IMG;
+        const imgSrc = prod.cardImage || cardImg(prod);
         return `
         <div class="pack-product-item ${isSelected ? "selected" : ""}"
              data-product-id="${prod.id}" role="button" tabindex="0" aria-pressed="${isSelected}">
@@ -849,13 +868,14 @@
     $("packGroupPrice").textContent = "";
   }
   function selectPackSize(size) {
-    currentPackGroupSize = size;
+    const sizeNum = Number(size);
+    currentPackGroupSize = sizeNum;
     currentPackGroupQty = currentPackPromo.quantity;
     packGroupPrice = 0;
     document.querySelectorAll("#packSizeGrid .size-option").forEach((btn) => {
       btn.classList.toggle("selected", btn.dataset.size === size);
     });
-    const option = currentPackPromo.options.find((o) => o.size === size);
+    const option = currentPackPromo.options.find((o) => o.size === sizeNum);
     const priceEl = $("packGroupPrice");
     if (option) {
       packGroupPrice = option.price;
@@ -1055,7 +1075,7 @@
           ${badgeHTML}
           ${bestsellerHTML}
           ${presentationHTML}
-          <img src="${esc(product.cardImage)}"${imgSrcsetAttrs(product.cardImage)} alt="${esc(product.name)} - ${esc(product.brand)}" loading="lazy" decoding="async" onload="this.classList.add('img-loaded'); this.closest('.img-wrapper').classList.add('skeleton-done');" onerror="this.style.display='none'; this.closest('.img-wrapper').classList.add('skeleton-done');" />
+          <img src="${esc(product.cardImage || cardImg(product))}"${imgSrcsetAttrs(product.cardImage)} alt="${esc(product.name)} - ${esc(product.brand)}" loading="lazy" decoding="async" onload="this.classList.add('img-loaded'); this.closest('.img-wrapper').classList.add('skeleton-done');" onerror="this.style.display='none'; this.closest('.img-wrapper').classList.add('skeleton-done');" />
         </div>
         <div class="product-info">
           <div class="product-category">${catLabel} · ${esc(product.gender)}</div>
@@ -1227,12 +1247,12 @@
     grid.innerHTML = filtered
       .map((promo) => {
         let priceHtml = "";
-        const imageUrl = promo.image || "";
+        const imageUrl = promo.image || cardImg(promo);
 
         // Precio según tamaño seleccionado en la card (si hay) o "Desde el menor"
         const cardSize = cardPackSizes[promo.id] || null;
         const sizeOption = cardSize
-          ? (promo.options || []).find((o) => o.size === cardSize)
+          ? (promo.options || []).find((o) => o.size === Number(cardSize))
           : null;
 
         if (promo.type === "group" && Array.isArray(promo.options) && promo.options.length) {
@@ -1267,7 +1287,7 @@
         const sizeChipsHtml = (promo.options || []).length > 1
           ? `<div class="promo-size-picker" role="group" aria-label="Elegir tamaño de ${esc(promo.name)}">
                ${promo.options.map((o) => `
-                 <button class="promo-size-chip${o.size === cardSize ? " active" : ""}" data-promo-size="${esc(o.size)}" aria-pressed="${o.size === cardSize}">
+                 <button class="promo-size-chip${o.size === Number(cardSize) ? " active" : ""}" data-promo-size="${esc(o.size)}" aria-pressed="${o.size === Number(cardSize)}">
                    ${esc(o.size)}
                  </button>`).join("")}
              </div>`
@@ -2325,6 +2345,30 @@
     }
   }
 
+  /* Botón flotante de WhatsApp (fade-in tras 1.5s) */
+  /* Enlaces de redes desde config.js: elementos marcados con data-ig-link / data-wa-link */
+  function applyConfigLinks() {
+    const ig = FO.INSTAGRAM_URL || "https://instagram.com/fraganceobsession.pe";
+    const wa = "https://wa.me/" + WHATSAPP_NUMBER;
+    document.querySelectorAll("[data-ig-link]").forEach((a) => {
+      a.href = ig;
+      if (a.dataset.igPendingTitle) { a.title = a.dataset.igPendingTitle; a.setAttribute("aria-label", a.dataset.igPendingTitle); }
+    });
+    document.querySelectorAll("[data-wa-link]").forEach((a) => {
+      if (a.hasAttribute("data-wa-text")) {
+        a.href = wa + "?text=" + encodeURIComponent(a.dataset.waText);
+      } else {
+        a.href = wa;
+      }
+    });
+  }
+
+  function setupWhatsAppFab() {
+    const fab = $("waFab");
+    if (!fab) return;
+    setTimeout(() => fab.classList.add("visible"), 1500);
+  }
+
   /* Botón flotante de Instagram (fade-in tras 2s) */
   function setupInstagramFab() {
     const fab = $("igFab");
@@ -2419,14 +2463,14 @@
 
     function showTikTokFallback(card) {
       if (card.classList.contains("tiktok-card--fallback")) return;
-      const url = card.dataset.videoUrl || "https://www.tiktok.com/@pacofragancias.pe";
+      const url = card.dataset.videoUrl || "https://www.tiktok.com/@fraganceobsession.pe";
       card.classList.add("tiktok-card--fallback");
       card.innerHTML = `
         <a class="tiktok-fallback" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="Ver video en TikTok">
           <div class="tiktok-fallback__icon"><i class="fab fa-tiktok" aria-hidden="true"></i></div>
           <div class="tiktok-fallback__text">Mira este video en TikTok</div>
           <span class="tiktok-fallback__btn">Ver en TikTok</span>
-          <div class="tiktok-fallback__brand">@pacofragancias.pe</div>
+          <div class="tiktok-fallback__brand">@fraganceobsession.pe</div>
         </a>`;
     }
 
@@ -2500,6 +2544,8 @@
     setupRecommender();
     setupReviewsCarousel();
     setupConnectivityToasts();
+    applyConfigLinks();
+    setupWhatsAppFab();
     setupInstagramFab();
     setupTikTok();
     maybeRemindCart();
