@@ -14,7 +14,7 @@
      CONSTANTES
   ══════════════════════════════════════════════════════════════ */
   const PLACEHOLDER_IMG = "img/perfumes/placeholder.webp";
-  /* Imagen por defecto elegante: monograma plata sobre verde profundo.
+  /* Imagen por defecto elegante: monograma dorado sobre marrón profundo.
      Se genera en SVG (data URI) cuando el perfume no tiene foto propia. */
   function cardImg(p) {
     const label = ((p && (p.name || p.brand)) || "Fragrance Obsession").replace(/[^\w\s-]/g, "");
@@ -22,12 +22,12 @@
     const svg =
       '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">' +
       '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
-      '<stop offset="0" stop-color="#111113"/><stop offset="0.55" stop-color="#0A0A0A"/><stop offset="1" stop-color="#050505"/>' +
+      '<stop offset="0" stop-color="#2C2015"/><stop offset="0.55" stop-color="#1A120B"/><stop offset="1" stop-color="#140E08"/>' +
       '</linearGradient></defs>' +
       '<rect width="600" height="600" fill="url(#g)"/>' +
-      '<rect x="24" y="24" width="552" height="552" fill="none" stroke="#C9D6CE" stroke-opacity="0.3" stroke-width="3"/>' +
-      '<text x="300" y="298" text-anchor="middle" dominant-baseline="central" font-family="Georgia, \'Times New Roman\', serif" font-size="170" fill="#DDE9E1" fill-opacity="0.9">' + initials + '</text>' +
-      '<text x="300" y="500" text-anchor="middle" font-family="Georgia, \'Times New Roman\', serif" font-size="24" letter-spacing="6" fill="#C9D6CE" fill-opacity="0.6">FRAGRANCE OBSESSION</text>' +
+      '<rect x="24" y="24" width="552" height="552" fill="none" stroke="#C99B5F" stroke-opacity="0.3" stroke-width="3"/>' +
+      '<text x="300" y="298" text-anchor="middle" dominant-baseline="central" font-family="Georgia, \'Times New Roman\', serif" font-size="170" fill="#E8CE9C" fill-opacity="0.9">' + initials + '</text>' +
+      '<text x="300" y="500" text-anchor="middle" font-family="Georgia, \'Times New Roman\', serif" font-size="24" letter-spacing="6" fill="#B88A4E" fill-opacity="0.6">FRAGRANCE OBSESSION</text>' +
       '</svg>';
     return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   }
@@ -57,7 +57,7 @@
   function sizeLabel(size) {
     const base = isPremiumSize(size) ? baseSizeOf(size) : size;
     const baseLabel = /^\d+$/.test(base) ? base + "ml" : base;
-    return isPremiumSize(size) ? baseLabel + " premium" : baseLabel;
+    return isPremiumSize(size) ? baseLabel + " decant premium" : baseLabel;
   }
   function getPremiumUplift(baseSize) {
     const u = FO.PREMIUM_UPLIFT || {};
@@ -75,14 +75,10 @@
         premiumAdded = true;
       }
     });
-    /* Unificación premium: si existe variante premium, la base de ese
-       tamaño se oculta (solo se ofrece la premium). Los datos base
-       siguen intactos para precios y carrito (getDecantPrice). */
-    if (premiumAdded) {
-      Object.keys(sizes).forEach((s) => {
-        if (!isPremiumSize(s) && sizes[s + "_premium"]) delete sizes[s];
-      });
-    }
+    /* Decisión del cliente: se ofrecen AMBAS variantes (ej. 5ml y
+       5ml premium). La base ya no se oculta; los datos base siguen
+       intactos para precios y carrito (getDecantPrice). */
+    void premiumAdded;
     return sizes;
   }
   function getDecantPrice(product, size) {
@@ -440,7 +436,9 @@
           }
         }
         let nameHtml = `<div class="cart-item-name">${esc(item.name)}</div>`;
-        let metaHtml = `<div class="cart-item-meta">${esc(item.brand)} · ${item.type === "full" ? "Caja Sellada" : item.type === "decant" ? "Decant" : "Pack"} ${esc(sizeLabel(item.size))}</div>`;
+        const typeTxt = item.type === "full" ? "Caja Sellada" : item.type === "decant" ? "Decant" : "Pack";
+        const metaSize = item.type === "decant" && isPremiumSize(item.size) ? sizeLabel(item.size) : typeTxt + " " + sizeLabel(item.size);
+        let metaHtml = `<div class="cart-item-meta">${esc(item.brand)} · ${esc(metaSize)}</div>`;
         if (hasGift) {
           metaHtml += `<div class="cart-gift-note"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="13" rx="2"/><path d="M12 7.5V20.5M3.5 12.5h17M12 7.5c-2.8 0-4.6-1-4.6-2.7S9.2 2 12 2s4.6 1 4.6 2.8-1.8 2.7-4.6 2.7z"/></svg> Incluye: ${esc(item.gift.name)} (${esc(item.gift.size)})</div>`;
         }
@@ -762,10 +760,14 @@
       sizeContainer.parentNode.insertBefore(sizeLabelEl, sizeContainer);
     }
     sizeContainer.innerHTML = sizeKeys
-      .map(
-        (size) =>
-          `<button class="size-option${size === currentModalSize ? " selected" : ""}" data-size="${esc(size)}">${esc(sizeLabel(size))}</button>`,
-      )
+      .map((size) => {
+        const price = sizes[size];
+        const premium = isPremiumSize(size);
+        return `<button class="size-option${size === currentModalSize ? " selected" : ""}${premium ? " size-option--premium" : ""}" data-size="${esc(size)}" type="button">
+            <span class="size-option__label">${esc(sizeLabel(size))}</span>
+            <span class="size-option__price">${typeof price === "number" ? esc(formatPrice(price)) : ""}</span>
+          </button>`;
+      })
       .join("");
     const price = currentModalSize ? sizes[currentModalSize] : null;
     $("modalPrice").innerHTML = price
@@ -1298,10 +1300,15 @@
   function renderFeatured() {
     const grid = $("featuredGrid");
     if (!grid) return;
-    grid.innerHTML = products
+    /* Grid 2×5: 10 destacados, priorizando "Más Vendido" sobre
+       "Tendencia en TikTok" (estable: el resto conserva el orden). */
+    const rank = (p) =>
+      p.bestsellerLabel === "Más Vendido" ? 0 : p.bestsellerLabel ? 1 : 2;
+    const featured = products
       .filter((p) => p.featured)
-      .map(createProductCard)
-      .join("");
+      .sort((a, b) => rank(a) - rank(b))
+      .slice(0, 10);
+    grid.innerHTML = featured.map(createProductCard).join("");
     observeRevealElements();
     window.FraganceAnimations?.refresh?.();
   }
@@ -1960,7 +1967,10 @@
     mensaje += `\n📦 *PRODUCTOS:*\n`;
 
     cart.forEach((item) => {
-      mensaje += `\n  ✦ ${item.name} (${item.type === "full" ? "Frasco" : item.type === "decant" ? "Decant" : "Pack"} ${sizeLabel(item.size)})\n`;
+      const szTxt = isPremiumSize(item.size)
+        ? sizeLabel(item.size)
+        : (item.type === "full" ? "Frasco" : item.type === "decant" ? "Decant" : "Pack") + " " + sizeLabel(item.size);
+      mensaje += `\n  ✦ ${item.name} (${szTxt})\n`;
       if (item.isPack && item.includedProducts && item.includedProducts.length > 0) {
         const lista = item.includedProducts.map((p) => `      • ${p.name}`).join("\n");
         mensaje += `${lista}\n`;
@@ -2276,7 +2286,7 @@
   function updateThemeColor() {
     const dark = document.documentElement.getAttribute("data-theme") === "dark";
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", dark ? "#0d0a06" : "#f5efe8");
+    if (meta) meta.setAttribute("content", dark ? "#1A120B" : "#FBF7F0");
   }
   function setupThemeToggle() {
     const btn = $("themeToggle");
