@@ -377,7 +377,7 @@
       </div>
     </section>
 
-    <!-- TIKTOK SECTION -->
+    <!-- CONTENIDO (estático: tarjetas que enlazan a TikTok, cero embeds) -->
     <section class="section" id="contenido">
       <div class="section-header">
         <div class="section-eyebrow">Contenido</div>
@@ -385,19 +385,11 @@
         <p class="section-subtitle">Mira nuestros últimos videos de TikTok y adéntrate en el mundo de las fragancias.
         </p>
       </div>
-      <div class="tiktok-grid" id="tiktokGrid">
-        <div class="tiktok-card" data-video-id="7536339020603788549" data-video-url="https://www.tiktok.com/@fraganceobsession.pe/video/7536339020603788549">
-          <div class="tiktok-skeleton" aria-hidden="true"><i class="fab fa-tiktok"></i></div>
-        </div>
-        <div class="tiktok-card" data-video-id="7520732002643971333" data-video-url="https://www.tiktok.com/@fraganceobsession.pe/video/7520732002643971333">
-          <div class="tiktok-skeleton" aria-hidden="true"><i class="fab fa-tiktok"></i></div>
-        </div>
-        <div class="tiktok-card" data-video-id="7554748921386372359" data-video-url="https://www.tiktok.com/@fraganceobsession.pe/video/7554748921386372359">
-          <div class="tiktok-skeleton" aria-hidden="true"><i class="fab fa-tiktok"></i></div>
-        </div>
-        <div class="tiktok-card" data-video-id="7603741534445489416" data-video-url="https://www.tiktok.com/@fraganceobsession.pe/video/7603741534445489416">
-          <div class="tiktok-skeleton" aria-hidden="true"><i class="fab fa-tiktok"></i></div>
-        </div>
+      <div class="tiktok-static-grid" id="tiktokStaticGrid"></div>
+      <div class="tiktok-static-more">
+        <a href="https://www.tiktok.com/@fraganceobsession.pe" target="_blank" rel="noopener noreferrer" class="btn-gold">
+          <i class="fab fa-tiktok" aria-hidden="true"></i><span>Síguenos en TikTok</span>
+        </a>
       </div>
     </section>
   </div>
@@ -615,15 +607,19 @@
           </div>
           <div class="packs-toolbar-right">
             <span class="packs-count" id="packsCount" aria-live="polite"></span>
-            <label class="packs-sort">
-              <span class="packs-sort__label" aria-hidden="true">Ordenar</span>
-              <select id="packsSort" aria-label="Ordenar packs">
-                <option value="relevance">Relevancia</option>
-                <option value="price-asc">Precio: menor a mayor</option>
-                <option value="price-desc">Precio: mayor a menor</option>
-                <option value="qty-desc">Más perfumes primero</option>
-              </select>
-            </label>
+            <div class="packs-sort" id="packsSortWrapper">
+              <button class="packs-sort__button" id="packsSortButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Ordenar packs">
+                <span class="packs-sort__label" aria-hidden="true">Ordenar</span>
+                <span class="packs-sort__value" id="packsSortValue">Relevancia</span>
+                <svg class="packs-sort__chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+              <ul class="packs-sort__menu" id="packsSortMenu" role="listbox" aria-label="Opciones de orden">
+                <li class="packs-sort__option active" data-value="relevance" role="option" aria-selected="true">Relevancia</li>
+                <li class="packs-sort__option" data-value="price-asc" role="option" aria-selected="false">Precio: menor a mayor</li>
+                <li class="packs-sort__option" data-value="price-desc" role="option" aria-selected="false">Precio: mayor a menor</li>
+                <li class="packs-sort__option" data-value="qty-desc" role="option" aria-selected="false">Más perfumes primero</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

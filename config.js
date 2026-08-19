@@ -129,4 +129,16 @@ window.FO_CONFIG = {
      deshabilitado y aviso de reserva en el modal.
      Ejemplo: PROXIMAMENTE: [42, 73] */
   PROXIMAMENTE: [],
+
+  /* ── CONTENIDO: VIDEOS DE TIKTOK (sección estática) ──────────
+     Tarjetas con miniatura local que enlazan al video en TikTok
+     (se abre en pestaña nueva; cero embeds/iframes).
+     · thumbnail: ruta local en img/tiktok/ (SVG/WebP).
+     · url:      enlace público del video en TikTok. */
+  TIKTOK_VIDEOS: [
+    { title: "Unboxing de decants premium", thumbnail: "img/tiktok/thumb1.svg", url: "https://www.tiktok.com/@fraganceobsession.pe/video/7536339020603788549" },
+    { title: "Top 3 fragancias para esta temporada", thumbnail: "img/tiktok/thumb2.svg", url: "https://www.tiktok.com/@fraganceobsession.pe/video/7520732002643971333" },
+    { title: "Cómo elegir tu decant ideal", thumbnail: "img/tiktok/thumb3.svg", url: "https://www.tiktok.com/@fraganceobsession.pe/video/7554748921386372359" },
+    { title: "Detrás de cámaras: preparando tu pedido", thumbnail: "img/tiktok/thumb4.svg", url: "https://www.tiktok.com/@fraganceobsession.pe/video/7603741534445489416" },
+  ],
 };

@@ -734,7 +734,7 @@
     // La imagen del modal cambia según el tamaño seleccionado (5ml/10ml)
     const modalImg = $("modalImage").querySelector("img");
     modalImg.src =
-      (isFull ? product.fullImage : sizeImage(product, baseSizeOf(currentModalSize))) ||
+      (isFull ? product.fullImage : sizeImage(product, currentModalSize)) ||
       cardImg(product);
     modalImg.alt = product.name;
     $("modalName").textContent = product.name;
@@ -853,7 +853,7 @@
     const flyImg =
       currentModalView === "full"
         ? currentModalProduct.fullImage
-        : sizeImage(currentModalProduct, baseSizeOf(currentModalSize));
+        : sizeImage(currentModalProduct, currentModalSize);
     flyToCart(flyImg, this);
     addToCart(currentModalProduct.id, currentModalView, currentModalSize);
     // micro-check ✓ antes de cerrar
@@ -1841,11 +1841,80 @@
     });
   }
 
-  const packsSort = $("packsSort");
-  if (packsSort) {
-    packsSort.addEventListener("change", function () {
-      activePromoSort = packsSort.value || "relevance";
+  // Dropdown "Ordenar" de packs (custom, accesible: listbox/options)
+  const sortWrap = $("packsSortWrapper");
+  if (sortWrap) {
+    const sortBtn = $("packsSortButton");
+    const sortMenu = $("packsSortMenu");
+    const sortValue = $("packsSortValue");
+    const SORT_LABELS = {
+      relevance: "Relevancia",
+      "price-asc": "Precio: menor a mayor",
+      "price-desc": "Precio: mayor a menor",
+      "qty-desc": "Más perfumes primero",
+    };
+    const setSortVisual = (val) => {
+      activePromoSort = val || "relevance";
+      const opts = sortMenu.querySelectorAll(".packs-sort__option");
+      opts.forEach((o) => {
+        const on = o.dataset.value === activePromoSort;
+        o.classList.toggle("active", on);
+        o.setAttribute("aria-selected", String(on));
+      });
+      if (sortValue) sortValue.textContent = SORT_LABELS[activePromoSort] || activePromoSort;
+    };
+    const applySort = (val) => {
+      setSortVisual(val);
       renderPromos();
+    };
+    const closeSortMenu = () => {
+      sortMenu.classList.remove("open");
+      sortBtn.setAttribute("aria-expanded", "false");
+    };
+    const openSortMenu = () => {
+      sortMenu.classList.add("open");
+      sortBtn.setAttribute("aria-expanded", "true");
+    };
+    sortBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      sortMenu.classList.contains("open") ? closeSortMenu() : openSortMenu();
+    });
+    sortMenu.addEventListener("click", function (e) {
+      const opt = e.target.closest(".packs-sort__option");
+      if (!opt) return;
+      applySort(opt.dataset.value);
+      closeSortMenu();
+    });
+    // Navegación por teclado: flechas mueven la selección, Enter confirma, Esc cierra
+    const sortOptions = Array.from(sortMenu.querySelectorAll(".packs-sort__option"));
+    sortMenu.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "Enter" && e.key !== "Escape") return;
+      e.preventDefault();
+      const idx = sortOptions.indexOf(document.activeElement);
+      if (e.key === "ArrowDown") {
+        const next = sortOptions[(idx + 1) % sortOptions.length];
+        next.focus();
+        setSortVisual(next.dataset.value);
+      } else if (e.key === "ArrowUp") {
+        const prev = sortOptions[(idx - 1 + sortOptions.length) % sortOptions.length];
+        prev.focus();
+        setSortVisual(prev.dataset.value);
+      } else if (e.key === "Enter") {
+        applySort(document.activeElement.dataset.value);
+        closeSortMenu();
+      } else {
+        closeSortMenu();
+        sortBtn.focus();
+      }
+    });
+    sortMenu.addEventListener("focusout", function (e) {
+      if (!sortMenu.contains(e.relatedTarget) && !sortWrap.contains(e.relatedTarget)) closeSortMenu();
+    });
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest("#packsSortWrapper")) closeSortMenu();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeSortMenu();
     });
   }
 
@@ -2918,140 +2987,28 @@
      origen/referrer. El embed oficial es el único método soportado
      de forma fiable cross-browser.
   ══════════════════════════════════════════════════════════════ */
-  function setupTikTok() {
-    const cards = document.querySelectorAll(".tiktok-card");
-    if (!cards.length) return;
-
-    const TIKTOK_SCRIPT_SRC = "https://www.tiktok.com/embed.js";
-    let scriptEl = document.querySelector(`script[src="${TIKTOK_SCRIPT_SRC}"]`);
-    let scriptLoaded = false;
-    let scriptFailed = false;
-
-    function ensureTikTokScript() {
-      if (scriptEl) return;
-      scriptEl = document.createElement("script");
-      scriptEl.src = TIKTOK_SCRIPT_SRC;
-      scriptEl.async = true;
-      scriptEl.onload = () => { scriptLoaded = true; };
-      scriptEl.onerror = () => {
-        scriptFailed = true;
-        scriptLoaded = false;
-        cards.forEach((c) => {
-          c.classList.remove("tiktok-card--busy");
-          if (c.dataset.activated && !c.querySelector("iframe")) showTikTokFallback(c);
-        });
-      };
-      document.body.appendChild(scriptEl);
-    }
-
-    // Re-procesa los blockquotes SIN recargar embed.js: la API oficial
-    // (tiktokEmbed.lib.render) re-escanea el DOM sin peticiones extra
-    // del script; recargarlo duplicaba el escaneo y la carga de requests.
-    function reRenderTikTok() {
-      if (window.tiktokEmbed && window.tiktokEmbed.lib && typeof window.tiktokEmbed.lib.render === "function") {
-        try {
-          const r = window.tiktokEmbed.lib.render();
-          if (r && typeof r.then === "function") r.catch(() => {});
-          return true;
-        } catch (e) { /* noop */ }
-      }
-      return false;
-    }
-
-    // FACADE LOADING: la tarjeta NO carga nada hasta que el usuario hace
-    // clic. Cero requests a TikTok al entrar a la sección; cada video se
-    // carga aislado (1 embed por clic) -> imposible la ráfaga que dispara
-    // el "overload protect triggered".
-    function buildFacade(card) {
-      if (card.querySelector(".tiktok-facade")) return;
-      const facade = document.createElement("button");
-      facade.type = "button";
-      facade.className = "tiktok-facade";
-      facade.setAttribute("aria-label", "Reproducir video de TikTok");
-      facade.innerHTML =
-        '<span class="tiktok-facade__play" aria-hidden="true">' +
-        '<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"/></svg>' +
-        '</span><span class="tiktok-facade__hint">Tocar para ver</span>';
-      card.appendChild(facade);
-      card.classList.add("tiktok-card--facade");
-      card.addEventListener("click", () => activateCard(card));
-    }
-
-    function showTikTokFallback(card) {
-      if (card.classList.contains("tiktok-card--fallback")) return;
-      const url = card.dataset.videoUrl || "https://www.tiktok.com/@fraganceobsession.pe";
-      card.classList.add("tiktok-card--fallback");
-      card.innerHTML = `
-        <a class="tiktok-fallback" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="Ver video en TikTok">
-          <div class="tiktok-fallback__icon"><i class="fab fa-tiktok" aria-hidden="true"></i></div>
-          <div class="tiktok-fallback__text">Mira este video en TikTok</div>
-          <span class="tiktok-fallback__btn">Ver en TikTok</span>
-          <div class="tiktok-fallback__brand">@fraganceobsession.pe</div>
-        </a>`;
-    }
-
-    function activateCard(card) {
-      if (card.dataset.activated) return;
-      card.dataset.activated = "1";
-
-      const facade = card.querySelector(".tiktok-facade");
-      if (facade) facade.remove();
-      card.classList.remove("tiktok-card--facade");
-
-      // Un solo video activo a la vez: mientras este carga, las demás
-      // tarjetas quedan deshabilitadas (evita ráfagas de iframes).
-      const releaseOthers = () => {
-        cards.forEach((c) => c.classList.remove("tiktok-card--busy"));
-      };
-      cards.forEach((c) => {
-        if (c !== card && !c.dataset.activated && !c.classList.contains("tiktok-card--fallback")) {
-          c.classList.add("tiktok-card--busy");
-        }
-      });
-
-      const videoId = card.dataset.videoId;
-      const videoUrl = card.dataset.videoUrl;
-      const bq = document.createElement("blockquote");
-      bq.className = "tiktok-embed";
-      bq.setAttribute("cite", videoUrl);
-      bq.setAttribute("data-video-id", videoId);
-      bq.appendChild(document.createElement("section"));
-      card.appendChild(bq);
-
-      if (scriptEl && scriptLoaded) {
-        // El script ya se cargó con otra tarjeta: render() del nuevo blockquote.
-        if (!reRenderTikTok()) ensureTikTokScript();
-      } else {
-        ensureTikTokScript(); // el script re-escanea el DOM completo al cargar
-      }
-
-      // Si en 10s no hay iframe renderizado, fallback elegante.
-      const fallbackTimer = setTimeout(() => {
-        if (!card.querySelector("iframe")) {
-          releaseOthers();
-          showTikTokFallback(card);
-        }
-      }, 10000);
-
-      const mo = new MutationObserver(() => {
-        if (card.querySelector("iframe")) {
-          card.classList.add("tiktok-loaded");
-          releaseOthers();
-          clearTimeout(fallbackTimer);
-          mo.disconnect();
-        }
-      });
-      mo.observe(card, { childList: true, subtree: true });
-    }
-
-    // Facade en cada tarjeta; sin IntersectionObserver ni auto-carga:
-    // el usuario decide cuándo reproducir (un video a la vez).
-    cards.forEach(buildFacade);
-  }
 
   /* ══════════════════════════════════════════════════════════════
      INIT
   ══════════════════════════════════════════════════════════════ */
+function renderTikTokStatic() {
+  const grid = document.getElementById('tiktokStaticGrid');
+  if (!grid || !FO.TIKTOK_VIDEOS) return;
+  const videos = FO.TIKTOK_VIDEOS;
+  grid.innerHTML = videos.map((v, i) => {
+    return `<a class='tiktok-static-card' href='${v.url}' target='_blank' rel='noopener noreferrer' aria-label='Ver video en TikTok: ${v.title}'>
+      <div class='tiktok-static-thumb'>
+        <img src='${v.thumbnail}' alt='${v.title}' loading='lazy' decoding='async' />
+        <span class='tiktok-static-play'>▶</span>
+      </div>
+      <div class='tiktok-static-body'>
+        <strong>${v.title}</strong>
+        <span>Ver en TikTok</span>
+      </div>
+    </a>`;
+  }).join('');
+}
+
   function init() {
     snapshotMeta();
     setupHeroMobile();
@@ -3073,7 +3030,6 @@
     applyConfigLinks();
     setupWhatsAppFab();
     setupInstagramFab();
-    setupTikTok();
     maybeRemindCart();
     injectItemList();
     registerSW();
@@ -3093,6 +3049,7 @@
 
     // Trust cards reveal (they're static, not rendered dynamically)
     setTimeout(() => observeRevealElements(), 100);
+    renderTikTokStatic();
   }
 
   init();
