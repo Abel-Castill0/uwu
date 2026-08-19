@@ -1,8 +1,9 @@
 /*
- * optimize-images.js — Optimiza los webp del sitio.
+ * optimize-images.js — Optimiza las imágenes del sitio.
  *
  * Jobs:
  *  1) img/perfumes  → img/perfumes_optimized (400px, q80) — NO destructivo.
+ *     PNG/JPG se convierten a WebP (cambia la extensión a .webp).
  *     Se usa vía srcset cuando activas IMG_OPTIMIZED = true en script.js.
  *  2) img/filtros   → SOBRESCRIBE en sitio (800px, q80).
  *  3) img/promos    → SOBRESCRIBE en sitio (1200px, q80).
@@ -66,13 +67,15 @@ async function runJob(job) {
   }
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
-  const files = fs.readdirSync(srcDir).filter((f) => f.toLowerCase().endsWith(".webp"));
+  const files = fs.readdirSync(srcDir).filter((f) => /\.(webp|png|jpe?g)$/i.test(f));
   console.log(`\n🔧 [${job.name}] ${files.length} imágenes → ${job.width}px (q${QUALITY})${job.inPlace ? " · sobrescribe" : " · copia a " + job.out}`);
 
   let ok = 0, failed = 0, before = 0, after = 0;
   for (const file of files) {
     const inPath = path.join(srcDir, file);
-    const outPath = path.join(outDir, file);
+    // PNG/JPG se convierten a WebP (cambia la extensión); los WebP conservan su nombre.
+    const outName = /\.(png|jpe?g)$/i.test(file) && !job.inPlace ? file.replace(/\.(png|jpe?g)$/i, ".webp") : file;
+    const outPath = path.join(outDir, outName);
     try {
       const sizeBefore = fs.statSync(inPath).size;
       await processFile(inPath, outPath, job.width, job.inPlace);

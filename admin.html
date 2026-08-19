@@ -1,11 +1,11 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0d0a06" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>Admin · Fragance Obsession</title>
+  <title>Admin · FRAGRANCE OBSESSION</title>
   <link rel="icon" type="image/webp" href="logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -30,7 +30,7 @@
     .adm-login h2 { font-family: var(--font-display); font-weight: 500; font-size: 1.6rem; color: var(--text-primary); margin-bottom: .3rem; }
     .adm-login p { color: var(--text-muted); font-size: .85rem; margin-bottom: 1.4rem; }
     .adm-login input { width: 100%; padding: .85rem 1rem; border-radius: var(--r-sm); border: 1.5px solid var(--border); background: var(--surface-warm); color: var(--text-primary); font-size: .95rem; margin-bottom: 1rem; font-family: var(--font-body); }
-    .adm-login input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rgba(184,146,74,.12); }
+    .adm-login input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rgba(113,113,122,.12); }
     .adm-err { color: #d24b4b; font-size: .8rem; margin-top: -.5rem; margin-bottom: .8rem; min-height: 1em; }
     /* Toolbar */
     .adm-toolbar { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.4rem; }
@@ -60,7 +60,7 @@
   <!-- LOGIN -->
   <div id="loginView">
     <form class="adm-login" id="loginForm" autocomplete="off">
-      <img src="logo.webp" alt="Fragance Obsession" width="60" height="60" />
+      <img src="logo.webp" alt="FRAGRANCE OBSESSION" width="60" height="60" />
       <h2>Panel de Administración</h2>
       <p>Ingresa la contraseña para ver los pedidos.</p>
       <input type="password" id="admPass" placeholder="Contraseña" aria-label="Contraseña" />
@@ -106,7 +106,13 @@
   <script>
     (function () {
       "use strict";
-      var PASS = (window.FO_CONFIG && window.FO_CONFIG.ADMIN_PASSWORD) || "cambiar-esta-password"; /* ⚠️ definida en config.js — cambiar antes de publicar */
+      var HASH = (window.FO_CONFIG && window.FO_CONFIG.ADMIN_HASH) || "";
+      function sha256Hex(str) {
+        var buf = new TextEncoder().encode(str);
+        return crypto.subtle.digest("SHA-256", buf).then(function (h) {
+          return Array.from(new Uint8Array(h)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+        });
+      }
       var KEY = "fo_pedidos";
       var KEY_OLD = "paco_pedidos";
       var $ = function (id) { return document.getElementById(id); };
@@ -192,15 +198,23 @@
         }).join("\n\n");
       }
 
-      // Login
+      // Login (SHA-256: la contraseña nunca viaja ni se guarda en texto plano)
       $("loginForm").addEventListener("submit", function (e) {
         e.preventDefault();
-        if ($("admPass").value === PASS) {
-          sessionStorage.setItem("fo_admin", "1");
-          showPanel();
-        } else {
-          $("admErr").textContent = "Contraseña incorrecta.";
+        var input = $("admPass").value;
+        if (!input) { $("admErr").textContent = "Ingresa la contraseña."; return; }
+        if (!window.crypto || !crypto.subtle) {
+          $("admErr").textContent = "Requiere HTTPS o localhost (crypto.subtle no disponible aquí).";
+          return;
         }
+        sha256Hex(input).then(function (hex) {
+          if (HASH && hex === HASH.toLowerCase()) {
+            sessionStorage.setItem("fo_admin", "1");
+            showPanel();
+          } else {
+            $("admErr").textContent = "Contraseña incorrecta.";
+          }
+        });
       });
       function showPanel() {
         $("loginView").style.display = "none";

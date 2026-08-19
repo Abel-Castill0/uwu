@@ -1,45 +1,48 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0d0a06" />
+  <meta name="theme-color" content="#0A0A0A" />
   <meta name="description"
-    content="Decants premium de perfumes árabes, de diseñador y nicho en Lima, Perú. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el país." />
+    content="Fragrance Obsession · Decants premium de perfumes árabes, de diseñador y nicho en Lima, Perú. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el país." />
+  <meta name="keywords"
+    content="FRAGRANCE OBSESSION, decants Lima, decants Perú, perfumes nicho, perfumes árabes, fragancias de lujo, muestras de perfume, decant 5ml, decant 10ml" />
   <meta name="robots" content="index, follow" />
-  <meta name="author" content="Fragance Obsession" />
-  <link rel="canonical" href="https://fraganceobsession.pe/" /><!-- TODO: confirmar dominio final con el cliente (debe coincidir con config.js) -->
+  <meta name="author" content="FRAGRANCE OBSESSION" />
+  <link rel="canonical" href="https://fraganceobsession.pe/" /><!-- Se actualiza dinámicamente desde config.js (SITE_URL) -->
 
   <!-- Open Graph -->
-  <meta property="og:site_name" content="Fragance Obsession" />
-  <meta property="og:title" content="Fragance Obsession · Decants de Lujo en Lima, Perú" />
+  <meta property="og:site_name" content="FRAGRANCE OBSESSION" />
+  <meta property="og:title" content="FRAGRANCE OBSESSION · Decants de Lujo en Lima, Perú" />
   <meta property="og:description"
-    content="Decants premium de perfumes árabes, de diseñador y nicho. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el Perú." />
+    content="Fragrance Obsession · Decants premium de perfumes árabes, de diseñador y nicho. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el Perú." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://fraganceobsession.pe/" />
   <meta property="og:image" content="https://fraganceobsession.pe/img/og-cover.webp" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Fragance Obsession · Decants premium de fragancias árabes, de diseñador y nicho en Lima, Perú." />
+  <meta property="og:image:alt" content="Fragrance Obsession · Decants premium de fragancias árabes, de diseñador y nicho en Lima, Perú." />
   <meta property="og:locale" content="es_PE" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Fragance Obsession · Decants de Lujo en Lima, Perú" />
+  <meta name="twitter:title" content="FRAGRANCE OBSESSION · Decants de Lujo en Lima, Perú" />
   <meta name="twitter:description"
-    content="Decants premium de perfumes árabes, de diseñador y nicho. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el Perú." />
+    content="Fragrance Obsession · Decants premium de perfumes árabes, de diseñador y nicho. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el Perú." />
   <meta name="twitter:image" content="https://fraganceobsession.pe/img/og-cover.webp" />
-  <meta name="twitter:image:alt" content="Fragance Obsession · Decants premium de fragancias." />
+  <meta name="twitter:image:alt" content="Fragrance Obsession · Decants premium de fragancias." />
 
-  <title>Fragance Obsession · Decants de Lujo en Lima, Perú</title>
+  <title>FRAGRANCE OBSESSION · Decants de Lujo en Lima, Perú</title>
 
   <!-- Datos estructurados -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Store",
-    "name": "Fragance Obsession",
-    "description": "Decants premium de perfumes árabes, de diseñador y nicho en Lima, Perú.",
+    "name": "FRAGRANCE OBSESSION",
+    "alternateName": "Fragrance Obsession",
+    "description": "Fragrance Obsession · Decants premium de perfumes árabes, de diseñador y nicho en Lima, Perú.",
     "url": "https://fraganceobsession.pe/",
     "logo": "https://fraganceobsession.pe/logo.webp",
     "image": "https://fraganceobsession.pe/logo.webp",
@@ -86,6 +89,25 @@
     })();
   </script>
 
+  <!-- ════════ META PIXEL (Facebook/Instagram Ads) ════════
+       👉 REEMPLAZA "XXXXXXXXXXXXXXX" por tu Pixel ID real (Meta Business → Píxeles).
+       Mientras esté el placeholder, el Pixel NO se carga (sin errores ni peticiones).
+       Declarado en la Política de Privacidad (sección 4). -->
+  <script>
+    window.META_PIXEL_ID = "XXXXXXXXXXXXXXX"; /* ← REEMPLAZA AQUÍ */
+    (function () {
+      var id = window.META_PIXEL_ID;
+      if (!id || /XXXXXXX/.test(id)) return; // sin ID real: no inicializa el Pixel
+      var s = document.createElement("script");
+      s.async = true;
+      s.src = "https://connect.facebook.net/en_US/fbevents.js";
+      document.head.appendChild(s);
+      window.fbq = window.fbq || function () { (window.fbq.q = window.fbq.q || []).push(arguments); };
+      fbq("init", id);
+      fbq("track", "PageView");
+    })();
+  </script>
+
   <!-- Preconnects -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -94,7 +116,7 @@
 
   <!-- Favicon (reutiliza el logo, evita 404 de favicon.ico) -->
   <link rel="icon" type="image/webp" href="logo.webp" />
-  <link rel="apple-touch-icon" href="logo.webp" />
+  <link rel="apple-touch-icon" href="icon-180.png" />
 
   <!-- PWA -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -144,31 +166,33 @@
   </noscript>
   <!-- ============ HEADER ============ -->
   <header class="header" id="header">
-    <!-- Topbar: envíos + contacto (inspirado en tiendas premium peruanas) -->
-    <div class="topbar" aria-label="Información de envío y contacto">
+    <!-- Topbar: beneficio rotativo + contacto y redes separados -->
+    <div class="topbar" aria-label="Beneficios y contacto">
       <div class="topbar-inner">
-        <span class="topbar-item topbar-shipping"><i class="fa-solid fa-truck-fast" aria-hidden="true"></i> Envíos a todo el Perú</span>
-        <a class="topbar-item topbar-wa" href="https://wa.me/51994467586" data-wa-link target="_blank" rel="noopener noreferrer">
-          <i class="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp +51 994 467 586
-        </a>
-        <div class="topbar-social">
-          <a href="#" data-ig-link title="Instagram" aria-label="Instagram"><i class="fab fa-instagram" aria-hidden="true"></i></a>
-          <a href="https://www.tiktok.com/@fraganceobsession.pe" target="_blank" rel="noopener noreferrer" title="TikTok" aria-label="TikTok"><i class="fab fa-tiktok" aria-hidden="true"></i></a>
+        <div class="topbar-contact">
+          <span class="topbar-item topbar-rotator" id="topbarRotator" aria-live="polite">
+            <i class="fa-solid fa-truck-fast" aria-hidden="true"></i>
+            <span id="topbarRotatorText">Envíos a todo el Perú</span>
+          </span>
+        </div>
+        <div class="topbar-contact topbar-contact--right">
+          <span class="topbar-item topbar-item--phone"><i class="fa-solid fa-phone" aria-hidden="true"></i><a href="https://wa.me/51994467586" data-wa-link>+51 994 467 586</a></span>
+          <div class="topbar-social">
+            <a href="#" data-ig-link title="Instagram" aria-label="Instagram"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+            <a href="https://www.tiktok.com/@fraganceobsession.pe" target="_blank" rel="noopener noreferrer" title="TikTok" aria-label="TikTok"><i class="fab fa-tiktok" aria-hidden="true"></i></a>
+          </div>
         </div>
       </div>
     </div>
-    <!-- Marquee de promos -->
-    <div class="promo-marquee" aria-hidden="true">
-      <div class="promo-marquee__track">
-        <span>✨ 5% de descuento en 2-5 decants</span><span>🚀 10% de descuento desde 6 decants</span><span>🎁 10% de descuento en 3 decants de la misma marca</span><span>💎 Pedidos desde S/ 199: vial nicho de regalo + envío gratis</span><span>📦 Despacho en 1-2 días hábiles</span>
-        <span>✨ 5% de descuento en 2-5 decants</span><span>🚀 10% de descuento desde 6 decants</span><span>🎁 10% de descuento en 3 decants de la misma marca</span><span>💎 Pedidos desde S/ 199: vial nicho de regalo + envío gratis</span><span>📦 Despacho en 1-2 días hábiles</span>
-      </div>
+    <!-- Marquee: promociones en cinta deslizante continua -->
+    <div class="promo-marquee" aria-label="Promociones">
+      <div class="promo-marquee__track" id="marqueeTrack"></div>
     </div>
     <div class="header-inner">
       <a class="logo" role="button" tabindex="0" aria-label="Ir al inicio" onclick="navigateTo('home')">
-        <img src="logo.webp" alt="Fragance Obsession" class="logo-img" width="46" height="46" decoding="async" />
+        <img src="logo.webp" alt="FRAGRANCE OBSESSION" class="logo-img" width="46" height="46" decoding="async" />
         <div class="logo-text">
-          <span class="logo-name">FRAGANCE <span>OBSESSION</span></span>
+          <span class="logo-name">FRAGRANCE <span>OBSESSION</span></span>
           <span class="logo-slogan">deja que la fragancia hable por ti</span>
         </div>
       </a>
@@ -180,7 +204,10 @@
       <div class="header-actions">
         <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema" aria-pressed="false"
           data-tooltip="Modo oscuro">
-          <span class="theme-icon" aria-hidden="true">🌙</span>
+          <span class="theme-icon" aria-hidden="true">
+            <svg class="theme-icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+            <svg class="theme-icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M4.9 19.1l1.7-1.7M17.4 6.6l1.7-1.7"/></svg>
+          </span>
         </button>
         <button class="btn-icon btn-cart" id="btnCart" aria-label="Abrir carrito" data-tooltip="Ver carrito">
           <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
@@ -196,7 +223,7 @@
   <!-- ============ PÁGINA HOME ============ -->
   <main>
   <div class="page active" id="page-home">
-    <!-- HERO -->
+    <!-- HERO (rediseño: composición cinematográfica, contenido a la izquierda) -->
     <section class="hero">
       <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="inicio.webp"
         aria-hidden="true">
@@ -208,10 +235,9 @@
         <span></span><span></span><span></span><span></span><span></span>
       </div>
       <div class="hero-content">
-        <div class="hero-eyebrow">
-          <span class="hero-line"></span>
-          <span>Decants Premium · Lima, Perú</span>
-          <span class="hero-line"></span>
+        <div class="hero-badge">
+          <i class="fa-solid fa-gem" aria-hidden="true"></i>
+          <span>Perfumes 100% Originales · Lima, Perú</span>
         </div>
         <h1>Descubre <em>Fragancias</em><br>Árabes, Diseñador y Nicho</h1>
         <p>Cada perfume seleccionado será una experiencia por descubrir y de no olvidar.</p>
@@ -223,6 +249,22 @@
           <button class="btn btn-ghost" onclick="navigateTo('promos')">
             <span>Ver Packs</span>
           </button>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <strong>+135</strong>
+            <span>Fragancias Premium</span>
+          </div>
+          <span class="hero-stat-divider" aria-hidden="true"></span>
+          <div class="hero-stat">
+            <strong>24-48h</strong>
+            <span>Despacho Rápido</span>
+          </div>
+          <span class="hero-stat-divider" aria-hidden="true"></span>
+          <div class="hero-stat">
+            <strong>100%</strong>
+            <span>Originales</span>
+          </div>
         </div>
       </div>
       <div class="hero-scroll-indicator" aria-hidden="true">
@@ -250,7 +292,7 @@
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
-          <span class="stat-number">⭐ 4.9</span>
+          <span class="stat-number stat-number--stars"><svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M12 2.6l2.8 5.9 6.4.8-4.7 4.4 1.2 6.3L12 17l-5.7 3 1.2-6.3L2.8 9.3l6.4-.8L12 2.6z"/></svg> 4.9</span>
           <span class="stat-label">Calificación Promedio</span>
         </div>
       </div>
@@ -293,28 +335,28 @@
       <div class="trust-bg-pattern" aria-hidden="true"></div>
       <div class="section-header">
         <div class="section-eyebrow">¿Por qué elegirnos?</div>
-        <h2 class="section-title">Fragance Obsession es sinónimo de confianza</h2>
+        <h2 class="section-title">FRAGRANCE OBSESSION es sinónimo de confianza</h2>
         <p class="section-subtitle">Cada detalle está pensado para que vivas una experiencia de compra segura, rápida y
           con la calidad que mereces.</p>
       </div>
       <div class="trust-grid">
         <div class="trust-card">
-          <div class="trust-icon-wrap"><span class="trust-icon">🤝</span></div>
+          <div class="trust-icon-wrap"><span class="trust-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l7.5 3v5.6c0 4.6-3.2 8.1-7.5 10.4-4.3-2.3-7.5-5.8-7.5-10.4V5.5l7.5-3z"/><path d="M8.8 12l2.2 2.2 4.2-4.4"/></svg></span></div>
           <h4>Confianza y Experiencia</h4>
           <p>Más de 1000 clientes satisfechos avalan nuestra calidad y compromiso.</p>
         </div>
         <div class="trust-card">
-          <div class="trust-icon-wrap"><span class="trust-icon">⚡</span></div>
+          <div class="trust-icon-wrap"><span class="trust-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5L4.5 13.5H11l-1 8L18.5 10.5H12l1-8z"/></svg></span></div>
           <h4>Entrega Rápida</h4>
           <p>Procesamos tu pedido de inmediato para que recibas tu fragancia en el menor tiempo posible.</p>
         </div>
         <div class="trust-card">
-          <div class="trust-icon-wrap"><span class="trust-icon">🔐</span></div>
+          <div class="trust-icon-wrap"><span class="trust-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.2"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/><circle cx="12" cy="15.4" r="1.6" fill="currentColor" stroke="none"/></svg></span></div>
           <h4>Envíos 100% Seguros</h4>
           <p>Cada envío está protegido y garantizado. Tu compra llega segura, a cualquier parte del país.</p>
         </div>
         <div class="trust-card">
-          <div class="trust-icon-wrap"><span class="trust-icon">💎</span></div>
+          <div class="trust-icon-wrap"><span class="trust-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12l4 6L12 21 2 9.5l4-6z"/><path d="M2.5 9.5h19M9.5 9.5L12 21l2.5-11.5"/></svg></span></div>
           <h4>Ahorra sin perder calidad</h4>
           <p>Accede a perfumes de alto nivel sin pagar de más. Lujo inteligente al alcance de tu bolsillo.</p>
         </div>
@@ -326,52 +368,11 @@
       <div class="section-header">
         <div class="section-eyebrow">Lo que dicen nuestros clientes</div>
         <h2 class="section-title">Reseñas Reales</h2>
-        <p class="section-subtitle">Más de 1000 clientes confían en Fragance Obsession. Esto es lo que opinan.</p>
+        <p class="section-subtitle">Más de 1000 clientes confían en Fragrance Obsession. Esto es lo que opinan.</p>
       </div>
       <div class="reviews-carousel">
         <button class="rev-arrow rev-prev" id="revPrev" type="button" aria-label="Anterior">‹</button>
-        <div class="reviews-grid" id="reviewsTrack">
-          <article class="review-card">
-            <div class="review-stars" aria-label="5 de 5 estrellas">★★★★★</div>
-            <p class="review-text">“Los decants son increíbles, llegaron rápido y bien empacados. Ahora compro siempre aquí.”</p>
-            <div class="review-author">
-              <span class="review-avatar" aria-hidden="true">MG</span>
-              <span class="review-meta"><strong>María G.</strong><span class="review-bought">Yara · Lattafa</span></span>
-            </div>
-          </article>
-          <article class="review-card">
-            <div class="review-stars" aria-label="5 de 5 estrellas">★★★★★</div>
-            <p class="review-text">“La calidad de los perfumes árabes es impresionante. Muy buena atención por WhatsApp.”</p>
-            <div class="review-author">
-              <span class="review-avatar" aria-hidden="true">CR</span>
-              <span class="review-meta"><strong>Carlos R.</strong><span class="review-bought">9 PM · Afnan</span></span>
-            </div>
-          </article>
-          <article class="review-card">
-            <div class="review-stars" aria-label="5 de 5 estrellas">★★★★★</div>
-            <p class="review-text">“Pedí el pack de 3 diseñador y quedé encantado. Recomiendo 100%.”</p>
-            <div class="review-author">
-              <span class="review-avatar" aria-hidden="true">LM</span>
-              <span class="review-meta"><strong>Luis M.</strong><span class="review-bought">Stronger With You Intensely</span></span>
-            </div>
-          </article>
-          <article class="review-card">
-            <div class="review-stars" aria-label="5 de 5 estrellas">★★★★★</div>
-            <p class="review-text">“Me asesoraron por WhatsApp para elegir y acertaron. Servicio excelente.”</p>
-            <div class="review-author">
-              <span class="review-avatar" aria-hidden="true">AP</span>
-              <span class="review-meta"><strong>Ana P.</strong><span class="review-bought">Khamrah · Lattafa</span></span>
-            </div>
-          </article>
-          <article class="review-card">
-            <div class="review-stars" aria-label="5 de 5 estrellas">★★★★★</div>
-            <p class="review-text">“Los Game of Spades son otro nivel. Entrega rapidísima a provincia.”</p>
-            <div class="review-author">
-              <span class="review-avatar" aria-hidden="true">DS</span>
-              <span class="review-meta"><strong>Diego S.</strong><span class="review-bought">Game of Spades Royale</span></span>
-            </div>
-          </article>
-        </div>
+        <div class="reviews-grid" id="reviewsTrack" aria-live="polite" tabindex="0" role="region" aria-label="Reseñas de clientes"></div>
         <button class="rev-arrow rev-next" id="revNext" type="button" aria-label="Siguiente">›</button>
       </div>
     </section>
@@ -404,7 +405,7 @@
   <!-- ============ CATÁLOGO ============ -->
   <div class="page" id="page-catalogo">
     <section class="page-hero catalog-hero">
-      <img src="inicio.webp" alt="Colección Fragance Obsession" class="page-hero-img" loading="lazy" decoding="async" />
+      <img src="inicio.webp" alt="Colección FRAGRANCE OBSESSION" class="page-hero-img" loading="lazy" decoding="async" />
       <div class="page-hero-overlay"></div>
       <div class="page-hero-content">
         <div class="section-eyebrow page-hero-eyebrow">Catálogo</div>
@@ -413,82 +414,87 @@
       </div>
     </section>
     <section class="cat-section">
-      <!-- Búsqueda rápida + filtros rápidos (filtran todo el catálogo al instante) -->
-      <div class="quick-find" id="quickFind">
-        <div class="search-bar" role="search">
-          <i class="fa-solid fa-magnifying-glass search-bar__icon" aria-hidden="true"></i>
-          <input type="search" id="catalogSearch" placeholder="Buscar perfume, marca o nota..." autocomplete="off" spellcheck="false" aria-label="Buscar en el catálogo" />
-          <button type="button" class="search-bar__clear" id="searchClear" aria-label="Limpiar búsqueda" style="display:none;">
-            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      <!-- Búsqueda rápida -->
+      <div class="search-bar" role="search">
+        <i class="fa-solid fa-magnifying-glass search-bar__icon" aria-hidden="true"></i>
+        <input type="search" id="catalogSearch" placeholder="Buscar perfume, marca o nota..." autocomplete="off" spellcheck="false" aria-label="Buscar en el catálogo" />
+        <button type="button" class="search-bar__clear" id="searchClear" aria-label="Limpiar búsqueda" style="display:none;">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- Barra de filtros unificada (rediseño total): píldoras de categoría + género + contador -->
+      <div class="cat-filter-bar" id="filtersCategory">
+        <div class="cat-filter-bar__row">
+          <div class="cat-filter-pills" id="catalogGenderGroup" role="group" aria-label="Filtros del catálogo">
+            <button class="filter-btn cat-pill cat-pill--cat active" data-filter="todos" data-cat="todos" aria-pressed="true"><i class="fa-solid fa-layer-group" aria-hidden="true"></i><span>Todos</span></button>
+            <button class="filter-btn cat-pill cat-pill--cat" data-filter="nicho" data-cat="nicho" aria-pressed="false"><i class="fa-solid fa-crown" aria-hidden="true"></i><span>Nicho</span></button>
+            <button class="filter-btn cat-pill cat-pill--cat" data-filter="disenador" data-cat="disenador" aria-pressed="false"><i class="fa-solid fa-gem" aria-hidden="true"></i><span>Diseñador</span></button>
+            <span class="cat-filter-divider" aria-hidden="true"></span>
+            <div class="cat-filter-gender" id="filtersGender" role="group" aria-label="Filtrar por género">
+              <button class="filter-btn cat-pill cat-pill--gender" data-filter="masculino" aria-pressed="false"><i class="fa-solid fa-mars" aria-hidden="true"></i><span>Masculino</span></button>
+              <button class="filter-btn cat-pill cat-pill--gender" data-filter="femenino" aria-pressed="false"><i class="fa-solid fa-venus" aria-hidden="true"></i><span>Femenino</span></button>
+              <button class="filter-btn cat-pill cat-pill--gender" data-filter="unisex" aria-pressed="false"><i class="fa-solid fa-venus-mars" aria-hidden="true"></i><span>Unisex</span></button>
+            </div>
+          </div>
+          <p class="catalog-results" id="catalogResultsCount" role="status" aria-live="polite"></p>
+          <button class="btn-filters-mobile" id="btnFiltersMobile" type="button" aria-expanded="false" aria-controls="filtersOffcanvas">
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Filtros</span>
           </button>
         </div>
-        <div class="quick-chips" id="quickChips" role="group" aria-label="Filtros rápidos">
-          <button class="filter-btn quick-chip" data-quick="todos" aria-pressed="true"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Todos</button>
-          <button class="filter-btn quick-chip" data-quick="nicho" aria-pressed="false"><i class="fa-solid fa-crown" aria-hidden="true"></i> Nicho</button>
-          <button class="filter-btn quick-chip" data-quick="disenador" aria-pressed="false"><i class="fa-solid fa-gem" aria-hidden="true"></i> Diseñador</button>
-        </div>
-      </div>
-      <!-- Category showcase: tarjetas editoriales grandes -->
-      <div class="cat-showcase" id="filtersCategory">
-        <button class="filter-btn cat-tile cat-tile--nicho" data-filter="nicho" data-cat="nicho" aria-label="Nicho" aria-pressed="false">
-          <span class="cat-tile__img">
-            <img src="img/filtros/nicho.webp" alt="" width="600" height="800" loading="eager" fetchpriority="high" decoding="async" onload="this.classList.add('img-loaded')" onerror="this.closest('.cat-tile__img').classList.add('img-error')">
-          </span>
-          <span class="cat-tile__body">
-            <span class="cat-tile__eyebrow">Colección</span>
-            <span class="cat-tile__name">Nicho</span>
-            <span class="cat-tile__sub">Exclusivas &amp; Únicas</span>
-          </span>
-        </button>
-        <button class="filter-btn cat-tile cat-tile--disenador" data-filter="disenador" data-cat="disenador" aria-label="Diseñador" aria-pressed="false">
-          <span class="cat-tile__img">
-            <img src="img/filtros/disenador.webp" alt="" width="600" height="800" loading="eager" fetchpriority="high" decoding="async" onload="this.classList.add('img-loaded')" onerror="this.closest('.cat-tile__img').classList.add('img-error')">
-          </span>
-          <span class="cat-tile__body">
-            <span class="cat-tile__eyebrow">Colección</span>
-            <span class="cat-tile__name">Diseñador</span>
-            <span class="cat-tile__sub">Marcas Premium</span>
-          </span>
-        </button>
       </div>
 
-      <!-- Filtros de género (aparecen solo al seleccionar categoría) -->
-      <div class="gender-bar" id="catalogGenderGroup" style="display:none;">
-        <span class="gender-bar__label">Filtrar por género</span>
-        <div class="gender-bar__chips" id="filtersGender">
-          <button class="filter-btn gender-chip" data-filter="masculino" aria-pressed="false"><i class="fa-solid fa-mars" aria-hidden="true"></i> Masculino</button>
-          <button class="filter-btn gender-chip" data-filter="femenino" aria-pressed="false"><i class="fa-solid fa-venus" aria-hidden="true"></i> Femenino</button>
-          <button class="filter-btn gender-chip" data-filter="unisex" aria-pressed="false"><i class="fa-solid fa-venus-mars" aria-hidden="true"></i> Unisex</button>
+      <!-- Panel offcanvas de filtros (móvil) -->
+      <div class="filters-offcanvas" id="filtersOffcanvas" role="dialog" aria-modal="true" aria-label="Filtros del catálogo">
+        <div class="filters-offcanvas__head">
+          <h3>Filtrar Catálogo</h3>
+          <button class="modal-close" id="filtersCloseBtn" type="button" aria-label="Cerrar filtros"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+        </div>
+        <div class="filters-offcanvas__body">
+          <p class="filters-offcanvas__label">Categoría</p>
+          <div class="filters-offcanvas__pills" role="group" aria-label="Categorías">
+            <button class="filter-btn cat-pill cat-pill--oc" data-filter="todos" data-cat="todos" aria-pressed="true">Todos</button>
+            <button class="filter-btn cat-pill cat-pill--oc" data-filter="nicho" data-cat="nicho" aria-pressed="false">Nicho</button>
+            <button class="filter-btn cat-pill cat-pill--oc" data-filter="disenador" data-cat="disenador" aria-pressed="false">Diseñador</button>
+          </div>
+          <p class="filters-offcanvas__label">Género</p>
+          <div class="filters-offcanvas__pills" role="group" aria-label="Géneros">
+            <button class="filter-btn cat-pill cat-pill--oc cat-pill--oc-gender" data-oc-gender="masculino" aria-pressed="false">Masculino</button>
+            <button class="filter-btn cat-pill cat-pill--oc cat-pill--oc-gender" data-oc-gender="femenino" aria-pressed="false">Femenino</button>
+            <button class="filter-btn cat-pill cat-pill--oc cat-pill--oc-gender" data-oc-gender="unisex" aria-pressed="false">Unisex</button>
+          </div>
+        </div>
+        <div class="filters-offcanvas__foot">
+          <button class="btn btn-gold" id="filtersApplyBtn" type="button"><span>Aplicar</span></button>
         </div>
       </div>
-
-      <p class="catalog-results" id="catalogResultsCount" style="display:none;"></p>
+      <div class="filters-offcanvas__backdrop" id="filtersBackdrop"></div>
 
       <!-- Promociones oficiales del catálogo -->
       <section class="packs-benefits promo-strip" aria-label="Promociones del catálogo">
         <div class="packs-benefit">
-          <span class="packs-benefit__icon" aria-hidden="true">✨</span>
+          <span class="packs-benefit__icon" aria-hidden="true"><i class="fa-solid fa-droplet"></i></span>
           <div>
             <strong>2 a 5 decants: 5% dcto</strong>
             <span>Descuento automático por cantidad</span>
           </div>
         </div>
         <div class="packs-benefit">
-          <span class="packs-benefit__icon" aria-hidden="true">🚀</span>
+          <span class="packs-benefit__icon" aria-hidden="true"><i class="fa-solid fa-fire-flame-curved"></i></span>
           <div>
             <strong>6+ decants: 10% dcto</strong>
             <span>Compra más, ahorra más</span>
           </div>
         </div>
         <div class="packs-benefit">
-          <span class="packs-benefit__icon" aria-hidden="true">🎁</span>
+          <span class="packs-benefit__icon" aria-hidden="true"><i class="fa-solid fa-tags"></i></span>
           <div>
             <strong>3 decants de la misma marca: 10%</strong>
             <span>Elige 3 perfumes de una casa</span>
           </div>
         </div>
         <div class="packs-benefit">
-          <span class="packs-benefit__icon" aria-hidden="true">💎</span>
+          <span class="packs-benefit__icon" aria-hidden="true"><i class="fa-solid fa-gift"></i></span>
           <div>
             <strong>Desde S/ 199: vial nicho de regalo</strong>
             <span>Más envío gratis en todo el Perú</span>
@@ -504,7 +510,7 @@
   <!-- ============ PACKS DE DECANTS ============ -->
   <div class="page" id="page-promos">
     <section class="page-hero promo-hero">
-      <img src="fondo_promos.webp" alt="Packs de Decants Fragance Obsession" class="page-hero-img" loading="lazy"
+      <img src="fondo_promos.webp" alt="Packs de Decants FRAGRANCE OBSESSION" class="page-hero-img" loading="lazy"
         decoding="async" />
       <div class="page-hero-overlay"></div>
       <div class="page-hero-content">
@@ -517,21 +523,21 @@
     <!-- Beneficios -->
     <section class="packs-benefits" aria-label="Beneficios de los packs">
       <div class="packs-benefit">
-        <span class="packs-benefit__icon" aria-hidden="true">💰</span>
+        <span class="packs-benefit__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9.2 9.6h3.6a1.9 1.9 0 0 1 0 3.8H9.2"/></svg></span>
         <div>
           <strong>Ahorra hasta 30%</strong>
           <span>Precio especial por pack, no por perfume</span>
         </div>
       </div>
       <div class="packs-benefit">
-        <span class="packs-benefit__icon" aria-hidden="true">🎁</span>
+        <span class="packs-benefit__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="7.5" width="17" height="13" rx="2"/><path d="M12 7.5V20.5M3.5 12.5h17M12 7.5c-2.8 0-4.6-1-4.6-2.7S9.2 2 12 2s4.6 1 4.6 2.8-1.8 2.7-4.6 2.7z"/></svg></span>
         <div>
           <strong>Elige tus perfumes</strong>
           <span>Personaliza tu pack con tus favoritos</span>
         </div>
       </div>
       <div class="packs-benefit">
-        <span class="packs-benefit__icon" aria-hidden="true">⚡</span>
+        <span class="packs-benefit__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5L4.5 13.5H11l-1 8L18.5 10.5H12l1-8z"/></svg></span>
         <div>
           <strong>Envío 1-2 días</strong>
           <span>Despacho rápido a todo el Perú</span>
@@ -636,7 +642,7 @@
           <h2 class="checkout-title">Finalizar Pedido</h2>
         </div>
         <div id="checkout-empty-cart" style="text-align:center; padding:3rem 1rem; color: var(--text-muted);">
-          <div style="font-size:3rem; margin-bottom:1rem;">🛒</div>
+          <div style="font-size:3rem; margin-bottom:1rem;"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8.5h13l1.2 12a1.8 1.8 0 0 1-1.8 2H6.1a1.8 1.8 0 0 1-1.8-2l1.2-12z"/><path d="M8.5 10.5V7a3.5 3.5 0 0 1 7 0v3.5"/></svg></div>
           <p style="font-size:1rem; margin-bottom:0.5rem; color: var(--text-secondary);">Tu carrito está vacío.</p>
           <a role="button" tabindex="0" onclick="navigateTo('catalogo')" style="color:var(--gold); font-weight:600;">Explorar el
             catálogo</a>
@@ -661,8 +667,9 @@
                   inputmode="tel" />
               </div>
               <div class="form-group">
-                <label for="chDNI">DNI *</label>
-                <input type="text" id="chDNI" placeholder="12345678" required inputmode="numeric" maxlength="12" />
+                <label for="chDNI">DNI (opcional)</label>
+                <input type="text" id="chDNI" placeholder="12345678" inputmode="numeric" maxlength="12"
+                  autocomplete="off" />
               </div>
             </div>
             <div class="form-group">
@@ -689,11 +696,12 @@
           <span id="checkoutTotal">S/ 0.00</span>
         </div>
       </div>
+            <div class="trust-badges" id="trustBadgesCheckout" aria-label="Garantías de compra"></div>
             <div class="pay-methods">
               <div class="form-section-title">¿Cómo deseas pagar?</div>
               <div class="pay-methods__grid" id="payMethods" role="radiogroup" aria-label="Método de pago">
                 <button type="button" class="pay-method active" data-pay="whatsapp" role="radio" aria-checked="true">
-                  <span class="pay-method__icon" aria-hidden="true">📲</span>
+                  <span class="pay-method__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="3.5" width="11" height="17" rx="2.2"/><path d="M10 18.5h4"/></svg></span>
                   <span class="pay-method__body">
                     <strong>Yape / Plin por WhatsApp</strong>
                     <span>Coordinamos el pago y envío por chat</span>
@@ -701,7 +709,7 @@
                   <span class="pay-method__check" aria-hidden="true">✓</span>
                 </button>
                 <button type="button" class="pay-method" data-pay="card" role="radio" aria-checked="false">
-                  <span class="pay-method__icon" aria-hidden="true">💳</span>
+                  <span class="pay-method__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><path d="M2.5 9.5h19M6.5 15.5h4"/></svg></span>
                   <span class="pay-method__body">
                     <strong>Tarjeta (Mercado Pago)</strong>
                     <span>Te enviamos el link de pago seguro por WhatsApp</span>
@@ -733,7 +741,7 @@
         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
       </button>
       <div class="modal-image" id="modalImage">
-        <img src="" alt="Perfume" decoding="async" />
+        <img alt="Perfume" decoding="async" />
       </div>
       <div class="modal-body">
         <h2 id="modalName"></h2>
@@ -749,6 +757,10 @@
           <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
           <span>Añadir al Carrito</span>
         </button>
+        <a class="modal-quote-link" id="modalQuoteLink" href="#" role="button">
+          <i class="fab fa-whatsapp" aria-hidden="true"></i>
+          <span>¿Buscas el frasco completo? Cotízalo por WhatsApp</span>
+        </a>
         <div class="modal-trust" id="modalTrust">
           <span class="modal-trust__item"><i class="fa-solid fa-truck" aria-hidden="true"></i> Envío a todo el Perú</span>
           <span class="modal-trust__item"><i class="fa-solid fa-lock" aria-hidden="true"></i> Pago Seguro</span>
@@ -788,6 +800,19 @@
     </div>
   </div>
 
+  <!-- ============ MODAL INFORMATIVO (footer: FAQ, envíos, términos...) ============ -->
+  <div class="modal-overlay" id="infoModalOverlay" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
+    <div class="modal info-modal" id="infoModal" tabindex="-1" role="document">
+      <button class="modal-close" onclick="closeInfoModal()" aria-label="Cerrar">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+      <div class="modal-body">
+        <h2 id="infoModalTitle"></h2>
+        <div class="info-modal__content" id="infoModalBody"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ CARRITO ============ -->
   <div class="cart-overlay" id="cartOverlay"></div>
   <aside class="cart-sidebar" id="cartSidebar" role="complementary" aria-label="Carrito de compras">
@@ -803,17 +828,18 @@
     </div>
     <div class="cart-items" id="cartItems">
       <div class="cart-empty">
-        <div class="cart-empty-icon">🛍️</div>
+        <div class="cart-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8.5h13l1.2 12a1.8 1.8 0 0 1-1.8 2H6.1a1.8 1.8 0 0 1-1.8-2l1.2-12z"/><path d="M8.5 10.5V7a3.5 3.5 0 0 1 7 0v3.5"/></svg></div>
         <p>Tu carrito está vacío.</p>
         <span>¡Explora nuestra colección!</span>
       </div>
     </div>
     <div class="cart-footer" id="cartFooter" style="display:none;">
       <div class="upsell-strip" id="upsellStrip">
-        <p class="upsell-strip__title">🔥 Agrega una muestra y descubre tu próximo favorito</p>
+        <p class="upsell-strip__title"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3.8-1.8 5.4-3 7.2C7.4 11.4 6.5 13.6 6.5 16a5.5 5.5 0 0 0 11 0c0-2.2-.8-4-2-5.5-.4 1.2-1 2-2 2.6.6-3.4.7-8-1.5-11z"/></svg> Agrega una muestra y descubre tu próximo favorito</p>
         <div class="upsell-strip__items" id="upsellItems"></div>
       </div>
       <div class="cart-breakdown" id="cartBreakdown"></div>
+      <div class="trust-badges trust-badges--cart" id="trustBadgesCart" aria-label="Garantías de compra"></div>
       <div class="cart-total">
         <span>Total</span>
         <span id="cartTotal">S/ 0.00</span>
@@ -833,17 +859,17 @@
     <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
   </button>
 
-  <!-- ============ WHATSAPP FLOTANTE ============ -->
-  <a id="waFab" class="wa-fab" href="https://wa.me/51994467586?text=Hola%21%20Quiero%20informaci%C3%B3n%20sobre%20sus%20perfumes" data-wa-link data-wa-text="Hola! Quiero información sobre sus perfumes"
-    target="_blank" rel="noopener noreferrer" aria-label="Escríbenos por WhatsApp" data-tooltip="¿Dudas? Escríbenos">
-    <i class="fab fa-whatsapp" aria-hidden="true"></i>
-  </a>
-
-  <!-- ============ INSTAGRAM FLOTANTE ============ -->
-  <a id="igFab" class="ig-fab" href="#" data-ig-link target="_blank"
-    rel="noopener noreferrer" aria-label="Síguenos en Instagram" data-tooltip="Síguenos en Instagram">
-    <i class="fab fa-instagram" aria-hidden="true"></i>
-  </a>
+  <!-- ============ FABS GRUPADOS (WhatsApp + Instagram, esquina inferior derecha) ============ -->
+  <div class="fab-group" id="fabGroup">
+    <a id="waFab" class="wa-fab" href="https://wa.me/51994467586?text=Hola%21%20Quiero%20informaci%C3%B3n%20sobre%20sus%20perfumes" data-wa-link data-wa-text="Hola! Quiero información sobre sus perfumes"
+      target="_blank" rel="noopener noreferrer" aria-label="Escríbenos por WhatsApp" data-tooltip="¿Dudas? Escríbenos">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.23-.64.08-.3-.15-1.26-.47-2.4-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2-1.41.25-.7.25-1.29.18-1.42-.08-.12-.27-.2-.57-.35zm-5.42 7.4h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88a9.82 9.82 0 0 1 9.88 9.89c0 5.45-4.44 9.88-9.89 9.88zm8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.68 1.45h.01c6.55 0 11.89-5.34 11.89-11.9A11.82 11.82 0 0 0 20.46 3.48z"/></svg>
+    </a>
+    <a id="igFab" class="ig-fab" href="#" data-ig-link target="_blank"
+      rel="noopener noreferrer" aria-label="Síguenos en Instagram" data-tooltip="Síguenos en Instagram">
+      <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.8" y="2.8" width="18.4" height="18.4" rx="5.2"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.6" cy="6.4" r="1.15" fill="currentColor" stroke="none"/></svg>
+    </a>
+  </div>
 
   <!-- ============ STICKY BOTTOM CART (móvil, compra rápida) ============ -->
   <div class="sticky-cart" id="stickyCart" aria-live="polite">
@@ -865,9 +891,9 @@
     <div class="footer-inner">
       <div class="footer-brand">
         <div class="footer-logo">
-          <img src="logo.webp" alt="Fragance Obsession" class="footer-logo-img" width="38" height="38" loading="lazy"
+          <img src="logo.webp" alt="FRAGRANCE OBSESSION" class="footer-logo-img" width="38" height="38" loading="lazy"
             decoding="async" />
-          <span class="footer-logo-name">FRAGANCE OBSESSION</span>
+          <span class="footer-logo-name">FRAGRANCE OBSESSION</span>
         </div>
         <p class="footer-tagline">Decants premium de las mejores fragancias del mundo.</p>
         <div class="social-links">
@@ -877,10 +903,6 @@
           </a>
           <a href="https://www.tiktok.com/@fraganceobsession.pe" target="_blank" rel="noopener noreferrer" title="TikTok"
             aria-label="TikTok">
-            <i class="fab fa-tiktok" aria-hidden="true"></i>
-          </a>
-          <a href="https://www.tiktok.com/@fraganceobsession.pe" target="_blank" rel="noopener noreferrer"
-            title="TikTok" aria-label="TikTok">
             <i class="fab fa-tiktok" aria-hidden="true"></i>
           </a>
           <a href="https://wa.me/51994467586" data-wa-link target="_blank" rel="noopener noreferrer" title="WhatsApp"
@@ -896,10 +918,8 @@
         <a role="button" tabindex="0" onclick="navigateTo('promos')">Packs</a>
       </div>
       <div class="footer-col">
-        <h4>Ayuda</h4>
-        <a href="#">FAQ</a>
-        <a href="#">Envíos</a>
-        <a href="#">Devoluciones</a>
+        <h4>Información</h4>
+        <div class="footer-links" id="footerInfoLinks"></div>
       </div>
       <div class="footer-col">
         <h4>Contacto</h4>
@@ -911,21 +931,38 @@
     </div>
     <div class="footer-bottom">
       <p class="footer-payments">Aceptamos <strong>Yape</strong> · <strong>Plin</strong> · <strong>Tarjeta</strong> · <strong>Efectivo</strong></p>
-      <p>&copy; 2026 Fragance Obsession · Hecho con ❤️ en Perú</p>
+      <p class="footer-legal">
+        <a href="privacidad.html">Política de Privacidad</a>
+        <span aria-hidden="true">·</span>
+        <a href="terminos.html">Términos y Condiciones</a>
+      </p>
+      <p>&copy; 2026 FRAGRANCE OBSESSION · Hecho con <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.9-9.5-9C1 8.6 2.6 5 6 5c2.2 0 3.6 1.2 4.5 2.6L12 9.4l1.5-1.8C14.4 6.2 15.8 5 18 5c3.4 0 5 3.6 3.5 7-2 4.1-9.5 9-9.5 9z"/></svg> en Perú</p>
       <p class="footer-signature">
         Diseñado y desarrollado por
         <a href="https://abel-castill0.github.io/Portafolio/" target="_blank" rel="noopener noreferrer">Abel
           Castillo</a>
-        <a href="admin.html" class="footer-admin" aria-label="Panel de administración" title="Administración">⚙️</a>
+        <a href="admin.html" class="footer-admin" aria-label="Panel de administración" title="Administración"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.08a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.08a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1.03z"/></svg></a>
       </p>
     </div>
   </footer>
 
-  <!-- Animation libraries (orden importa: GSAP → ScrollTrigger → Lenis → app → animations) -->
+  <!-- Animation libraries (orden importa: GSAP → ScrollTrigger → app → animations) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js" defer></script>
   <script src="config.js" defer></script>
+  <script>
+    /* URLs canónicas dinámicas: respetan la URL real (GitHub Pages, localhost o dominio propio). */
+    (function () {
+      try {
+        var u = window.FO_CONFIG && window.FO_CONFIG.SITE_URL;
+        if (!u) return;
+        var canon = document.querySelector('link[rel="canonical"]');
+        if (canon) canon.setAttribute("href", u);
+        var og = document.querySelector('meta[property="og:url"]');
+        if (og) og.setAttribute("content", u);
+      } catch (e) {}
+    })();
+  </script>
   <script src="descuentos.js" defer></script>
   <script src="productos.js" defer></script>
   <script src="script.js" defer></script>

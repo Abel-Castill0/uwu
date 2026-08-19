@@ -1,0 +1,11 @@
+# robots.txt — Fragrance Obsession
+# Dominio: https://fraganceobsession.pe/
+
+User-agent: *
+Allow: /
+
+# Páginas internas que no deben indexarse
+Disallow: /admin.html
+Disallow: /offline.html
+
+Sitemap: https://fraganceobsession.pe/sitemap.xml

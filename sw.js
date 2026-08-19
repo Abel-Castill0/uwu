@@ -1,9 +1,12 @@
-/* Service Worker — Fragance Obsession
- * - Cache-first: CSS, JS, fuentes (assets versionados/estables)
+/* Service Worker — Fragrance Obsession
+ * - Stale-while-revalidate: CSS, JS, fuentes (siempre al día en la
+ *   2ª carga; sin versionar a mano ya no hay riesgo de servir JS viejo)
  * - Stale-while-revalidate: imágenes
  * - Network-first con fallback a offline.html: navegación
+ * OJO: si algún día se vuelve a cache-first para assets, CADA deploy
+ * DEBE bumpear VERSION o los clientes se quedan con código viejo.
  */
-const VERSION = "fo-v18-local";
+const VERSION = "fo-v31-ghpages";
 const CORE_CACHE = `core-${VERSION}`;
 const IMG_CACHE = `img-${VERSION}`;
 const FONT_CACHE = `font-${VERSION}`;
@@ -20,6 +23,9 @@ const CORE_ASSETS = [
   "animations.js",
   "offline.html",
   "logo.webp",
+  "icon-192.png",
+  "icon-512.png",
+  "icon-180.png",
   "inicio.webp",
   "img/filtros/nicho.webp",
   "img/filtros/disenador.webp",
@@ -101,11 +107,11 @@ self.addEventListener("fetch", (event) => {
   const sameOrigin = url.origin === self.location.origin;
 
   if (isFont(url)) {
-    event.respondWith(cacheFirst(req, FONT_CACHE));
+    event.respondWith(staleWhileRevalidate(req, FONT_CACHE));
     return;
   }
   if (sameOrigin && isStaticAsset(url, req)) {
-    event.respondWith(cacheFirst(req, CORE_CACHE));
+    event.respondWith(staleWhileRevalidate(req, CORE_CACHE));
     return;
   }
   if (sameOrigin && isImage(url, req)) {

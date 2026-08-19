@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   "use strict";
   /* ══════════════════════════════════════════════════════════════
      DATA — PRODUCTOS
@@ -14,20 +14,20 @@
      CONSTANTES
   ══════════════════════════════════════════════════════════════ */
   const PLACEHOLDER_IMG = "img/perfumes/placeholder.webp";
-  /* Imagen por defecto elegante: monograma dorado sobre gradiente oscuro.
+  /* Imagen por defecto elegante: monograma plata sobre verde profundo.
      Se genera en SVG (data URI) cuando el perfume no tiene foto propia. */
   function cardImg(p) {
-    const label = ((p && (p.name || p.brand)) || "Fragance Obsession").replace(/[^\w\s-]/g, "");
+    const label = ((p && (p.name || p.brand)) || "Fragrance Obsession").replace(/[^\w\s-]/g, "");
     const initials = label.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "FO";
     const svg =
       '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">' +
       '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
-      '<stop offset="0" stop-color="#231a12"/><stop offset="0.55" stop-color="#161009"/><stop offset="1" stop-color="#0c0806"/>' +
+      '<stop offset="0" stop-color="#111113"/><stop offset="0.55" stop-color="#0A0A0A"/><stop offset="1" stop-color="#050505"/>' +
       '</linearGradient></defs>' +
       '<rect width="600" height="600" fill="url(#g)"/>' +
-      '<rect x="24" y="24" width="552" height="552" fill="none" stroke="#d4af37" stroke-opacity="0.28" stroke-width="3"/>' +
-      '<text x="300" y="298" text-anchor="middle" dominant-baseline="central" font-family="Georgia, \'Times New Roman\', serif" font-size="170" fill="#d4af37" fill-opacity="0.9">' + initials + '</text>' +
-      '<text x="300" y="500" text-anchor="middle" font-family="Georgia, \'Times New Roman\', serif" font-size="24" letter-spacing="6" fill="#d4af37" fill-opacity="0.5">FRAGANCE OBSESSION</text>' +
+      '<rect x="24" y="24" width="552" height="552" fill="none" stroke="#C9D6CE" stroke-opacity="0.3" stroke-width="3"/>' +
+      '<text x="300" y="298" text-anchor="middle" dominant-baseline="central" font-family="Georgia, \'Times New Roman\', serif" font-size="170" fill="#DDE9E1" fill-opacity="0.9">' + initials + '</text>' +
+      '<text x="300" y="500" text-anchor="middle" font-family="Georgia, \'Times New Roman\', serif" font-size="24" letter-spacing="6" fill="#C9D6CE" fill-opacity="0.6">FRAGRANCE OBSESSION</text>' +
       '</svg>';
     return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   }
@@ -35,6 +35,61 @@
      Si no hay variante para ese tamaño, cae a la imagen base del producto. */
   function sizeImage(p, size) {
     return (p && p.sizeImages && p.sizeImages[size]) || (p && p.cardImage) || "";
+  }
+  /* ── Decants premium ──────────────────────────────────────────
+     Las variantes "5ml_premium" / "10ml_premium" se generan en el modal
+     (getDisplayDecantSizes) con precio = normal + PREMIUM_UPLIFT. */
+  function isPremiumSize(size) {
+    return typeof size === "string" && size.endsWith("_premium");
+  }
+  /* ── "Próximamente" ─────────────────────────────────────────
+     Productos aún sin stock: sus ids van en config.js
+     (FO_CONFIG.PROXIMAMENTE). Se muestran con badge, botón
+     deshabilitado en la card y aviso en el modal. */
+  function isComingSoon(id) {
+    const list = FO.PROXIMAMENTE;
+    return Array.isArray(list) && list.some((x) => String(x) === String(id));
+  }
+  function baseSizeOf(size) {
+    return isPremiumSize(size) ? size.replace("_premium", "") : size;
+  }
+  /* "5" → "5ml" · "5ml" → "5ml" · "5_premium" → "5ml premium" */
+  function sizeLabel(size) {
+    const base = isPremiumSize(size) ? baseSizeOf(size) : size;
+    const baseLabel = /^\d+$/.test(base) ? base + "ml" : base;
+    return isPremiumSize(size) ? baseLabel + " premium" : baseLabel;
+  }
+  function getPremiumUplift(baseSize) {
+    const u = FO.PREMIUM_UPLIFT || {};
+    const v = u[baseSize] !== undefined ? u[baseSize] : u[baseSize + "ml"];
+    return typeof v === "number" ? v : 0;
+  }
+  function getDisplayDecantSizes(product) {
+    const sizes = Object.assign({}, product.decantSizes || {});
+    if (FO.PREMIUM_DECANTS === false) return sizes;
+    let premiumAdded = false;
+    Object.keys(sizes).forEach((s) => {
+      const up = getPremiumUplift(s);
+      if (up > 0 && !sizes[s + "_premium"]) {
+        sizes[s + "_premium"] = sizes[s] + up;
+        premiumAdded = true;
+      }
+    });
+    /* Unificación premium: si existe variante premium, la base de ese
+       tamaño se oculta (solo se ofrece la premium). Los datos base
+       siguen intactos para precios y carrito (getDecantPrice). */
+    if (premiumAdded) {
+      Object.keys(sizes).forEach((s) => {
+        if (!isPremiumSize(s) && sizes[s + "_premium"]) delete sizes[s];
+      });
+    }
+    return sizes;
+  }
+  function getDecantPrice(product, size) {
+    const sizes = product.decantSizes || {};
+    const base = sizes[baseSizeOf(size)];
+    if (typeof base !== "number") return null;
+    return isPremiumSize(size) ? base + getPremiumUplift(baseSizeOf(size)) : base;
   }
   /* ⚠️ Valores del negocio centralizados en config.js (window.FO_CONFIG).
      Edita SOLO config.js. Los fallbacks evitan romper si falta el archivo. */
@@ -82,10 +137,10 @@
     const img = product.cardImage ? SITE_URL + product.cardImage : META.ogImage;
     const url = SITE_URL + "?producto=" + product.id;
     setMeta({
-      title: `${product.name} · Fragance Obsession`,
+      title: `${product.name} · FRAGRANCE OBSESSION`,
       desc: `Compra ${product.name} de ${product.brand} en decant. ${desde}Envíos a todo el Perú.`,
       ogTitle: `${product.name} · ${product.brand}`,
-      ogDesc: `${product.name} de ${product.brand} en decant. ${desde}Fragance Obsession.`,
+      ogDesc: `${product.name} de ${product.brand} en decant. ${desde}FRAGRANCE OBSESSION.`,
       ogImage: img,
       ogUrl: url,
       canonical: url,
@@ -102,7 +157,7 @@
      Pon esto en `true` SOLO después de ejecutar `node tools/optimize-images.js`,
      que genera las versiones de 400px en img/perfumes_optimized/.
      Mientras esté en `false`, se usa el original de siempre (sin romper nada). */
-  const IMG_OPTIMIZED = false;
+  const IMG_OPTIMIZED = true;
   const OPTIMIZED_DIR = "img/perfumes_optimized/";
   const IMG_SIZES = "(max-width: 640px) 160px, (max-width: 1024px) 200px, 260px";
 
@@ -111,7 +166,7 @@
   function imgSrcsetAttrs(src) {
     if (!IMG_OPTIMIZED || !src) return "";
     const file = src.split("/").pop();
-    const small = OPTIMIZED_DIR + file;
+    const small = OPTIMIZED_DIR + file.replace(/\.(png|jpe?g)$/i, ".webp");
     return ` srcset="${esc(small)} 400w, ${esc(src)} 2048w" sizes="${IMG_SIZES}"`;
   }
 
@@ -189,7 +244,7 @@
       rows.push('<div class="bd-row bd-good"><span>Envío</span><span>GRATIS</span></div>');
     }
     if (d.vialGratisAgregado) {
-      rows.push('<div class="bd-row bd-good"><span>🎁 Vial de regalo</span><span>S/ 0.00</span></div>');
+      rows.push('<div class="bd-row bd-good"><span><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="13" rx="2"/><path d="M12 7.5V20.5M3.5 12.5h17M12 7.5c-2.8 0-4.6-1-4.6-2.7S9.2 2 12 2s4.6 1 4.6 2.8-1.8 2.7-4.6 2.7z"/></svg> Vial de regalo</span><span>S/ 0.00</span></div>');
     }
     return rows.join("");
   }
@@ -275,14 +330,8 @@
     });
     setTimeout(() => fly.remove(), 650);
   }
-  function getCategoryIcon(cat) {
-    const icons = {
-      arabe: "🕌",
-      disenador: "⭐",
-      nicho: "💎",
-      mixto: "🎁",
-    };
-    return icons[cat] || "✨";
+  function getCategoryIcon() {
+    return `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5h4M11 2.5v4.6c0 .9.4 1.7 1 2.3l.7.7c.9.9 1.4 2.1 1.4 3.3V19a2.5 2.5 0 0 1-2.5 2.5h-1.2A2.5 2.5 0 0 1 9.9 19v-5.6c0-1.2.5-2.4 1.4-3.3l.7-.7c.6-.6 1-1.4 1-2.3V2.5"/></svg>`;
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -296,8 +345,10 @@
       showToast("⚠️ Este producto solo está disponible en presentación completa");
       return;
     }
-    const price = sizes[size];
-    if (!price) return;
+    const baseSize = baseSizeOf(size);
+    const basePrice = sizes[baseSize];
+    if (typeof basePrice !== "number") return;
+    const price = isPremiumSize(size) ? basePrice + getPremiumUplift(baseSize) : basePrice;
     const existing = cart.find(
       (item) =>
         item.productId === productId &&
@@ -359,7 +410,7 @@
     if (cart.length === 0) {
       container.innerHTML = `
         <div class="cart-empty">
-          <div class="cart-empty-icon">🛒</div>
+          <div class="cart-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8.5h13l1.2 12a1.8 1.8 0 0 1-1.8 2H6.1a1.8 1.8 0 0 1-1.8-2l1.2-12z"/><path d="M8.5 10.5V7a3.5 3.5 0 0 1 7 0v3.5"/></svg></div>
           <p>Tu carrito está vacío.</p>
           <span>¡Explora nuestra colección y encuentra tu próxima fragancia!</span>
           <button type="button" class="btn-empty-action" data-action="keep-shopping">
@@ -389,9 +440,9 @@
           }
         }
         let nameHtml = `<div class="cart-item-name">${esc(item.name)}</div>`;
-        let metaHtml = `<div class="cart-item-meta">${esc(item.brand)} · ${item.type === "full" ? "Caja Sellada" : item.type === "decant" ? "Decant" : "Pack"} ${esc(item.size)}</div>`;
+        let metaHtml = `<div class="cart-item-meta">${esc(item.brand)} · ${item.type === "full" ? "Caja Sellada" : item.type === "decant" ? "Decant" : "Pack"} ${esc(sizeLabel(item.size))}</div>`;
         if (hasGift) {
-          metaHtml += `<div class="cart-gift-note">🎁 Incluye: ${esc(item.gift.name)} (${esc(item.gift.size)})</div>`;
+          metaHtml += `<div class="cart-gift-note"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="13" rx="2"/><path d="M12 7.5V20.5M3.5 12.5h17M12 7.5c-2.8 0-4.6-1-4.6-2.7S9.2 2 12 2s4.6 1 4.6 2.8-1.8 2.7-4.6 2.7z"/></svg> Incluye: ${esc(item.gift.name)} (${esc(item.gift.size)})</div>`;
         }
         let extraProductsHtml = "";
         if (isMultiPack) {
@@ -423,7 +474,7 @@
               <span>${item.qty}</span>
               <button data-action="qty" data-index="${i}" data-delta="1" aria-label="Sumar">+</button>
             </div>
-            <button class="cart-item-remove" data-action="remove" data-index="${i}" title="Eliminar" aria-label="Eliminar">🗑</button>
+            <button class="cart-item-remove" data-action="remove" data-index="${i}" title="Eliminar" aria-label="Eliminar"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 12.5h9l1-12.5M10 10.5v5.5M14 10.5v5.5"/></svg></button>
           </div>`;
       })
       .join("");
@@ -434,6 +485,7 @@
     if (!footer || !total) return;
     if (cart.length === 0) {
       footer.style.display = "none";
+      renderBreakdown("cartBreakdown");
     } else {
       footer.style.display = "block";
       total.textContent = formatPrice(getCartTotal());
@@ -586,12 +638,21 @@
     $("cartOverlay").classList.add("active");
     $("cartSidebar").classList.add("active");
     document.body.style.overflow = "hidden";
+    document.body.classList.add("modal-open");
+    document.documentElement.classList.add("modal-open");
+    if (window.__modalScrollY === undefined) window.__modalScrollY = window.scrollY;
     updateCartUI();
   }
   function closeCart() {
     $("cartOverlay").classList.remove("active");
     $("cartSidebar").classList.remove("active");
     document.body.style.overflow = "";
+    document.body.classList.remove("modal-open");
+    document.documentElement.classList.remove("modal-open");
+    if (window.__modalScrollY !== undefined) {
+      window.scrollTo(0, window.__modalScrollY);
+      window.__modalScrollY = undefined;
+    }
   }
   function goToCheckout() {
     if (cart.length === 0) {
@@ -617,6 +678,9 @@
     updateModalContent();
     $("modalOverlay").classList.add("active");
     document.body.style.overflow = "hidden";
+    document.body.classList.add("modal-open");
+    document.documentElement.classList.add("modal-open");
+    if (window.__modalScrollY === undefined) window.__modalScrollY = window.scrollY;
     // Accesibilidad: captura el foco y lo mueve dentro del modal
     focusModal($("modal"));
     // SEO dinámico + analítica
@@ -630,6 +694,12 @@
   function closeModal(skipHistory) {
     $("modalOverlay").classList.remove("active");
     document.body.style.overflow = "";
+    document.body.classList.remove("modal-open");
+    document.documentElement.classList.remove("modal-open");
+    if (window.__modalScrollY !== undefined) {
+      window.scrollTo(0, window.__modalScrollY);
+      window.__modalScrollY = undefined;
+    }
     currentModalProduct = null;
     restoreMeta();
     restoreFocus();
@@ -646,11 +716,18 @@
       !product.tester &&
       product.decantSizes &&
       Object.keys(product.decantSizes).length > 0;
+    const hasFull =
+      product.fullSizes && Object.keys(product.fullSizes).length > 0;
     if (!hasDecants) currentModalView = "full";
     const tabSwitch = $("tabSwitch");
-    if (tabSwitch) tabSwitch.style.display = hasDecants ? "" : "none";
+    if (tabSwitch) tabSwitch.style.display = hasDecants || hasFull ? "" : "none";
+    const tabFull = $("tabFull");
+    const tabDecant = $("tabDecant");
+    if (tabFull) tabFull.style.display = hasFull ? "" : "none";
+    if (tabDecant) tabDecant.style.display = hasDecants ? "" : "none";
+    if (!hasFull && !hasDecants) return;
     const isFull = currentModalView === "full";
-    const sizes = isFull ? product.fullSizes : product.decantSizes;
+    const sizes = isFull ? product.fullSizes : getDisplayDecantSizes(product);
     if (!sizes || Object.keys(sizes).length === 0) {
       currentModalSize = null;
     } else if (!sizes[currentModalSize]) {
@@ -659,7 +736,7 @@
     // La imagen del modal cambia según el tamaño seleccionado (5ml/10ml)
     const modalImg = $("modalImage").querySelector("img");
     modalImg.src =
-      (isFull ? product.fullImage : sizeImage(product, currentModalSize)) ||
+      (isFull ? product.fullImage : sizeImage(product, baseSizeOf(currentModalSize))) ||
       cardImg(product);
     modalImg.alt = product.name;
     $("modalName").textContent = product.name;
@@ -669,16 +746,83 @@
     $("tabFull").classList.toggle("active", isFull);
     $("tabDecant").classList.toggle("active", !isFull);
     const sizeContainer = $("modalSizes");
-    sizeContainer.innerHTML = Object.keys(sizes)
+    // Orden lógico de tamaños: menor a mayor (premium va justo tras su base)
+    const sizeKeys = Object.keys(sizes).sort((a, b) => {
+      const va = parseFloat(baseSizeOf(a)) + (isPremiumSize(a) ? 0.5 : 0);
+      const vb = parseFloat(baseSizeOf(b)) + (isPremiumSize(b) ? 0.5 : 0);
+      return va - vb;
+    });
+    // Etiqueta "Tamaño" sobre el selector (accesible, idempotente)
+    let sizeLabelEl = document.getElementById("modalSizeLabel");
+    if (!sizeLabelEl) {
+      sizeLabelEl = document.createElement("div");
+      sizeLabelEl.className = "size-label";
+      sizeLabelEl.id = "modalSizeLabel";
+      sizeLabelEl.textContent = "Tamaño";
+      sizeContainer.parentNode.insertBefore(sizeLabelEl, sizeContainer);
+    }
+    sizeContainer.innerHTML = sizeKeys
       .map(
         (size) =>
-          `<button class="size-option${size === currentModalSize ? " selected" : ""}" data-size="${esc(size)}">${esc(size)}</button>`,
+          `<button class="size-option${size === currentModalSize ? " selected" : ""}" data-size="${esc(size)}">${esc(sizeLabel(size))}</button>`,
       )
       .join("");
     const price = currentModalSize ? sizes[currentModalSize] : null;
     $("modalPrice").innerHTML = price
-      ? `${esc(formatPrice(price))} <span class="price-size-badge">${esc(currentModalSize)}</span>`
+      ? `${esc(formatPrice(price))} <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : "Selecciona tamaño";
+    // Botón principal: cotizar por WhatsApp (frasco) o añadir al carrito (decant)
+    const addBtn = $("modalAddBtn");
+    const isQuote = isFull && FO.FRASCO_COMPLETO_WHATSAPP !== false;
+    addBtn.classList.toggle("btn-add-wa", isQuote);
+    addBtn.innerHTML = isQuote
+      ? `<i class="fab fa-whatsapp" aria-hidden="true"></i><span>Cotizar Frasco por WhatsApp</span>`
+      : `<i class="fa-solid fa-bag-shopping" aria-hidden="true"></i><span>${price ? `Añadir ${esc(sizeLabel(currentModalSize))} — ${esc(formatPrice(price))}` : "Añadir al Carrito"}</span>`;
+    // Producto "Próximamente": sin stock, no agregable (solo aviso + reserva)
+    const soon = isComingSoon(currentModalProduct.id);
+    let soonNote = document.getElementById("modalSoonNote");
+    if (soon) {
+      addBtn.disabled = true;
+      addBtn.classList.add("btn-soon");
+      addBtn.classList.remove("btn-add-wa");
+      addBtn.innerHTML = `<i class="fa-regular fa-clock" aria-hidden="true"></i><span>Próximamente</span>`;
+      if (!soonNote) {
+        soonNote = document.createElement("p");
+        soonNote.id = "modalSoonNote";
+        const priceEl = $("modalPrice");
+        if (priceEl) priceEl.after(soonNote);
+      }
+      if (soonNote) {
+        soonNote.textContent = "Producto disponible próximamente. ¿Quieres reservarlo? Escríbenos por WhatsApp.";
+      }
+    } else {
+      addBtn.disabled = false;
+      addBtn.classList.remove("btn-soon");
+      if (soonNote) soonNote.remove();
+    }
+    // Enlace de cotización: visible cuando el producto NO tiene frasco completo
+    const quoteLink = $("modalQuoteLink");
+    if (quoteLink) quoteLink.style.display = !hasFull && FO.FRASCO_COMPLETO_WHATSAPP !== false ? "" : "none";
+  }
+  /* Cotización de frasco completo por WhatsApp (botón del modal y enlace). */
+  function openWhatsAppQuote(product) {
+    if (!product) return;
+    const msg = typeof FO.WHATSAPP_COTIZAR_MSG === "function"
+      ? FO.WHATSAPP_COTIZAR_MSG(product.name, product.brand)
+      : `Hola, quiero cotizar el frasco completo de ${product.name} (${product.brand}). ¿Me pueden dar más información?`;
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+    const win = window.open(url, "_blank");
+    if (!win) location.href = url;
+    track("quote_full_bottle", { item_id: product.id, item_name: product.name, item_brand: product.brand });
+    showToast("📲 Abriendo WhatsApp para cotizar tu frasco...");
+  }
+  window.cotizarFrascoWhatsApp = function () { openWhatsAppQuote(currentModalProduct); };
+  const quoteLinkEl = $("modalQuoteLink");
+  if (quoteLinkEl) {
+    quoteLinkEl.addEventListener("click", function (e) {
+      e.preventDefault();
+      openWhatsAppQuote(currentModalProduct);
+    });
   }
   $("tabFull").addEventListener("click", function () {
     currentModalView = "full";
@@ -699,10 +843,15 @@
       showToast("⚠️ Selecciona un tamaño");
       return;
     }
+    // Frasco completo → cotización por WhatsApp (nunca se agrega al carrito)
+    if (currentModalView === "full" && FO.FRASCO_COMPLETO_WHATSAPP !== false) {
+      openWhatsAppQuote(currentModalProduct);
+      return;
+    }
     const flyImg =
       currentModalView === "full"
         ? currentModalProduct.fullImage
-        : sizeImage(currentModalProduct, currentModalSize);
+        : sizeImage(currentModalProduct, baseSizeOf(currentModalSize));
     flyToCart(flyImg, this);
     addToCart(currentModalProduct.id, currentModalView, currentModalSize);
     // micro-check ✓ antes de cerrar
@@ -803,11 +952,20 @@
     }
     $("packModalOverlay").classList.add("active");
     document.body.style.overflow = "hidden";
+    document.body.classList.add("modal-open");
+    document.documentElement.classList.add("modal-open");
+    if (window.__modalScrollY === undefined) window.__modalScrollY = window.scrollY;
     focusModal($("packModal"));
   }
   function closePackModal() {
     $("packModalOverlay").classList.remove("active");
     document.body.style.overflow = "";
+    document.body.classList.remove("modal-open");
+    document.documentElement.classList.remove("modal-open");
+    if (window.__modalScrollY !== undefined) {
+      window.scrollTo(0, window.__modalScrollY);
+      window.__modalScrollY = undefined;
+    }
     currentPackPromo = null;
     currentPackIsGroup = false;
     currentPackGroupSize = null;
@@ -1050,7 +1208,7 @@
     }
     if (page === "checkout") renderCheckoutPage();
     if (page === "home") renderFeatured();
-    track("page_view", { page_title: "Fragance Obsession · " + page, page_path: "/" + (page === "home" ? "" : page) });
+    track("page_view", { page_title: "FRAGRANCE OBSESSION · " + page, page_path: "/" + (page === "home" ? "" : page) });
     const nav = $("nav");
     nav.classList.remove("open");
     const hb = $("hamburger");
@@ -1106,10 +1264,12 @@
     const presentationHTML = presentation
       ? `<span class="presentation-chip">${esc(presentation)}</span>`
       : "";
+    const soon = isComingSoon(product.id);
     return `
       <div class="product-card reveal-item" data-product-id="${product.id}">
         <div class="img-wrapper">
           ${badgeHTML}
+          ${soon ? `<span class="product-badge soon">Próximamente</span>` : ""}
           ${bestsellerHTML}
           ${presentationHTML}
           <img src="${esc(product.cardImage || cardImg(product))}"${imgSrcsetAttrs(product.cardImage)} alt="${esc(product.name)} - ${esc(product.brand)}" loading="lazy" decoding="async" onload="this.classList.add('img-loaded'); this.closest('.img-wrapper').classList.add('skeleton-done');" onerror="this.style.display='none'; this.closest('.img-wrapper').classList.add('skeleton-done');" />
@@ -1122,7 +1282,7 @@
             <span class="product-price">${priceText}</span>
             ${stockHTML}
           </div>
-          <button class="btn-add" data-add-id="${product.id}">${hasDecants ? "Ver y Comprar" : "Comprar Sellado"}</button>
+          <button class="btn-add${soon ? " btn-soon" : ""}" data-add-id="${product.id}"${soon ? " disabled" : ""}>${soon ? "Próximamente" : hasDecants ? "Ver y Comprar" : "Comprar Sellado"}</button>
         </div>
       </div>`;
   }
@@ -1158,17 +1318,8 @@
 
     const query = searchTerm.trim().toLowerCase();
     const hasQuick = query !== "" || quickFilter !== "todos";
-
-    // Sin categoría, búsqueda ni filtro rápido: pedir que elija
-    if (!activeFilters.category && !hasQuick) {
-      grid.innerHTML = activeFilters.gender
-        ? `<div class="catalog-hint">
-             <div class="catalog-hint-icon">👆</div>
-             <p class="catalog-hint-text">Primero elige una categoría para descubrir fragancias.</p>
-           </div>`
-        : "";
-      return;
-    }
+    // "todos" (píldora por defecto) equivale a "sin categoría": se muestran todas
+    const cat = activeFilters.category === "todos" ? null : activeFilters.category;
 
     let filtered = products.filter(isProduct);
 
@@ -1176,8 +1327,8 @@
       filtered = filtered.filter((p) => p.tester === true);
     } else {
       filtered = filtered.filter((p) => !p.tester);
-      if (activeFilters.category) {
-        filtered = filtered.filter((p) => p.category === activeFilters.category);
+      if (cat) {
+        filtered = filtered.filter((p) => p.category === cat);
       }
     }
     if (activeFilters.gender) {
@@ -1198,20 +1349,40 @@
     window.__catalogRenderTimer = setTimeout(() => {
       const countEl = $("catalogResultsCount");
       if (countEl) {
-        if (hasQuick) {
-          const label = query ? ` para “${searchTerm.trim()}”` : "";
-          countEl.textContent = `${filtered.length} fragancia${filtered.length === 1 ? "" : "s"}${label}`;
-          countEl.style.display = "block";
-        } else {
-          countEl.style.display = "none";
-        }
+        const label = query ? ` para “${searchTerm.trim()}”` : "";
+        const total = `${filtered.length} fragancia${filtered.length === 1 ? "" : "s"}`;
+        countEl.textContent = `${total}${label}`;
+        countEl.style.display = "block";
       }
       if (filtered.length) {
-        grid.innerHTML = filtered.map(createProductCard).join("");
+        if (FO.GROUP_BY_BRAND !== false) {
+          // Agrupación por marca (mantiene el orden original de aparición)
+          const groups = [];
+          const byBrand = new Map();
+          filtered.forEach((p) => {
+            const b = (p.brand || "Otros").trim();
+            if (!byBrand.has(b)) {
+              byBrand.set(b, []);
+              groups.push(b);
+            }
+            byBrand.get(b).push(p);
+          });
+          grid.innerHTML = groups
+            .map(
+              (b) =>
+                `<section class="brand-group" aria-label="Marca ${esc(b)}">` +
+                `<h3 class="brand-heading">${esc(b)}</h3>` +
+                `<div class="brand-grid">${byBrand.get(b).map(createProductCard).join("")}</div>` +
+                `</section>`,
+            )
+            .join("");
+        } else {
+          grid.innerHTML = filtered.map(createProductCard).join("");
+        }
       } else {
         grid.innerHTML = `
           <div class="empty-state">
-            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5L16.2 16.2"/></svg></div>
             <h3 class="empty-state-title">No encontramos productos</h3>
             <p class="empty-state-text">Prueba con otra búsqueda o cambia de filtro.</p>
           </div>`;
@@ -1274,7 +1445,7 @@
     if (filtered.length === 0) {
       grid.innerHTML = `
         <div class="empty-state">
-          <div class="empty-state-icon">🎁</div>
+          <div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="13" rx="2"/><path d="M12 7.5V20.5M3.5 12.5h17M12 7.5c-2.8 0-4.6-1-4.6-2.7S9.2 2 12 2s4.6 1 4.6 2.8-1.8 2.7-4.6 2.7z"/></svg></div>
           <h3 class="empty-state-title">Sin packs aquí</h3>
           <p class="empty-state-text">No hay packs que coincidan con los filtros. Prueba otra combinación.</p>
         </div>`;
@@ -1351,7 +1522,7 @@
             <div class="promo-body">
               <h3>${esc(promo.name)}</h3>
               <p class="promo-desc">${esc(promo.desc)}</p>
-              <p class="promo-meta">📦 ${infoLine}</p>
+              <p class="promo-meta"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h17v10a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-10z"/><path d="M3.5 8.5l2.2-4h12.6l2.2 4M9.5 12.5h5"/></svg> ${infoLine}</p>
               ${sizeChipsHtml}
               <div class="promo-price">${priceHtml}${perDecantHtml}</div>
               <button class="btn-add" data-promo-id="${esc(promo.id)}" aria-label="Seleccionar perfumes para ${esc(promo.name)}">
@@ -1415,7 +1586,7 @@
               <div style="display:flex;">${miniImgs}</div>
               <div>
                 <div style="font-weight:600;font-size:.85rem;">${esc(item.name)}</div>
-                <div style="font-size:.75rem;color:var(--text-secondary);">${item.includedProducts.length} × ${esc(item.size)}</div>
+                <div style="font-size:.75rem;color:var(--text-secondary);">${item.includedProducts.length} × ${esc(sizeLabel(item.size))}</div>
               </div>
             </div>`;
           } else if (hasGift) {
@@ -1428,7 +1599,7 @@
               </div>
               <div>
                 <div style="font-weight:600;font-size:.85rem;">${esc(item.name)}</div>
-                <div style="font-size:.75rem;color:var(--text-secondary);">${esc(item.size)} (incluye ${esc(item.gift.name)})</div>
+                <div style="font-size:.75rem;color:var(--text-secondary);">${esc(sizeLabel(item.size))} (incluye ${esc(item.gift.name)})</div>
               </div>
             </div>`;
           } else {
@@ -1438,7 +1609,7 @@
               <img src="${esc(item.image)}" alt="${esc(item.name)}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;" loading="lazy" decoding="async" />
               <div>
                 <div style="font-weight:600;font-size:.85rem;">${esc(item.name)}</div>
-                <div style="font-size:.75rem;color:var(--text-secondary);">${typeLabel} ${esc(item.size)} × ${item.qty}</div>
+                <div style="font-size:.75rem;color:var(--text-secondary);">${typeLabel} ${esc(sizeLabel(item.size))} × ${item.qty}</div>
               </div>
             </div>`;
           }
@@ -1462,13 +1633,20 @@
      FILTERS — CATALOG
   ══════════════════════════════════════════════════════════════ */
   function updateCatalogFilterButtons() {
+    const cat = activeFilters.category || "todos";
     document.querySelectorAll("#filtersCategory .filter-btn").forEach((btn) => {
-      const active = activeFilters.category === btn.dataset.filter;
+      const active = cat === btn.dataset.filter;
       btn.classList.toggle("active", active);
       btn.setAttribute("aria-pressed", String(active));
     });
-    document.querySelectorAll("#quickChips .quick-chip").forEach((btn) => {
-      const active = quickFilter === btn.dataset.quick;
+    const genderVal = activeFilters.gender || null;
+    document.querySelectorAll("#filtersGender .filter-btn").forEach((btn) => {
+      const active = genderVal === btn.dataset.filter;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-pressed", String(active));
+    });
+    document.querySelectorAll("#filtersOffcanvas [data-oc-gender]").forEach((btn) => {
+      const active = genderVal === btn.dataset.ocGender;
       btn.classList.toggle("active", active);
       btn.setAttribute("aria-pressed", String(active));
     });
@@ -1477,13 +1655,6 @@
       const clearBtn = $("searchClear");
       if (clearBtn) clearBtn.style.display = searchEl.value ? "inline-flex" : "none";
     }
-    const genderGroup = $("catalogGenderGroup");
-    if (genderGroup) genderGroup.style.display = activeFilters.category ? "flex" : "none";
-    document.querySelectorAll("#filtersGender .filter-btn").forEach((btn) => {
-      const active = activeFilters.gender === btn.dataset.filter;
-      btn.classList.toggle("active", active);
-      btn.setAttribute("aria-pressed", String(active));
-    });
   }
 
   const filtersCat = $("filtersCategory");
@@ -1504,6 +1675,49 @@
       const btn = e.target.closest(".filter-btn");
       if (!btn) return;
       const val = btn.dataset.filter;
+      activeFilters.gender = activeFilters.gender === val ? null : val;
+      updateCatalogFilterButtons();
+      renderCatalog();
+    });
+  }
+
+  /* Panel offcanvas de filtros (móvil): abrir, aplicar y cerrar */
+  const btnFiltersMobile = $("btnFiltersMobile");
+  const filtersOffcanvas = $("filtersOffcanvas");
+  const filtersBackdrop = $("filtersBackdrop");
+  function openFiltersPanel() {
+    if (!filtersOffcanvas) return;
+    filtersOffcanvas.classList.add("open");
+    filtersBackdrop.classList.add("show");
+    document.body.classList.add("no-scroll");
+    if (btnFiltersMobile) btnFiltersMobile.setAttribute("aria-expanded", "true");
+  }
+  function closeFiltersPanel() {
+    if (!filtersOffcanvas) return;
+    filtersOffcanvas.classList.remove("open");
+    filtersBackdrop.classList.remove("show");
+    document.body.classList.remove("no-scroll");
+    if (btnFiltersMobile) btnFiltersMobile.setAttribute("aria-expanded", "false");
+  }
+  if (btnFiltersMobile) btnFiltersMobile.addEventListener("click", openFiltersPanel);
+  const filtersCloseBtn = $("filtersCloseBtn");
+  if (filtersCloseBtn) filtersCloseBtn.addEventListener("click", closeFiltersPanel);
+  const filtersApplyBtn = $("filtersApplyBtn");
+  if (filtersApplyBtn) filtersApplyBtn.addEventListener("click", closeFiltersPanel);
+  if (filtersBackdrop) filtersBackdrop.addEventListener("click", closeFiltersPanel);
+  if (filtersOffcanvas) {
+    filtersOffcanvas.addEventListener("click", function (e) {
+      const btn = e.target.closest("[data-cat]");
+      if (!btn) return;
+      activeFilters.category = btn.dataset.cat;
+      activeFilters.gender = null;
+      updateCatalogFilterButtons();
+      renderCatalog();
+    });
+    filtersOffcanvas.addEventListener("click", function (e) {
+      const btn = e.target.closest("[data-oc-gender]");
+      if (!btn) return;
+      const val = btn.dataset.ocGender;
       activeFilters.gender = activeFilters.gender === val ? null : val;
       updateCatalogFilterButtons();
       renderCatalog();
@@ -1540,20 +1754,8 @@
     }
   }
 
-  /* Chips de filtro rápido */
-  const quickChips = $("quickChips");
-  if (quickChips) {
-    quickChips.addEventListener("click", function (e) {
-      const btn = e.target.closest(".quick-chip");
-      if (!btn) return;
-      quickFilter = btn.dataset.quick;
-      btn.classList.remove("chip-pop");
-      void btn.offsetWidth;
-      btn.classList.add("chip-pop");
-      updateCatalogFilterButtons();
-      renderCatalog();
-    });
-  }
+  /* (Los chips de filtro rápido se eliminaron en el rediseño:
+     la barra de píldoras de #filtersCategory los reemplaza.) */
 
   /* ══════════════════════════════════════════════════════════════
      FILTERS — PROMOS
@@ -1715,6 +1917,16 @@
       openPackModal(promoBtn.dataset.promoId, cardPackSizes[promoBtn.dataset.promoId] || null);
       return;
     }
+
+    // Toda la promo-card es clicable (chips y botones la excluyen)
+    const promoCard = e.target.closest(".promo-card");
+    if (promoCard && !e.target.closest("button")) {
+      const pid = promoCard.dataset.promoId;
+      if (pid) {
+        openPackModal(pid, cardPackSizes[pid] || null);
+        return;
+      }
+    }
   });
 
   /* ══════════════════════════════════════════════════════════════
@@ -1732,7 +1944,7 @@
     const distrito = $("chDistrito")?.value.trim() ?? "";
     const referencia = $("chReferencia")?.value.trim() ?? "";
 
-    let mensaje = `🛍️ *NUEVO PEDIDO – Fragance Obsession* 🛍️\n\n`;
+    let mensaje = `🛍️ *NUEVO PEDIDO – FRAGRANCE OBSESSION* 🛍️\n\n`;
     // Cabecera según el método de pago elegido
     if (selectedPayMethod === "card") {
       mensaje += `💳 *PAGO CON TARJETA (Mercado Pago)*\n`;
@@ -1748,7 +1960,7 @@
     mensaje += `\n📦 *PRODUCTOS:*\n`;
 
     cart.forEach((item) => {
-      mensaje += `\n  ✦ ${item.name}\n`;
+      mensaje += `\n  ✦ ${item.name} (${item.type === "full" ? "Frasco" : item.type === "decant" ? "Decant" : "Pack"} ${sizeLabel(item.size)})\n`;
       if (item.isPack && item.includedProducts && item.includedProducts.length > 0) {
         const lista = item.includedProducts.map((p) => `      • ${p.name}`).join("\n");
         mensaje += `${lista}\n`;
@@ -1818,7 +2030,7 @@
         showToast("⚠️ Método de pago no disponible");
         return;
       }
-      const link = MERCADOPAGO_LINK + (MERCADOPAGO_LINK.includes("?") ? "&" : "?") + "description=" + encodeURIComponent("Pedido Fragance Obsession");
+      const link = MERCADOPAGO_LINK + (MERCADOPAGO_LINK.includes("?") ? "&" : "?") + "description=" + encodeURIComponent("Pedido FRAGRANCE OBSESSION");
       guardarPedido();
       showToast("🔒 Redirigiendo a pasarela segura...");
       const winMp = window.open(link, "_blank");
@@ -1931,7 +2143,7 @@
     if (!("Notification" in window)) return;
     const show = () => {
       try {
-        new Notification("Fragance Obsession", {
+        new Notification("FRAGRANCE OBSESSION", {
           body: "✅ Pedido enviado a WhatsApp. Te contactaremos pronto.",
           icon: "logo.webp",
           badge: "logo.webp",
@@ -1978,14 +2190,43 @@
     });
   }
 
+  /* ── Fix definitivo scroll de rueda en modales (ciclo 2026) ──
+     Intercepta wheel en fase capture: la rueda sobre el modal NUNCA
+     llega al fondo. Hace el scroll manual sobre el contenedor interno
+     scrolleable (.modal-body / .pack-product-grid / .info-modal__content)
+     o sobre el propio .modal (desktop) cuando desborda. */
+  document.addEventListener(
+    "wheel",
+    function (e) {
+      if (!document.body.classList.contains("modal-open")) return;
+      const modal = e.target.closest ? e.target.closest(".modal") : null;
+      if (!modal) return;
+      if (e.cancelable) e.preventDefault();
+      const under = e.target.closest ? e.target.closest(".modal-body, .pack-product-grid, .info-modal__content") : null;
+      let scroller = null;
+      if (under && under.scrollHeight > under.clientHeight + 1) scroller = under;
+      else if (modal.scrollHeight > modal.clientHeight + 1) scroller = modal;
+      if (!scroller) return;
+      const step = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * scroller.clientHeight : e.deltaY;
+      scroller.scrollTop += step;
+    },
+    { passive: false, capture: true }
+  );
+
   /* ══════════════════════════════════════════════════════════════
      GLOBAL EXPOSE (for HTML onclick attributes)
   ══════════════════════════════════════════════════════════════ */
   window.closeCart = closeCart;
   window.closeModal = closeModal;
   window.closePackModal = closePackModal;
+  window.closeInfoModal = closeInfoModal;
   window.goToCheckout = goToCheckout;
   window.openModal = openModal;
+  // Hook de pruebas (QA/E2E): no altera la lógica de la app.
+  window.__FO_TEST = {
+    addToCart: addToCart,
+    clearCart: function () { cart = []; saveCart(); updateCartUI(); },
+  };
 
   /* ══════════════════════════════════════════════════════════════
      EVENT LISTENERS — UI
@@ -2045,7 +2286,6 @@
 
     function syncUI() {
       const dark = document.documentElement.getAttribute("data-theme") === "dark";
-      if (icon) icon.textContent = dark ? "☀️" : "🌙";
       btn.setAttribute("aria-pressed", String(dark));
       // El tooltip indica la acción que realizará el botón
       btn.setAttribute("data-tooltip", dark ? "Modo claro" : "Modo oscuro");
@@ -2121,7 +2361,7 @@
       chNombre: (v) => v.trim().length >= 3,
       chApellido: (v) => v.trim().length >= 3,
       chTelefono: (v) => /^9\d{8}$/.test(v.trim()),
-      chDNI: (v) => /^\d{8}$/.test(v.trim()),
+      chDNI: (v) => !v.trim() || /^\d{8}$/.test(v.trim()) || /^[A-Za-z0-9]{9,12}$/.test(v.trim()),
       chDireccion: (v) => v.trim().length >= 3,
       chDistrito: (v) => v.trim().length >= 3,
     };
@@ -2188,6 +2428,7 @@
       closeModal();
       closeCart();
       closePackModal();
+      closeFiltersPanel();
     }
   });
 
@@ -2219,10 +2460,10 @@
   }
   /* Cuestionario interactivo de 4 pasos */
   const QUIZ_STEPS = [
-    { key: "genero", q: "¿Para quién es?", opts: [{ v: "masculino", l: "👨 Hombre" }, { v: "femenino", l: "👩 Mujer" }, { v: "unisex", l: "🧑 Unisex" }] },
-    { key: "ocasion", q: "¿Para qué ocasión?", opts: [{ v: "diario", l: "☀️ Uso diario" }, { v: "trabajo", l: "💼 Trabajo / Oficina" }, { v: "noche", l: "🌙 Noche / Fiestas" }, { v: "cita", l: "❤️ Citas románticas" }] },
-    { key: "tipo", q: "¿Qué tipo de fragancia prefieres?", opts: [{ v: "fresco", l: "🍋 Fresca / Cítrica" }, { v: "dulce", l: "🍭 Dulce / Golosa" }, { v: "amaderado", l: "🌲 Amaderada / Especiada" }, { v: "floral", l: "🌸 Floral" }] },
-    { key: "intensidad", q: "¿Qué intensidad buscas?", opts: [{ v: "ligera", l: "🌤️ Ligera / Discreta" }, { v: "moderada", l: "⚡ Moderada / Versátil" }, { v: "intensa", l: "🔥 Intensa / Duradera" }] },
+    { key: "genero", q: "¿Para quién es?", opts: [{ v: "masculino", l: "Hombre" }, { v: "femenino", l: "Mujer" }, { v: "unisex", l: "Unisex" }] },
+    { key: "ocasion", q: "¿Para qué ocasión?", opts: [{ v: "diario", l: "Uso diario" }, { v: "trabajo", l: "Trabajo / Oficina" }, { v: "noche", l: "Noche / Fiestas" }, { v: "cita", l: "Citas románticas" }] },
+    { key: "tipo", q: "¿Qué tipo de fragancia prefieres?", opts: [{ v: "fresco", l: "Fresca / Cítrica" }, { v: "dulce", l: "Dulce / Golosa" }, { v: "amaderado", l: "Amaderada / Especiada" }, { v: "floral", l: "Floral" }] },
+    { key: "intensidad", q: "¿Qué intensidad buscas?", opts: [{ v: "ligera", l: "Ligera / Discreta" }, { v: "moderada", l: "Moderada / Versátil" }, { v: "intensa", l: "Intensa / Duradera" }] },
   ];
   const OCA_FAM = { diario: ["fresco", "floral"], trabajo: ["fresco", "amaderado"], noche: ["amaderado", "dulce"], cita: ["dulce", "floral", "amaderado"] };
   const INT_FAM = { ligera: ["fresco", "floral"], moderada: ["fresco", "floral", "dulce", "amaderado"], intensa: ["amaderado", "dulce"] };
@@ -2286,7 +2527,7 @@
     if (pool.length < 6) pool = products.filter((p) => !p.tester && Object.keys(p.decantSizes || {}).length);
     const ranked = shuffle(pool).map((p) => ({ p, s: scoreProduct(p, a) })).sort((x, y) => y.s - x.s);
     const items = ranked.slice(0, 6).map((r) => r.p);
-    if (stepEl) stepEl.innerHTML = `<h3 class="quiz-q quiz-result-title">✨ Tus fragancias ideales</h3>`;
+    if (stepEl) stepEl.innerHTML = `<h3 class="quiz-q quiz-result-title">Tus fragancias ideales</h3>`;
     grid.classList.remove("reco-fade-in"); void grid.offsetWidth;
     grid.innerHTML = items.map((p, i) => {
       const sizes = Object.values(p.decantSizes || {});
@@ -2362,7 +2603,7 @@
     const count = getCartCount();
     t.className = "toast toast-info toast-cart";
     t.innerHTML =
-      `<span class="toast-emoji" aria-hidden="true">🛒</span>` +
+      `<span class="toast-emoji" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8.5h13l1.2 12a1.8 1.8 0 0 1-1.8 2H6.1a1.8 1.8 0 0 1-1.8-2l1.2-12z"/><path d="M8.5 10.5V7a3.5 3.5 0 0 1 7 0v3.5"/></svg></span>` +
       `<span class="toast-msg">Tienes ${count} producto${count > 1 ? "s" : ""} en tu carrito. ¿Finalizar tu pedido?</span>` +
       `<button class="toast-action" type="button">Ir al carrito</button>`;
     void t.offsetWidth;
@@ -2415,6 +2656,177 @@
     });
   }
 
+  /* Marquee de promociones: cinta deslizante continua bajo el topbar.
+     Contenido duplicado para un loop perfecto. Con prefers-reduced-motion
+     se muestra estático (una sola pasada, sin animación). */
+  function renderMarquee() {
+    const track = $("marqueeTrack");
+    const benefits = Array.isArray(FO.TOPBAR_BENEFITS) ? FO.TOPBAR_BENEFITS : [];
+    if (!track || !benefits.length) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const item = (b) => `<span class="marquee-item">${b}</span>`;
+    const sep = `<span class="marquee-sep" aria-hidden="true">·</span>`;
+    const once = benefits.map(item).join(sep);
+    track.innerHTML = reduce.matches
+      ? once
+      : once + sep + once + sep;
+    if (!reduce.matches) {
+      const duration = Math.max(22, benefits.length * 4);
+      track.style.animationDuration = duration + "s";
+    }
+  }
+
+  /* Rotador de la topbar: un beneficio a la vez (fade cada 4s).
+     Con prefers-reduced-motion solo se muestra el primero, sin animación. */
+  function setupTopbarRotator() {
+    const rot = $("topbarRotator");
+    const txt = $("topbarRotatorText");
+    const benefits = Array.isArray(FO.TOPBAR_BENEFITS) ? FO.TOPBAR_BENEFITS : [];
+    if (!rot || !txt || benefits.length < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let i = 0;
+    setInterval(() => {
+      i = (i + 1) % benefits.length;
+      txt.textContent = benefits[i];
+      rot.classList.remove("topbar-rotator--fade");
+      void rot.offsetWidth;
+      rot.classList.add("topbar-rotator--fade");
+    }, 4000);
+  }
+
+  /* Reseñas desde config.js (Social Proof) */
+  function renderReviews() {
+    const track = $("reviewsTrack");
+    const reviews = Array.isArray(FO.REVIEWS) ? FO.REVIEWS : [];
+    if (!track || !reviews.length) return;
+    track.innerHTML = reviews
+      .map((r) => {
+        const n = Math.max(0, Math.min(5, parseInt(r.stars, 10) || 5));
+        const initials = (r.name || "FO").replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g, "").trim().split(/\s+/).slice(0, 2).map((w) => w[0] || "").join("").toUpperCase();
+        return `<article class="review-card">
+          <div class="review-stars" aria-label="${n} de 5 estrellas">${"★".repeat(n)}${"☆".repeat(5 - n)}</div>
+          <p class="review-text">“${r.text}”</p>
+          <div class="review-author">
+            <span class="review-avatar" aria-hidden="true">${initials || "FO"}</span>
+            <span class="review-meta"><strong>${r.name}</strong>${r.product ? `<span class="review-bought">${r.product}</span>` : ""}</span>
+          </div>
+        </article>`;
+      })
+      .join("");
+  }
+
+  /* Insignias de confianza (carrito y checkout) desde config.js */
+  function renderTrustBadges() {
+    const badges = Array.isArray(FO.TRUST_BADGES) ? FO.TRUST_BADGES : [];
+    if (!badges.length) return;
+    const html = badges
+      .map((b) => `<span class="trust-badge"><i class="fa-solid ${b.icon || "fa-shield-halved"}" aria-hidden="true"></i>${b.label}</span>`)
+      .join("");
+    const checkout = $("trustBadgesCheckout");
+    if (checkout) checkout.innerHTML = html;
+    const cart = $("trustBadgesCart");
+    if (cart) cart.innerHTML = html;
+  }
+
+  /* Contenido de los modales informativos del footer */
+  const INFO_PAGES = {
+    faq: {
+      title: "Preguntas Frecuentes",
+      html: `<h3>¿Cómo se extraen los decants?</h3>
+        <p>Utilizamos <strong>extracción con jeringa</strong> desde el frasco original (no spray), lo que garantiza la pureza del perfume y evita la evaporación.</p>
+        <h3>¿Cuánto dura un decant?</h3>
+        <p>Depende del uso: un decant de 5 ml rinde aproximadamente 50-60 aplicaciones. Guarda tu vial en un lugar fresco y oscuro para conservarlo mejor.</p>
+        <h3>¿Qué hago si mi perfume llega dañado?</h3>
+        <p>Escríbenos por WhatsApp con fotos del paquete y lo reponemos sin costo. Queremos que tu experiencia sea impecable.</p>
+        <h3>¿Puedo cambiar mi pedido después de confirmarlo?</h3>
+        <p>Puedes modificarlo mientras no haya sido despachado (generalmente dentro de las primeras horas de confirmado).</p>`,
+    },
+    envios: {
+      title: "Envíos y Despacho",
+      html: `<h3>¿A dónde envían?</h3>
+        <p>Realizamos <strong>envíos a todo el Perú</strong> con despacho en 1-2 días hábiles (Lima Metropolitana) y 2-4 días hábiles para provincia, según la cobertura del courier.</p>
+        <h3>¿Cuánto cuesta el envío?</h3>
+        <p>El costo se coordina por WhatsApp según tu distrito. <strong>Los pedidos desde S/ 199 tienen envío gratis.</strong></p>
+        <h3>¿Cómo se empaquetan los pedidos?</h3>
+        <p>Cada vial va sellado y protegido en empaque seguro, con tracking disponible para envíos a provincia.</p>`,
+    },
+    devoluciones: {
+      title: "Devoluciones y Reembolsos",
+      html: `<h3>Política de devolución</h3>
+        <p>Si tu pedido llega dañado, incorrecto o con faltantes, contáctanos por WhatsApp dentro de las <strong>48 horas</strong> de recibido y lo resolveremos de inmediato: reemplazo o reembolso.</p>
+        <h3>¿Puedo devolver un perfume abierto?</h3>
+        <p>Por razones de higiene, los productos abiertos o usados no tienen cambio. Asegúrate de elegir bien: ¡para eso existen los decants de 2 ml!</p>
+        <h3>¿Cuándo recibo mi reembolso?</h3>
+        <p>Los reembolsos se procesan en un máximo de 7 días hábiles por el mismo medio de pago.</p>`,
+    },
+    terminos: {
+      title: "Términos y Condiciones",
+      html: `<h3>Uso del sitio</h3>
+        <p>Al realizar un pedido confirmas que la información proporcionada es correcta y que aceptas la coordinación del pago y envío por WhatsApp.</p>
+        <h3>Precios y disponibilidad</h3>
+        <p>Los precios están en soles (S/) e incluyen IGV. Las promociones de descuento se aplican automáticamente en el carrito según las reglas publicadas.</p>
+        <h3>Propiedad intelectual</h3>
+        <p>Las marcas de perfumes mencionadas pertenecen a sus respectivos dueños. Vendemos decants (muestras) de fragancias originales.</p>`,
+    },
+    nosotros: {
+      title: "Nosotros",
+      html: `<p><strong>FRAGRANCE OBSESSION</strong> nació con una idea simple: que puedas disfrutar de las mejores fragancias del mundo sin tener que comprar un frasco completo.</p>
+        <p>Seleccionamos cuidadosamente perfumes árabes, de diseñador y nicho, y los ofrecemos en decants premium con <strong>extracción con jeringa</strong> desde el frasco original.</p>
+        <p>Más de 1,000 clientes en todo el Perú ya confían en nosotros. Somos una tienda peruana, con despacho en Lima Metropolitana y envíos a todo el país.</p>`,
+    },
+  };
+
+  /* Abre un modal informativo del footer (faq, envios, devoluciones, terminos, nosotros) */
+  function openInfoModal(key) {
+    const page = INFO_PAGES[key] || INFO_PAGES.faq;
+    const overlay = $("infoModalOverlay");
+    if (!overlay) return;
+    const title = $("infoModalTitle");
+    const body = $("infoModalBody");
+    if (title) title.textContent = page.title;
+    if (body) body.innerHTML = page.html;
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+    document.body.classList.add("modal-open");
+    document.documentElement.classList.add("modal-open");
+    if (window.__modalScrollY === undefined) window.__modalScrollY = window.scrollY;
+    const modal = $("infoModal");
+    if (modal) modal.focus();
+  }
+  function closeInfoModal() {
+    const overlay = $("infoModalOverlay");
+    if (!overlay) return;
+    overlay.classList.remove("active");
+    document.body.style.overflow = "";
+    document.body.classList.remove("modal-open");
+    document.documentElement.classList.remove("modal-open");
+    if (window.__modalScrollY !== undefined) {
+      window.scrollTo(0, window.__modalScrollY);
+      window.__modalScrollY = undefined;
+    }
+  }
+
+  /* Links del footer (modales informativos) */
+  function setupFooterInfoLinks() {
+    const wrap = $("footerInfoLinks");
+    const links = FO.FOOTER_LINKS || {};
+    if (!wrap) return;
+    wrap.innerHTML = Object.keys(links)
+      .map((label) => `<a role="button" tabindex="0" data-info-modal="${links[label]}">${label}</a>`)
+      .join("");
+    document.addEventListener("click", (e) => {
+      const trigger = e.target.closest("[data-info-modal]");
+      if (trigger) openInfoModal(trigger.dataset.infoModal);
+    });
+    const overlay = $("infoModalOverlay");
+    if (overlay) {
+      overlay.addEventListener("click", (e) => { if (e.target === overlay) closeInfoModal(); });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && overlay.classList.contains("active")) closeInfoModal();
+      });
+    }
+  }
+
   function setupWhatsAppFab() {
     const fab = $("waFab");
     if (!fab) return;
@@ -2462,7 +2874,7 @@
     const data = {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      name: "Fragancias Destacadas · Fragance Obsession",
+      name: "Fragancias Destacadas · FRAGRANCE OBSESSION",
       itemListElement: featured.map((p, i) => ({
         "@type": "ListItem",
         position: i + 1,
@@ -2481,7 +2893,9 @@
     if (!("serviceWorker" in navigator)) return;
     if (location.protocol !== "https:" && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") return;
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch((e) => { if (IS_DEV) console.warn("SW:", e); });
+      // Ruta y alcance relativos: funcionan tanto en subcarpeta (GitHub Pages)
+      // como en localhost.
+      navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch((e) => { if (IS_DEV) console.warn("SW:", e); });
     });
   }
 
@@ -2500,17 +2914,57 @@
 
     const TIKTOK_SCRIPT_SRC = "https://www.tiktok.com/embed.js";
     let scriptEl = document.querySelector(`script[src="${TIKTOK_SCRIPT_SRC}"]`);
+    let scriptLoaded = false;
+    let scriptFailed = false;
 
-    function ensureTikTokScript(forceReload) {
-      if (forceReload && scriptEl) {
-        scriptEl.remove();
-        scriptEl = null;
-      }
+    function ensureTikTokScript() {
       if (scriptEl) return;
       scriptEl = document.createElement("script");
       scriptEl.src = TIKTOK_SCRIPT_SRC;
       scriptEl.async = true;
+      scriptEl.onload = () => { scriptLoaded = true; };
+      scriptEl.onerror = () => {
+        scriptFailed = true;
+        scriptLoaded = false;
+        cards.forEach((c) => {
+          c.classList.remove("tiktok-card--busy");
+          if (c.dataset.activated && !c.querySelector("iframe")) showTikTokFallback(c);
+        });
+      };
       document.body.appendChild(scriptEl);
+    }
+
+    // Re-procesa los blockquotes SIN recargar embed.js: la API oficial
+    // (tiktokEmbed.lib.render) re-escanea el DOM sin peticiones extra
+    // del script; recargarlo duplicaba el escaneo y la carga de requests.
+    function reRenderTikTok() {
+      if (window.tiktokEmbed && window.tiktokEmbed.lib && typeof window.tiktokEmbed.lib.render === "function") {
+        try {
+          const r = window.tiktokEmbed.lib.render();
+          if (r && typeof r.then === "function") r.catch(() => {});
+          return true;
+        } catch (e) { /* noop */ }
+      }
+      return false;
+    }
+
+    // FACADE LOADING: la tarjeta NO carga nada hasta que el usuario hace
+    // clic. Cero requests a TikTok al entrar a la sección; cada video se
+    // carga aislado (1 embed por clic) -> imposible la ráfaga que dispara
+    // el "overload protect triggered".
+    function buildFacade(card) {
+      if (card.querySelector(".tiktok-facade")) return;
+      const facade = document.createElement("button");
+      facade.type = "button";
+      facade.className = "tiktok-facade";
+      facade.setAttribute("aria-label", "Reproducir video de TikTok");
+      facade.innerHTML =
+        '<span class="tiktok-facade__play" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"/></svg>' +
+        '</span><span class="tiktok-facade__hint">Tocar para ver</span>';
+      card.appendChild(facade);
+      card.classList.add("tiktok-card--facade");
+      card.addEventListener("click", () => activateCard(card));
     }
 
     function showTikTokFallback(card) {
@@ -2530,6 +2984,21 @@
       if (card.dataset.activated) return;
       card.dataset.activated = "1";
 
+      const facade = card.querySelector(".tiktok-facade");
+      if (facade) facade.remove();
+      card.classList.remove("tiktok-card--facade");
+
+      // Un solo video activo a la vez: mientras este carga, las demás
+      // tarjetas quedan deshabilitadas (evita ráfagas de iframes).
+      const releaseOthers = () => {
+        cards.forEach((c) => c.classList.remove("tiktok-card--busy"));
+      };
+      cards.forEach((c) => {
+        if (c !== card && !c.dataset.activated && !c.classList.contains("tiktok-card--fallback")) {
+          c.classList.add("tiktok-card--busy");
+        }
+      });
+
       const videoId = card.dataset.videoId;
       const videoUrl = card.dataset.videoUrl;
       const bq = document.createElement("blockquote");
@@ -2539,24 +3008,25 @@
       bq.appendChild(document.createElement("section"));
       card.appendChild(bq);
 
-      ensureTikTokScript(false);
+      if (scriptEl && scriptLoaded) {
+        // El script ya se cargó con otra tarjeta: render() del nuevo blockquote.
+        if (!reRenderTikTok()) ensureTikTokScript();
+      } else {
+        ensureTikTokScript(); // el script re-escanea el DOM completo al cargar
+      }
 
-      // Si a los 3s el script ya estaba cargado de antes pero no
-      // procesó este blockquote nuevo, forzamos una recarga del script
-      // (TikTok re-escanea el documento completo al cargar).
-      const retryTimer = setTimeout(() => {
-        if (!card.querySelector("iframe")) ensureTikTokScript(true);
-      }, 3000);
-
-      // Si en 8s definitivamente no hay iframe renderizado, fallback.
+      // Si en 10s no hay iframe renderizado, fallback elegante.
       const fallbackTimer = setTimeout(() => {
-        if (!card.querySelector("iframe")) showTikTokFallback(card);
-      }, 8000);
+        if (!card.querySelector("iframe")) {
+          releaseOthers();
+          showTikTokFallback(card);
+        }
+      }, 10000);
 
       const mo = new MutationObserver(() => {
         if (card.querySelector("iframe")) {
           card.classList.add("tiktok-loaded");
-          clearTimeout(retryTimer);
+          releaseOthers();
           clearTimeout(fallbackTimer);
           mo.disconnect();
         }
@@ -2564,20 +3034,9 @@
       mo.observe(card, { childList: true, subtree: true });
     }
 
-    // Activar solo cuando la card entra al viewport
-    if ("IntersectionObserver" in window) {
-      const obs = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            activateCard(entry.target);
-            obs.unobserve(entry.target);
-          }
-        });
-      }, { rootMargin: "200px" });
-      cards.forEach((c) => obs.observe(c));
-    } else {
-      cards.forEach(activateCard);
-    }
+    // Facade en cada tarjeta; sin IntersectionObserver ni auto-carga:
+    // el usuario decide cuándo reproducir (un video a la vez).
+    cards.forEach(buildFacade);
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -2594,7 +3053,12 @@
     setupThemeToggle();
     setupRipple();
     setupRecommender();
+    renderReviews();
     setupReviewsCarousel();
+    renderTrustBadges();
+    renderMarquee();
+    setupTopbarRotator();
+    setupFooterInfoLinks();
     setupConnectivityToasts();
     applyConfigLinks();
     setupWhatsAppFab();

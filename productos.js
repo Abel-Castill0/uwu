@@ -1,5 +1,5 @@
 /*
- * Fragance Obsession — Catálogo oficial (PDF real del cliente).
+ * Fragrance Obsession — Catálogo oficial (PDF real del cliente).
  * Generado con node gen-productos.js — NO editar a mano.
  * 135 fragancias únicas: nicho (112) + diseñador (23).
  * Precios en soles (S/): decants 1/2/3/5/10/20/30 ml según fragancia.
@@ -201,7 +201,13 @@
     12: { main: "img/perfumes/GOLD JUICE.png", sizes: { "5": "img/perfumes/GOLD JUICE decant premium 5ml.png", "10": "img/perfumes/GOLD JUICE decant premium 10 ml.png" } },
     13: { main: "img/perfumes/INDECENT CHERRY.png", sizes: { "5": "img/perfumes/INDECENT CHERRY decant premium 5ml.png", "10": "img/perfumes/INDECENT CHERRY decant premium 10 ml.png" } },
     14: { main: "img/perfumes/BLACK GUAVA.png", sizes: { "5": "img/perfumes/BLACK GUAVA decant premium 5ml.png", "10": "img/perfumes/BLACK GUAVA decant premium 10 ml.png" } },
-    15: { main: "", sizes: { "5": "img/perfumes/OUD MARACUJA decant premium 5ml.png", "10": "img/perfumes/OUD MARACUJA decant premium 10 ml.png" } }
+    15: { main: "", sizes: { "5": "img/perfumes/OUD MARACUJA decant premium 5ml.png", "10": "img/perfumes/OUD MARACUJA decant premium 10 ml.png" } },
+    29: { main: "img/perfumes/TORINO 24.png", sizes: { "5": "img/perfumes/TORINO 24 decant premium 5ml.png", "10": "img/perfumes/TORINO 24 decant premium 10 ml.png", "20": "img/perfumes/TORINO 24 20ml.png" } },
+    30: { main: "img/perfumes/coro.png", sizes: { "5": "img/perfumes/coro  decant premium 5ml.png", "10": "img/perfumes/coro decant premium 10 ml.png", "30": "img/perfumes/coro 20ml.png" } },
+    31: { main: "img/perfumes/torino 21.png", sizes: { "5": "img/perfumes/torino 21 decant premium 5ml.png", "10": "img/perfumes/torino 21 decant premium 10 ml.png", "30": "img/perfumes/torino 21 20ml.png" } },
+    32: { main: "img/perfumes/AVANGUARDIA.png", sizes: { "5": "img/perfumes/AVANGUARDIA decant premium 5ml.png", "10": "img/perfumes/AVANGUARDIA decant premium 10 ml.png", "30": "img/perfumes/AVANGUARDIA 30ml.png" } },
+    33: { main: "img/perfumes/naxos.png", sizes: { "5": "img/perfumes/naxos decant premium 5ml.png", "10": "img/perfumes/naxos decant premium 10 ml.png", "30": "img/perfumes/naxos 20ml.png" } },
+    67: { main: "img/perfumes/dolce melodia.png", sizes: { "5": "img/perfumes/dolce melodia decant premium 5ml.png", "10": "img/perfumes/dolce melodia decant premium 10 ml.png", "30": "img/perfumes/dolce melodia 20ml.png" } }
   };
   Object.entries(w.FO_PRODUCT_IMAGES).forEach(([id, imgs]) => {
     const p = w.FO_PRODUCTS.find((x) => x.id === Number(id));

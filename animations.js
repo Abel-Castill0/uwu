@@ -1,4 +1,4 @@
-﻿/* animations.js — Fragance Obsession v2
+/* animations.js — Fragrance Obsession v2
    Expone window.FraganceAnimations = { refresh, destroy }
    para que script.js llame refresh() después de cada render.
    Vanilla JS, sin build step, sin dependencias externas propias.
@@ -7,7 +7,6 @@
   "use strict";
 
   /* ─── Estado interno ──────────────────────────────────────── */
-  var _lenis    = null;
   var _observers = [];   /* MutationObservers activos */
   var _gsapCtx  = null;  /* contexto GSAP para cleanup limpio */
 
@@ -24,43 +23,6 @@
   }
 
   function hasGsap() { return typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined"; }
-  function hasLenis() { return typeof Lenis !== "undefined"; }
-
-  /* ══════════════════════════════════════════════════════════
-     1. LENIS — Smooth scroll con integración GSAP ticker
-  ══════════════════════════════════════════════════════════ */
-  function initLenis() {
-    if (!hasLenis()) return;
-
-    _lenis = new Lenis({
-      duration: 1.1,
-      easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
-      smoothWheel: true,
-      wheelMultiplier: 0.85,
-      touchMultiplier: 1.3,
-    });
-
-    window.__fo_lenis = _lenis;
-    document.documentElement.style.scrollBehavior = "auto";
-
-    /* Parchamos scrollTo para que navigateTo() use Lenis */
-    var _origScrollTo = window.scrollTo.bind(window);
-    window.scrollTo = function (xOrOpts, y) {
-      if (xOrOpts && typeof xOrOpts === "object" && "top" in xOrOpts) {
-        _lenis.scrollTo(xOrOpts.top || 0, { duration: 0.8 });
-      } else {
-        _origScrollTo(xOrOpts, y);
-      }
-    };
-
-    if (hasGsap()) {
-      _lenis.on("scroll", ScrollTrigger.update);
-      gsap.ticker.add(function (t) { _lenis.raf(t * 1000); });
-      gsap.ticker.lagSmoothing(0);
-    } else {
-      (function raf(t) { _lenis.raf(t); requestAnimationFrame(raf); })(0);
-    }
-  }
 
   /* ══════════════════════════════════════════════════════════
      2. SCROLL REVEALS — Secciones estáticas
@@ -192,8 +154,13 @@
     if (!hasGsap() || prefersReduced || !container) return;
     var items = container.querySelectorAll(selector);
     if (!items.length) return;
+    /* Rendimiento (P19.6): animar como máximo las primeras 24 tarjetas; el
+       resto aparece al instante. Con 135 cards se creaban ~135 tweens en cada
+       render (churn de ~1.3 MB/navegación); con el tope se conserva el
+       stagger visual con ~1/6 del costo. */
+    var toAnimate = Array.prototype.slice.call(items, 0, 24);
 
-    gsap.fromTo(items,
+    gsap.fromTo(toAnimate,
       { y: 28, opacity: 0, scale: 0.97 },
       { y: 0, opacity: 1, scale: 1, duration: 0.48, stagger: 0.06, ease: EASE_OUT, clearProps: "transform,opacity" }
     );
@@ -285,7 +252,7 @@
   /* ══════════════════════════════════════════════════════════
      8. PUBLIC API — window.FraganceAnimations
      refresh()  → llamar después de cada renderizado dinámico
-     destroy()  → limpiar todo (Lenis, observers, ScrollTrigger)
+     destroy()  → limpiar todo (observers, ScrollTrigger)
   ══════════════════════════════════════════════════════════ */
   function refresh() {
     /* Refresca ScrollTrigger cuando el DOM cambia */
@@ -295,7 +262,6 @@
   }
 
   function destroy() {
-    if (_lenis) { _lenis.destroy(); _lenis = null; }
     _observers.forEach(function (obs) { if (obs) obs.disconnect(); });
     _observers = [];
     if (hasGsap()) { ScrollTrigger.getAll().forEach(function (st) { st.kill(); }); }
@@ -305,7 +271,6 @@
 
   /* ── Boot ─────────────────────────────────────────────── */
   ready(function () {
-    initLenis();
     if (hasGsap()) gsap.registerPlugin(ScrollTrigger);
     initScrollReveals();
     initCategoryShowcaseAnimations();
