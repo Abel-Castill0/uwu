@@ -3697,6 +3697,7 @@ backdrop-filter: blur(6px);
     max-width: 55px; overflow: hidden; text-overflow: ellipsis;
     white-space: nowrap; color: var(--text-muted);
   }
+.cart-item img,.cart-pack-thumb img{width:100%;height:100%;object-fit:cover;display:block;-webkit-tap-highlight-color:transparent}.cart-pack-item img{width:100%;height:auto;object-fit:contain;margin:0 auto;display:block}.cart-item img[onerror],.cart-pack-thumb img[onerror],.cart-pack-item img[onerror]{background:var(--surface);color:var(--text-muted);font-size:.7rem}
 
   /* ============================================================
     PULIDO UX — Fragrance Obsession (ciclo 2026)
@@ -4008,7 +4009,7 @@ backdrop-filter: blur(6px);
     color: #fff;
   }
   .wa-fab:hover {
-    background: linear-gradient(135deg, #2ee05d, #1fb954);
+    background: linear-gradient(135deg, var(--gold), var(--gold-deep));
     color: #fff;
   }
   .ig-fab:hover {
@@ -4030,7 +4031,10 @@ backdrop-filter: blur(6px);
   /* Volver arriba: sube para no solaparse con la píldora de FABs */
   .back-to-top { bottom: calc(20px + 130px + 14px); }
 
-  /* ---------- Footer: métodos de pago (logos oficiales) ---------- */
+  /* ---------- Ocultar FABs cuando el carrito está abierto ---------- */
+body:has(#cartSidebar.active) #waFab { display: none !important; }
+body:has(#cartSidebar.active) .back-to-top { display: none; }
+body:has(#cartSidebar.active) .sticky-cart { display: none; }
   .footer-payments {
     display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .5rem;
     font-size: .8rem; color: rgba(255,255,255,.75); letter-spacing: .03em;
@@ -4808,6 +4812,14 @@ background: #E8DCCC;
   [data-theme="dark"] .cart-item .cart-pack-thumb,
   [data-theme="dark"] .cart-item .cart-gift-thumb {
     background: radial-gradient(circle at 50% 35%, #F6EDE0, #C99B5F);
+  }
+  [data-theme="dark"] .cart-item img,
+  [data-theme="dark"] .cart-pack-thumb img,
+  [data-theme="dark"] .cart-gift-thumb img {
+    opacity: 1 !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+    mix-blend-mode: normal !important;
   }
   [data-theme="dark"] .promo-media:has(.promo-img) .promo-media-fallback {
     background: radial-gradient(circle at 50% 38%, #F6EDE0 0%, #C99B5F 62%, #A67C3D 100%);

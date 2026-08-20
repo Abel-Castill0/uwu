@@ -59,19 +59,22 @@
     const baseLabel = /^\d+$/.test(base) ? base + "ml" : base;
     return isPremiumSize(size) ? baseLabel + " decant premium" : baseLabel;
   }
-  function getPremiumUplift(baseSize) {
-    const u = FO.PREMIUM_UPLIFT || {};
-    const v = u[baseSize] !== undefined ? u[baseSize] : u[baseSize + "ml"];
-    return typeof v === "number" ? v : 0;
+  function getPremiumUplift(basePrice) {
+    if (typeof basePrice !== "number") return 0;
+    const lastDigit = basePrice % 10;
+    if (lastDigit === 5) return 4;
+    if (lastDigit === 9) return 6;
+    return 0;
   }
   function getDisplayDecantSizes(product) {
     const sizes = Object.assign({}, product.decantSizes || {});
     if (FO.PREMIUM_DECANTS === false) return sizes;
     let premiumAdded = false;
     Object.keys(sizes).forEach((s) => {
-      const up = getPremiumUplift(s);
+      const basePrice = sizes[s];
+      const up = getPremiumUplift(basePrice);
       if (up > 0 && !sizes[s + "_premium"]) {
-        sizes[s + "_premium"] = sizes[s] + up;
+        sizes[s + "_premium"] = basePrice + up;
         premiumAdded = true;
       }
     });
@@ -1182,6 +1185,7 @@
      NAVIGATION
   ══════════════════════════════════════════════════════════════ */
   function navigateTo(page) {
+    if (!["home", "catalogo", "promos", "checkout", "cart", "modal", "packmodal", "faq", "envios", "devoluciones", "terminos", "nosotros"].includes(page)) return;
     currentPage = page;
     document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
     const target = $("page-" + page);
@@ -1412,13 +1416,41 @@
     const categoryChosen = Boolean(activePromoFilter);
     if (toolbarRow) toolbarRow.style.display = categoryChosen ? "flex" : "none";
 
+    let filtered;
     if (!categoryChosen) {
-      grid.innerHTML = "";
-      if (countEl) countEl.textContent = "";
-      return;
-    }
+      filtered = promos;
+      if (countEl) countEl.textContent = `${promos.length} packs`;
+    } else {
+      filtered = promos.filter((p) => p.category === activePromoFilter);
+      if (activePromoFilter === "arabe" && activePromoGender) {
+        filtered = filtered.filter((p) => {
+          if (!p.allowedGenders) return true;
+          return p.allowedGenders.includes(activePromoGender);
+        });
+      }
 
-    let filtered = promos.filter((p) => p.category === activePromoFilter);
+      if (activePromoSize) {
+        filtered = filtered.filter((p) =>
+          Array.isArray(p.options) && p.options.some((o) => o.size === activePromoSize),
+        );
+      }
+
+      if (activePromoSort === "price-asc") {
+        filtered = [...filtered].sort(
+          (a, b) => Math.min(...(a.options || []).map((o) => o.price)) - Math.min(...(b.options || []).map((o) => o.price)),
+        );
+      } else if (activePromoSort === "price-desc") {
+        filtered = [...filtered].sort(
+          (a, b) => Math.min(...(b.options || []).map((o) => o.price)) - Math.min(...(a.options || []).map((o) => o.price)),
+        );
+      } else if (activePromoSort === "qty-desc") {
+        filtered = [...filtered].sort((a, b) => (b.quantity || 0) - (a.quantity || 0));
+      }
+
+      if (countEl) {
+        countEl.textContent = `Mostrando ${filtered.length} de ${promos.length} packs`;
+      }
+    }
 
     if (activePromoFilter === "arabe" && activePromoGender) {
       filtered = filtered.filter((p) => {
