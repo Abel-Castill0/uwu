@@ -339,7 +339,7 @@ step(function () {
     var items = track ? track.querySelectorAll(".marquee-item") : [];
     ok(!!track, "marqueeTrackExists", "sin #marqueeTrack");
     ok(items.length >= 7 && items.length === (reduce ? cfg : cfg * 2), "marqueeItems", "items=" + items.length + " cfg=" + cfg);
-    var contact = document.querySelector(".topbar-item--phone a");
+    var contact = document.querySelector(".topbar-social a[data-wa-link]");
     ok(!!contact && contact.getAttribute("href").indexOf("wa.me/51994467586") !== -1, "topbarContact", "sin icono WhatsApp enlazado");
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var anim = track ? getComputedStyle(track).animationName : "";

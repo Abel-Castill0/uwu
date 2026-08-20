@@ -75,19 +75,15 @@
   function getDisplayDecantSizes(product) {
     const sizes = Object.assign({}, product.decantSizes || {});
     if (FO.PREMIUM_DECANTS === false) return sizes;
-    let premiumAdded = false;
-    Object.keys(sizes).forEach((s) => {
-      const basePrice = sizes[s];
-      const up = getPremiumUplift(basePrice);
-      if (up > 0 && !sizes[s + "_premium"]) {
-        sizes[s + "_premium"] = basePrice + up;
-        premiumAdded = true;
-      }
-    });
-    /* Decisión del cliente: se ofrecen AMBAS variantes (ej. 5ml y
-       5ml premium). La base ya no se oculta; los datos base siguen
-       intactos para precios y carrito (getDecantPrice). */
-    void premiumAdded;
+    // Solo 5ml y 10ml pueden tener variante premium; el resto de tamaños
+    // (1, 2, 3, 20, 30...) se mantienen solo en su versión base. getPremiumUplift
+    // sigue usando basePrice % 10 (termina en 5 → +4, en 9 → +6, otro → 0).
+    if (sizes["5"] && !sizes["5_premium"]) {
+      sizes["5_premium"] = sizes["5"] + getPremiumUplift(sizes["5"]);
+    }
+    if (sizes["10"] && !sizes["10_premium"]) {
+      sizes["10_premium"] = sizes["10"] + getPremiumUplift(sizes["10"]);
+    }
     return sizes;
   }
   function getDecantPrice(product, size) {
