@@ -45,7 +45,7 @@ Revisa que `sw.js` esté activo (DevTools → Application → Service Workers) y
 
 ## Notas técnicas
 
-- **Service Worker** (`sw.js`, versión `x=>{n++;return 'fo-v33-ghpages';}`): cachea los assets críticos con rutas relativas y `scope "./"`; al actualizar la página el nuevo SW **toma el control de inmediato** (`skipWaiting` + `clients.claim`) — no hace falta recargar dos veces. Si ves versiones viejas, desregistra el SW en DevTools > Application > Service Workers y recarga con Ctrl+F5. ⚠️ Cada cambio del SW hay que subirlo con **Node** (escribir `sw.js` con `fs.writeFileSync`), nunca con PowerShell, para no alterar el BOM.
+- **Service Worker** (`sw.js`, versión `x=>{n++;return 'fo-v35-ghpages';}`): cachea los assets críticos con rutas relativas y `scope "./"`; al actualizar la página el nuevo SW **toma el control de inmediato** (`skipWaiting` + `clients.claim`) — no hace falta recargar dos veces. Si ves versiones viejas, desregistra el SW en DevTools > Application > Service Workers y recarga con Ctrl+F5. ⚠️ Cada cambio del SW hay que subirlo con **Node** (escribir `sw.js` con `fs.writeFileSync`), nunca con PowerShell, para no alterar el BOM.
 - **Panel admin**: `/admin.html` valida con SHA-256 en el navegador (`crypto.subtle`); no hay contraseña en el cliente ni servidor. Es un candado de disuasión del hosting estático, no autenticación real.
 - **Temas**: claro/oscuro con `data-theme` en `<html>`; se respeta `prefers-reduced-motion` (desactiva marquee, Ken Burns y micro-interacciones).
 - **Filtros**: píldoras de categoría + panel offcanvas en móvil; los resultados se anuncian con `role="status"` y `aria-live`. Los filtros de género están ocultos (todos los perfumes son unisex) — reactivar borrando el bloque `PENDIENTE decisión del cliente` en `styles.css` si el cliente clasifica por género.
@@ -55,7 +55,7 @@ Revisa que `sw.js` esté activo (DevTools → Application → Service Workers) y
 - **"Próximamente"**: la lista de agotados se define en `config.js` → `PROXIMAMENTE` (IDs de `productos.js`). Mecanismo listo: badge "PRÓXIMAMENTE" en la card, botón deshabilitado y aviso en el modal (ver `isComingSoon` en `script.js`). Si no hay stock en `PROXIMAMENTE`, el catálogo se muestra completo.
 - **Animaciones (P19.6)**: GSAP + ScrollTrigger activos y conservados (`animations.js`); **Lenis eliminado** (el scroll suave nativo `html { scroll-behavior: smooth }` lo cubre). El stagger de grids anima como máximo 24 tarjetas (churn de tweens reducido 13×). `window.FraganceAnimations` es la API interna (el typo es intencional). Verificado: suite 100/0, 0 errores de consola.
 - **Paleta marrón premium (P20)**: chocolate profundo + crema + dorado envejecido, coherente con perfumes. `:root` = crema cálido (#FBF7F0/#F2E9DC) + texto marrón (#1A120B) + acentos dorados (`--gold*` = #C99B5F/#A67C3D/#E5C896); `[data-theme="dark"]` = marrón oscuro (#1A120B/#140E08/#261B10) + dorado claro (#D4A96A/#E8CE9C/#B88A4E). Sin grises plata en la UI (sombras y glows con tinte dorado). Verdes solo semánticos (WhatsApp #25D366, success/discount). Contraste AA verificado (muted dark #9A8876 = 5:1).
-- **Catálogo (P19)**: grilla continua sin agrupación por marca (`GROUP_BY_BRAND: false` en config.js) — 5 columnas desktop (≥1200px), 4 (1024-1199), 3 (768-1023), 2 (400-767), 1 (<400). Tarjetas de altura idéntica (`grid-auto-rows: 1fr`), sin huecos.
+- **Catálogo (P19 + P28)**: grilla continua sin agrupación por marca (`GROUP_BY_BRAND: false` en config.js) — 5 columnas desktop (≥1200px), 4 (1024-1199), 3 (768-1023), 2 (400-767), 1 (<400). Tarjetas de altura idéntica (`grid-auto-rows: 1fr`), sin huecos. **Renderizado progresivo (P28)**: carga inicial 24 tarjetas + botón "Mostrar más" (`.btn-load-more`) que añade 24 más sin re-renderizar el grid completo (`insertAdjacentHTML beforeend`). `catalogVisibleCount` se reinicia a 24 al cambiar filtros/búsqueda.
 - **Modal (P19)**: tamaños ordenados menor→mayor (1ml, 2ml, 3ml, 5ml premium, 10ml premium, 20ml…), etiqueta "Tamaño", grid 3-2 columnas, check ✓ en el seleccionado, botón Añadir sticky al fondo (siempre visible).
 - **Topbar y marquee (P20)**: franja marrón fija en ambos temas (gradiente #1A120B→#261B10, texto dorado, bordes rgba(212,169,106)).
 - **Fotos en dark (P20)**: las tarjetas usan un fondo "estudio" dorado claro (`radial-gradient #F6EDE0→#C99B5F`) para que el `multiply` funda el blanco sin apagar el producto; igual en modal, carrito y promos con foto.
@@ -88,7 +88,7 @@ Resultado esperado: `100 PASS | 0 FAIL` (verificado en file:// y HTTP, PASO 1 + 
 | `styles.css` | Tema claro/oscuro y diseño responsive (bloque V17 al final) |
 | `script.js` | Lógica completa (filtros, carrito, navegación, srcset optimizado) |
 | `config.js` | Ajustes: `SITE_URL`, `ADMIN_HASH`, `PROXIMAMENTE`, marquee |
-| `sw.js` | Service Worker (offline + actualización inmediata, `x=>{n++;return 'fo-v33-ghpages';}`) |
+| `sw.js` | Service Worker (offline + actualización inmediata, `x=>{n++;return 'fo-v35-ghpages';}`) |
 | `admin.html` | Panel de administración (login con SHA-256) |
 | `productos.js`, `descuentos.js`, `animations.js` | Datos y animaciones |
 | `gracias.html`, `offline.html`, `404.html` | Páginas de soporte |

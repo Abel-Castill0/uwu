@@ -1795,6 +1795,19 @@
     });
   }
 
+  // Desktop filter pills (cat-pill--cat) click handler
+  const catalogGenderGroup = $("catalogGenderGroup");
+  if (catalogGenderGroup) {
+    catalogGenderGroup.addEventListener("click", function (e) {
+      const btn = e.target.closest("[data-cat]");
+      if (!btn) return;
+      activeFilters.category = btn.dataset.cat;
+      activeFilters.gender = null;
+      updateCatalogFilterButtons();
+      renderCatalog();
+    });
+  }
+
   /* Búsqueda en tiempo real (debounce 200ms) */
   const searchEl = $("catalogSearch");
   if (searchEl) {

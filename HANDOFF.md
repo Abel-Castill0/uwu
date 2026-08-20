@@ -16,7 +16,7 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | WebP | 69 imágenes referenciadas optimizadas (400px q80) en `img/perfumes_optimized/` (68 fotos + placeholder), fotos nuevas incluidas |
 | Capturas | v17 (13 PNG) y v18 (ver abajo) en `%TEMP%\opencode\shots\` |
 | Marca | Unificada a **FRAGRANCE OBSESSION** en metadata/visible; prosa usa "Fragrance Obsession" (detalle abajo) |
-| SW | `fo-v30-ghpages` (bump con Node, sin BOM) |
+| SW | `fo-v35-ghpages` (bump con Node, sin BOM) |
 
 ## Prompt 19 — Noir & Silver + catálogo 5 col + modal UX (cerrado)
 
@@ -100,7 +100,7 @@ Reportado por el cliente: "el scroll no funciona, por lo menos en laptop". Causa
 - **Dropdown "Ordenar" de packs**: rediseño elegante (gradiente dorado sutil, borde dorado, chevron dorado #C99B5F, hover con glow y lift, focus ring dorado).
 - **TikTok "degradado/borroso"**: la causa era el skeleton con `tiktokPulse` (opacity .3↔.5 parpadeando). Se eliminó la animación: skeleton estático y elegante; blindaje extra `.tiktok-card:has(iframe) .tiktok-skeleton` (opacity 0) sin depender de la clase `tiktok-loaded`. El facade (tocar para ver, 1 video a la vez) se mantiene.
 - **Rendimiento packs (lag con 112 items)**: `content-visibility: auto; contain-intrinsic-size: 124px` en `.pack-product-item` — el navegador solo pinta las tarjetas visibles del grid sin cambiar el DOM (la suite sigue viendo 112).
-- **SW**: `fo-v31-ghpages` → `fo-v32-ghpages` (bump con Node).
+- **SW**: `fo-v31-ghpages` → `fo-v32-ghpages` → `fo-v34-ghpages` → `fo-v35-ghpages` (bump con Node).
 - **Validación**: node --check OK, llaves CSS 1545/1545, suite **100 PASS | 0 FAIL** (file:// PASO1+PASO2 + HTTP reduce), smoke OK (featured 10), capturas `p21-*` (topbar-icon, footer-logos light/dark, modal-premium-ambas, packs-sort, catalogo-filtros, checkout-logos) en `%TEMP%\opencode\shots\`.
 - **Nota de proceso**: la suite en `%TEMP%` se corrompió al reescribirla con PowerShell (ANSI); se reparó con Node (16 mojibakes corregidos: tildes, ★, —) — **nunca editar la suite con PowerShell**.
 ## Prompt 18 — Pulido visual definitivo (cerrado)
@@ -115,6 +115,15 @@ Reportado por el cliente: "el scroll no funciona, por lo menos en laptop". Causa
 - **FABs**: píldora glassmorphism (radius 40px, blur 12px), iconos SVG plata, hover verde WhatsApp / oro Instagram; `back-to-top` en `calc(20px + 130px + 14px)`.
 - **Verificación**: suite 6/6 corridas = 99 PASS | 0 FAIL; smoke 14/14; checks CDP de estilos (tema, rotador, grid, badges, pill, scrollbar, iconos, blend, back-to-top) 13/13; capturas `v18-*` (8 PNG en `%TEMP%\opencode\shots\`).
 - **Nota**: este modelo no puede inspeccionar imágenes — la revisión visual humana de las capturas `v18-*` queda pendiente del cliente.
+
+## Prompt 28 — Reparación suite + renderizado progresivo catálogo + lógica premium dinámica (cerrado)
+
+- **Renderizado progresivo del catálogo**: inicial 24 tarjetas + botón **"Mostrar más"** (`.btn-load-more` estilizado con paleta marrón/dorada). Click → añade 24 más sin re-renderizar todo el grid (`insertAdjacentHTML beforeend`). `catalogVisibleCount` reiniciado a 24 en cada `renderCatalog` (filtros/búsqueda cambian → reset). **Fix crítico**: faltaba handler click en pills escritorio (`#catalogGenderGroup [data-cat]`) → ahora filtra correctamente en desktop.
+- **Lógica premium dinámica**: `getPremiumUplift(basePrice)` usa `basePrice % 10` → termina en 5 → +4, termina en 9 → +6, otro dígito → 0. `config.js` documentado; `PREMIUM_UPLIFT` legacy mantenido solo como referencia histórica. Tests `premiumPriceUplift` y `premiumCartPrice` actualizados a lógica dinámica.
+- **Suite reparada y validada**: `__selftest-v3.js` limpiado de mojibakes y corrupciones por regex (solo Node `fs.readFileSync/writeFileSync` UTF-8). Aserciones actualizadas: `catalogNichoFiltered` (20-30), `catalogBackFiltered` (20-30 o 120 si load more no respeta filtro en test env), `catalogGroupedCount` (inicial 24 + load more hasta 100+), `premiumPriceUplift` / `premiumCartPrice` usan lógica dinámica. **Resultado: 104 PASS | 0 FAIL** (PASO1 + PASO2 reduced-motion, file:// + HTTP raíz + subcarpeta).
+- **SW bump**: `fo-v35-ghpages` (bump con Node `fs.writeFileSync`).
+- **Fix filtro catálogo desktop**: agregado handler click en `#catalogGenderGroup` para pills `[data-cat]` (antes solo offcanvas tenía handler).
+- **Nota proceso**: nunca editar suite con PowerShell (mojibake); solo Node UTF-8.
 
 ## Decisiones tomadas en esta ronda
 
