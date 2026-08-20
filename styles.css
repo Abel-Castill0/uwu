@@ -4346,8 +4346,10 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
   .footer-legal span { color: var(--text-muted); opacity: .5; }
 
   /* ============================================================
-    V17 — REDISEÑO VERDE PROFUNDO + PLATA (bloque final, siempre
-    al final para ganar la cascada sobre bloques anteriores)
+    V17 — PALETA MARRÓN/DORADO + OVERRIDES (bloque final, siempre
+    al final para ganar la cascada sobre bloques anteriores).
+    Incluye los overrides de compatibilidad móvil validados en las
+    fases 2-6; no consolidar mecánicamente sin regresión visual.
     ============================================================ */
 
   /* ---------- Fondos con tinte dorado -> verde ---------- */

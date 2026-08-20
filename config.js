@@ -29,9 +29,11 @@ window.FO_CONFIG = {
 
   /* Panel admin (admin.html): la contraseña NO se guarda en texto plano.
      ADMIN_HASH es el SHA-256 (hex) de tu contraseña.
-     ⚠️ CAMBIAR antes de publicar: genera tu propio hash, por ejemplo con
-     PowerShell:  [System.BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes("TU-CONTRASEÑA"))).Replace("-","").ToLower()
-     y pega el resultado aquí (64 caracteres hex). */
+     ⚠️ CAMBIAR antes de publicar. Genera tu propio hash con la herramienta:
+        node tools/generate-admin-hash.js "TU-CONTRASEÑA"
+     (o interactivo:  node tools/generate-admin-hash.js)
+     y pega el resultado aquí (64 caracteres hex). El hash de abajo es solo
+     de ejemplo y NO debe publicarse como contraseña real. */
   ADMIN_HASH: "1d3542876d1c3e0b8c53394e2fcadb4d55cc36df65fa4f122af1d86c825e34af",
 
   /* ── FRANJA DE PROMOCIONES (marquee) ──────────────────────────

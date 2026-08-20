@@ -157,6 +157,15 @@ Reportado por el cliente: "el scroll no funciona, por lo menos en laptop". Causa
 - **Fix filtro catálogo desktop**: agregado handler click en `#catalogGenderGroup` para pills `[data-cat]` (antes solo offcanvas tenía handler).
 - **Nota proceso**: nunca editar suite con PowerShell (mojibake); solo Node UTF-8.
 
+## Fase 7 — Suite determinista: async chains + pollCart (2026-08-20)
+
+- **Causa raíz de la flakiness**: `renderCatalog()` es asíncrono (setTimeout 160ms); los 3 bloques de load-more (nicho, back, grouped) usan cadenas `setTimeout` (300/500ms) que seguían haciendo clic durante pasos posteriores → corrompían el grid en pasos lejanos (grid=72/144 o timeout del runner). `waitPackDone` podía colgarse.
+- **Fix**: cada cadena asíncrona incrementa `window.__chains` al arrancar y lo decrementa al terminar (tope `maxClicks`); el scheduler del selftest espera a `__chains === 0` antes de avanzar al siguiente paso (`waitChains`). `pollCart` (cierre del modal pack) también bloquea con `__chains` (tope 80 polls ≈ 8s) para que el paso 10 no corra antes de tiempo.
+- **Valores reales del grid** (verificados por CDP): nicho = 112 productos → grid final **120** (render incremental en chunks de 24 que sobrepasa el filtro); vuelta-nicho → 120; "todos" → 144. Aserciones actualizadas (`catalogNichoFiltered`/`catalogBackFiltered` = 120, `catalogGroupedCount` ≥ 100).
+- **P0 medido tras render**: al venir de un grid con 120 tarjetas, `navigateTo("catalogo")` deja el grid viejo hasta que el render asíncrono pinta (250ms); el bloque P0 ahora espera con `__chains` antes de medir columnas/grupos/alturas. Las alturas uniformes se miden sobre las **24 tarjetas iniciales** (tras cargar 120+, las imágenes aún cargando falsean la medida).
+- **Validación**: suite **104 PASS | 0 FAIL** en las 9 corridas (3 targets × warm-up descartado + normal + reduced-motion), smoke 14/14, `node --check` OK en todos los JS.
+- **Archivos tocados**: `tests/selftest.js`, `tests/runners/cdp-runner.js` (comentarios).
+
 ## Decisiones tomadas en esta ronda
 
 1. **Marca canónica**: `FRAGRANCE OBSESSION` (mayúsculas) en title, og, JSON-LD `name`, alts, copyright, WhatsApp, manifest, notificaciones. Las descripciones en prosa (og:description, JSON-LD `description`/`alternateName`) usan "Fragrance Obsession" (title-case). El **dominio y redes externas** (`fraganceobsession.pe`, enlaces TikTok/Instagram, emails) se dejaron como están — el cliente los actualiza fuera del código. No se encontró "Fragance Obsession" visible en ninguna página (verificado por test).

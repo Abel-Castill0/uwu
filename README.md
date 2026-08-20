@@ -23,8 +23,13 @@ GitHub Pages ya la sirve en `https://TU_USUARIO.github.io/TU_REPO/` (el proyecto
 ## Después de publicar (importante)
 
 1. **Cambia la contraseña del panel admin** (`/admin.html`): el hash actual en `config.js` es de una contraseña de ejemplo. Genera el tuyo:
+   ```bash
+   # Node (recomendado, disponible en el repo)
+   node tools/generate-admin-hash.js
+   #   o directamente:  node tools/generate-admin-hash.js "tu-contraseña"
+   ```
    ```powershell
-   # PowerShell
+   # PowerShell (alternativa)
    $s = Read-Host "Nueva contraseña (no se muestra)"
    $bytes = [System.Text.Encoding]::UTF8.GetBytes($s)
    $hash = [System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)
@@ -45,7 +50,7 @@ Revisa que `sw.js` esté activo (DevTools → Application → Service Workers) y
 
 ## Notas técnicas
 
-- **Service Worker** (`sw.js`, versión `x=>{n++;return 'fo-v35-ghpages';}`): cachea los assets críticos con rutas relativas y `scope "./"`; al actualizar la página el nuevo SW **toma el control de inmediato** (`skipWaiting` + `clients.claim`) — no hace falta recargar dos veces. Si ves versiones viejas, desregistra el SW en DevTools > Application > Service Workers y recarga con Ctrl+F5. ⚠️ Cada cambio del SW hay que subirlo con **Node** (escribir `sw.js` con `fs.writeFileSync`), nunca con PowerShell, para no alterar el BOM.
+- **Service Worker** (`sw.js`, versión `fo-v37-ghpages`): cachea los assets críticos con rutas relativas y `scope "./"`; al actualizar la página el nuevo SW **toma el control de inmediato** (`skipWaiting` + `clients.claim`) — no hace falta recargar dos veces. Si ves versiones viejas, desregistra el SW en DevTools > Application > Service Workers y recarga con Ctrl+F5. ⚠️ Cada cambio del SW hay que subirlo con **Node** (escribir `sw.js` con `fs.writeFileSync`), nunca con PowerShell, para no alterar el BOM.
 - **Panel admin**: `/admin.html` valida con SHA-256 en el navegador (`crypto.subtle`); no hay contraseña en el cliente ni servidor. Es un candado de disuasión del hosting estático, no autenticación real.
 - **Temas**: claro/oscuro con `data-theme` en `<html>`; se respeta `prefers-reduced-motion` (desactiva marquee, Ken Burns y micro-interacciones).
 - **Filtros**: píldoras de categoría + panel offcanvas en móvil; los resultados se anuncian con `role="status"` y `aria-live`. Los filtros de género están ocultos (todos los perfumes son unisex) — reactivar borrando el bloque `PENDIENTE decisión del cliente` en `styles.css` si el cliente clasifica por género.
@@ -92,10 +97,13 @@ Los runners ahora viven en `tests/`; consulta `tests/README.md` para requisitos 
 | `styles.css` | Tema claro/oscuro y diseño responsive (bloque V17 al final) |
 | `script.js` | Lógica completa (filtros, carrito, navegación, srcset optimizado) |
 | `config.js` | Ajustes: `SITE_URL`, `ADMIN_HASH`, `PROXIMAMENTE`, marquee |
-| `sw.js` | Service Worker (offline + actualización inmediata, `x=>{n++;return 'fo-v35-ghpages';}`) |
+| `sw.js` | Service Worker (offline + actualización inmediata, `fo-v37-ghpages`) |
 | `admin.html` | Panel de administración (login con SHA-256) |
 | `productos.js`, `descuentos.js`, `animations.js` | Datos y animaciones |
 | `gracias.html`, `offline.html`, `404.html` | Páginas de soporte |
 | `privacidad.html`, `terminos.html` | Legales (privacidad + términos) |
 | `robots.txt`, `sitemap.xml`, `.nojekyll`, `manifest.webmanifest` | SEO y PWA |
 | `tools/optimize-images.js` | Genera `img/perfumes_optimized/` (WebP 400px q80) |
+| `tools/generate-admin-hash.js` | Genera el `ADMIN_HASH` (SHA-256) para `config.js` |
+| `DEPLOY.md`, `ACCEPTANCE_CHECKLIST.md` | Guía de despliegue y checklist de pruebas de aceptación |
+| `tests/shots/` | 50 capturas de auditoría (5 vistas × 5 viewports × claro/oscuro) |

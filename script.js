@@ -3083,13 +3083,11 @@
   }
 
   /* ══════════════════════════════════════════════════════════════
-     TIKTOK — embed oficial (blockquote + embed.js) con lazy load
-     y fallback elegante.
-     Por qué blockquote+embed.js y no <iframe src="tiktok.com/embed/v2/...">:
-     TikTok rechaza en silencio (sin error de red, sin 404, página en
-     blanco) el hotlink directo del iframe cuando no reconoce el
-     origen/referrer. El embed oficial es el único método soportado
-     de forma fiable cross-browser.
+     TIKTOK — tarjetas estáticas (facade loading).
+     Cada video se renderiza como una tarjeta con miniatura local que
+     enlaza al video en TikTok (target=_blank). Cero embeds/iframes,
+     cero peticiones externas: la sección nunca puede fallar ni ralentizar
+     la carga. Los videos se definen en config.js → TIKTOK_VIDEOS.
   ══════════════════════════════════════════════════════════════ */
 
   /* ══════════════════════════════════════════════════════════════

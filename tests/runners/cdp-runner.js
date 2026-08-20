@@ -49,6 +49,11 @@ if (!edge) throw new Error("Microsoft Edge no está disponible. Define EDGE_PATH
     await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
     await send("Page.addScriptToEvaluateOnNewDocument", { source });
     const waitTitle = async (label) => {
+      // El último paso de la suite espera a que el conteo de aserciones se
+      // estabilice antes de fijar el título (los timers anidados de load-more,
+      // pollCart y E2E ya resolvieron). Capturar el título directamente es
+      // suficiente y robusto: tras el resumen, el paso de checkout navega a
+      // gracias.html, lo que invalidaría cualquier sondeo posterior de estado.
       for (let i = 0; i < 260; i += 1) {
         await delay(500);
         const result = await send("Runtime.evaluate", { expression: "document.title", returnByValue: true });
