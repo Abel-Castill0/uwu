@@ -71,14 +71,13 @@ Revisa que `sw.js` esté activo (DevTools → Application → Service Workers) y
 ## Verificación (suite + smoke)
 
 ```bash
-# Suite completa (100 aserciones, DOM + CSS + reduced-motion): usa Chrome DevTools Protocol
-# cdp-runner7.js con SUITE_URL apuntando al servidor local.
-$env:SUITE_URL = "http://127.0.0.1:8090"
-node cdp-runner7.js        # http://127.0.0.1:8090/  (raíz)
-node cdp-runner7.js        # http://127.0.0.1:8090/site/  (subcarpeta)
-# Smoke test Playwright (en %TEMP%\opencode\pwtest\smoke.mjs): 14 checks E2E
+# Suite completa (DOM + CSS + reduced-motion) en file://, HTTP raíz y /site/
+npm test
+# Smoke reproducible de los 14 recursos esenciales
+npm run smoke
 ```
-Resultado esperado: `100 PASS | 0 FAIL` (verificado en file:// y HTTP, PASO 1 + PASO 2 reduced-motion) y smoke `14 PASS`.
+Resultado esperado: `0 FAIL` en las seis corridas de la suite y smoke `14 PASS`.
+Los runners ahora viven en `tests/`; consulta `tests/README.md` para requisitos y detalles.
 
 ## Archivos principales
 

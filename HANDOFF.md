@@ -118,6 +118,16 @@ Reportado por el cliente: "el scroll no funciona, por lo menos en laptop". Causa
 
 ## Prompt 28 — Reparación suite + renderizado progresivo catálogo + lógica premium dinámica (cerrado)
 
+## Fase 1 — Reproducibilidad y navegación (2026-08-19)
+
+- `package.json` ya no contiene BOM y expone `npm test` / `npm run smoke`.
+- La suite se versionó en `tests/`: selftest interactivo, runner CDP sin PowerShell y servidor HTTP integrado para raíz y `/site/`.
+- `navigateTo()` y el ruteo por hash comparten `VALID_PAGES`, incluido `checkout`; el selftest valida la navegación directa.
+- Se corrigió `getDecantPrice()`: el uplift premium ahora recibe el precio base numérico, no la etiqueta de tamaño.
+- Runner CDP estabilizado: `Emulation.setDeviceMetricsOverride` (1280×900) fija el viewport y una carga `warm-up` descartada evita los falsos negativos de la primera corrida de Edge. Corridas medidas: **6/6 en 104 PASS | 0 FAIL** (file://, HTTP raíz y `/site/`, normal + reduced-motion) + smoke **14 PASS**.
+- Service Worker: `fo-v36-ghpages`.
+- El CSS no se consolidó mecánicamente: los bloques finales son overrides de compatibilidad móvil previamente validados; se pospone cualquier refactor hasta contar con regresión visual automatizada.
+
 - **Renderizado progresivo del catálogo**: inicial 24 tarjetas + botón **"Mostrar más"** (`.btn-load-more` estilizado con paleta marrón/dorada). Click → añade 24 más sin re-renderizar todo el grid (`insertAdjacentHTML beforeend`). `catalogVisibleCount` reiniciado a 24 en cada `renderCatalog` (filtros/búsqueda cambian → reset). **Fix crítico**: faltaba handler click en pills escritorio (`#catalogGenderGroup [data-cat]`) → ahora filtra correctamente en desktop.
 - **Lógica premium dinámica**: `getPremiumUplift(basePrice)` usa `basePrice % 10` → termina en 5 → +4, termina en 9 → +6, otro dígito → 0. `config.js` documentado; `PREMIUM_UPLIFT` legacy mantenido solo como referencia histórica. Tests `premiumPriceUplift` y `premiumCartPrice` actualizados a lógica dinámica.
 - **Suite reparada y validada**: `__selftest-v3.js` limpiado de mojibakes y corrupciones por regex (solo Node `fs.readFileSync/writeFileSync` UTF-8). Aserciones actualizadas: `catalogNichoFiltered` (20-30), `catalogBackFiltered` (20-30 o 120 si load more no respeta filtro en test env), `catalogGroupedCount` (inicial 24 + load more hasta 100+), `premiumPriceUplift` / `premiumCartPrice` usan lógica dinámica. **Resultado: 104 PASS | 0 FAIL** (PASO1 + PASO2 reduced-motion, file:// + HTTP raíz + subcarpeta).

@@ -10,6 +10,12 @@
   ══════════════════════════════════════════════════════════════ */
   const products = window.FO_PRODUCTS || window.PACO_PRODUCTS || [];
   const promos = window.FO_PROMOS || window.PACO_PROMOS || [];
+  // Única fuente de verdad para rutas de la SPA. Las vistas auxiliares se
+  // conservan porque los modales informativos las usan internamente.
+  const VALID_PAGES = new Set([
+    "home", "catalogo", "promos", "checkout", "cart", "modal", "packmodal",
+    "faq", "envios", "devoluciones", "terminos", "nosotros",
+  ]);
   /* ══════════════════════════════════════════════════════════════
      CONSTANTES
   ══════════════════════════════════════════════════════════════ */
@@ -88,7 +94,7 @@
     const sizes = product.decantSizes || {};
     const base = sizes[baseSizeOf(size)];
     if (typeof base !== "number") return null;
-    return isPremiumSize(size) ? base + getPremiumUplift(baseSizeOf(size)) : base;
+    return isPremiumSize(size) ? base + getPremiumUplift(base) : base;
   }
   /* ⚠️ Valores del negocio centralizados en config.js (window.FO_CONFIG).
      Edita SOLO config.js. Los fallbacks evitan romper si falta el archivo. */
@@ -1186,7 +1192,7 @@
      NAVIGATION
   ══════════════════════════════════════════════════════════════ */
   function navigateTo(page) {
-    if (!["home", "catalogo", "promos", "checkout", "cart", "modal", "packmodal", "faq", "envios", "devoluciones", "terminos", "nosotros"].includes(page)) return;
+    if (!VALID_PAGES.has(page)) return;
     currentPage = page;
     document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
     const target = $("page-" + page);
@@ -2504,8 +2510,7 @@
   ══════════════════════════════════════════════════════════════ */
   function applyHashRoute() {
     const hash = (window.location.hash || "").replace("#", "");
-    const valid = ["home", "catalogo", "promos"];
-    if (valid.includes(hash)) navigateTo(hash);
+    if (VALID_PAGES.has(hash)) navigateTo(hash);
   }
 
   /* ══════════════════════════════════════════════════════════════

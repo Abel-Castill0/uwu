@@ -1,1 +1,12 @@
-﻿{"name":"fragance-obsession","private":true,"dependencies":{"sharp":"^0.35.1"}}
+{
+  "name": "fragance-obsession",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node tests/run-suite.js",
+    "smoke": "node tests/run-smoke.js"
+  },
+  "dependencies": {
+    "sharp": "^0.35.1"
+  }
+}
