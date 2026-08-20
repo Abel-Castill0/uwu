@@ -19,7 +19,7 @@
   /* ══════════════════════════════════════════════════════════════
      CONSTANTES
   ══════════════════════════════════════════════════════════════ */
-  const PLACEHOLDER_IMG = "img/perfumes/placeholder.webp";
+  const PLACEHOLDER_IMG = "img/perfumes_optimized/placeholder.webp";
   /* Imagen por defecto elegante: monograma dorado sobre marrón profundo.
      Se genera en SVG (data URI) cuando el perfume no tiene foto propia. */
   function cardImg(p) {
@@ -650,6 +650,7 @@
     document.documentElement.classList.add("modal-open");
     if (window.__modalScrollY === undefined) window.__modalScrollY = window.scrollY;
     updateCartUI();
+    focusModal($("cartSidebar"));
   }
   function closeCart() {
     $("cartOverlay").classList.remove("active");
@@ -661,6 +662,7 @@
       window.scrollTo(0, window.__modalScrollY);
       window.__modalScrollY = undefined;
     }
+    restoreFocus();
   }
   function goToCheckout() {
     if (cart.length === 0) {
@@ -907,6 +909,14 @@
   const packModalEl = $("packModal");
   if (packModalEl) {
     packModalEl.addEventListener("keydown", (e) => trapTabFocus(packModalEl, e));
+  }
+  const cartSidebarEl = $("cartSidebar");
+  if (cartSidebarEl) {
+    cartSidebarEl.addEventListener("keydown", (e) => trapTabFocus(cartSidebarEl, e));
+  }
+  const infoModalEl = $("infoModal");
+  if (infoModalEl) {
+    infoModalEl.addEventListener("keydown", (e) => trapTabFocus(infoModalEl, e));
   }
   function focusModal(container) {
     if (!container) return;
@@ -2167,6 +2177,10 @@
       showToast("⚠️ Completa todos los campos obligatorios");
       return;
     }
+    if (!/^9\d{8}$/.test(telefono)) {
+      showToast("⚠️ Ingresa un teléfono válido (9 dígitos, ej. 999999999)");
+      return;
+    }
     if (cart.length === 0) {
       showToast("⚠️ El carrito está vacío");
       return;
@@ -2197,7 +2211,7 @@
       showToast("🔒 Redirigiendo a pasarela segura...");
       const winMp = window.open(link, "_blank");
       if (!winMp) location.href = link; // popup bloqueado → navegación directa
-      else setTimeout(() => { location.href = "gracias.html"; }, 1600);
+      else setTimeout(() => { if (currentPage === "checkout") location.href = "gracias.html"; }, 1600);
       return;
     }
 
@@ -2208,7 +2222,7 @@
     const urlWa = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`;
     const winWa = window.open(urlWa, "_blank");
     if (!winWa) location.href = urlWa; // popup bloqueado → navegación directa
-    else setTimeout(() => { location.href = "gracias.html"; }, 1600);
+    else setTimeout(() => { if (currentPage === "checkout") location.href = "gracias.html"; }, 1600);
   }
   window.confirmarCompra = confirmarCompra;
   // Retrocompatibilidad
@@ -2846,13 +2860,20 @@
     if (!rot || !txt || benefits.length < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let i = 0;
-    setInterval(() => {
+    let timer = null;
+    const tick = () => {
       i = (i + 1) % benefits.length;
       txt.textContent = benefits[i];
       rot.classList.remove("topbar-rotator--fade");
       void rot.offsetWidth;
       rot.classList.add("topbar-rotator--fade");
-    }, 4000);
+    };
+    const start = () => { if (timer === null) timer = setInterval(tick, 4000); };
+    const stop = () => { if (timer !== null) { clearInterval(timer); timer = null; } };
+    start();
+    // Pausa cuando la pestaña no es visible (ahorra CPU/batería en móvil).
+    document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
+    window.__topbarStop = stop;
   }
 
   /* Reseñas desde config.js (Social Proof) */
@@ -2952,7 +2973,7 @@
     document.documentElement.classList.add("modal-open");
     if (window.__modalScrollY === undefined) window.__modalScrollY = window.scrollY;
     const modal = $("infoModal");
-    if (modal) modal.focus();
+    if (modal) { lastFocusedEl = document.activeElement; modal.focus(); }
   }
   function closeInfoModal() {
     const overlay = $("infoModalOverlay");
@@ -2965,6 +2986,7 @@
       window.scrollTo(0, window.__modalScrollY);
       window.__modalScrollY = undefined;
     }
+    restoreFocus();
   }
 
   /* Links del footer (modales informativos) */

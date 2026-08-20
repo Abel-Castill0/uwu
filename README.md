@@ -75,8 +75,13 @@ Revisa que `sw.js` esté activo (DevTools → Application → Service Workers) y
 npm test
 # Smoke reproducible de los 14 recursos esenciales
 npm run smoke
+# Checks de auditoría (Fases 2-6): responsive 5 viewports + contraste
+node tests/runners/cdp-responsive-check.js
+node tests/runners/cdp-contrast-check.js
+# Capturas de auditoría → tests/shots/ (50 PNG: home/catalogo/packs/checkout/tiktok × 5 viewports × light/dark)
+node tests/runners/cdp-shots.js
 ```
-Resultado esperado: `0 FAIL` en las seis corridas de la suite y smoke `14 PASS`.
+Resultado esperado: `0 FAIL` en las seis corridas de la suite, smoke `14 PASS`, responsive `5/5 OK` y contraste AA (≥4.5:1) en texto normal.
 Los runners ahora viven en `tests/`; consulta `tests/README.md` para requisitos y detalles.
 
 ## Archivos principales

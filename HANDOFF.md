@@ -128,6 +128,28 @@ Reportado por el cliente: "el scroll no funciona, por lo menos en laptop". Causa
 - Service Worker: `fo-v36-ghpages`.
 - El CSS no se consolidó mecánicamente: los bloques finales son overrides de compatibilidad móvil previamente validados; se pospone cualquier refactor hasta contar con regresión visual automatizada.
 
+## Fases 2-6 — Responsive, rendimiento, accesibilidad, UX/UI y validación (2026-08-19)
+
+### Fase 3 — Rendimiento (ejecutado)
+- **Assets re-codificados a WebP real** (antes tenían extensión engañosa): `fondo_promos.webp` era PNG 1.67MB → **50.5KB**; `inicio.webp` era JPEG 135KB → **91.5KB**. Con `sharp` (q80).
+- **60 PNG huérfanos eliminados** de `img/perfumes/` (duplicados `(2)` y series `dolce melodia (n)`, 31.9MB) — verificados sin referencia en ningún archivo con script de barrido; quedan los 68 referenciados con su WebP. Ahorro total ~33.5MB.
+- **Ruta rota corregida**: `img/perfumes/placeholder.webp` no existía → `PLACEHOLDER_IMG` y `gracias.html` ahora apuntan a `img/perfumes_optimized/placeholder.webp` (que sí existe).
+- **CSS**: eliminado duplicado literal `#promoGenderGroup { display:none !important }` (3855/4112); balance de llaves OK (1606/1606).
+- **JS**: el rotador de la topbar ahora pausa con `visibilitychange` (sin `setInterval` perpetuo); redirects a `gracias.html` protegidos con `if (currentPage === "checkout")` (no navegan si el usuario ya se fue).
+
+### Fase 4 — Accesibilidad (ejecutado)
+- **`#cartSidebar`**: `role="complementary"` → `role="dialog" aria-modal="true" tabindex="-1"`; focus trap añadido (igual que modales); `openCart`/`closeCart` capturan/restauran foco.
+- **`#infoModal`**: focus trap añadido; `openInfoModal`/`closeInfoModal` capturan/restauran foco.
+- **Checkout**: `confirmarCompra` ahora valida el formato del teléfono (`/^9\d{8}$/`) en el envío, no solo la capa visual.
+- **Targets táctiles ≥44px** (`@media (pointer: coarse)`): modal-close, cart-close, theme-toggle, social-links, topbar-social, qty/remove del carrito, back-to-top, FABs; pills/filtros ≥44px de alto en móvil. Desktop conserva su tamaño (pointer: fine).
+- **Contraste AA verificado** con CDP + cálculo WCAG: body text 17.0:1 (light) / 16.2:1 (dark); footer links 4.98:1 (light) / 5.02:1 (dark); encabezados footer 15.7:1.
+
+### Fase 2 + Fase 6 — Responsive validado + capturas
+- Nuevo runner `tests/runners/cdp-responsive-check.js`: 5 viewports (320, 390, 768, 1280, 1440) → **5/5 OK**: columnas por breakpoint (1/1/3/5/5), modal 92vh, carrito abre, close 44px táctil, sin overflow horizontal.
+- Nuevo runner `tests/runners/cdp-shots.js`: **50 capturas** (`tests/shots/`) — home/catalogo/packs/checkout/tiktok × 5 viewports × light/dark.
+- **Nota**: este modelo no puede inspeccionar imágenes — la revisión visual humana de `tests/shots/*.png` queda pendiente del cliente.
+- Service Worker: **`fo-v37-ghpages`**.
+
 - **Renderizado progresivo del catálogo**: inicial 24 tarjetas + botón **"Mostrar más"** (`.btn-load-more` estilizado con paleta marrón/dorada). Click → añade 24 más sin re-renderizar todo el grid (`insertAdjacentHTML beforeend`). `catalogVisibleCount` reiniciado a 24 en cada `renderCatalog` (filtros/búsqueda cambian → reset). **Fix crítico**: faltaba handler click en pills escritorio (`#catalogGenderGroup [data-cat]`) → ahora filtra correctamente en desktop.
 - **Lógica premium dinámica**: `getPremiumUplift(basePrice)` usa `basePrice % 10` → termina en 5 → +4, termina en 9 → +6, otro dígito → 0. `config.js` documentado; `PREMIUM_UPLIFT` legacy mantenido solo como referencia histórica. Tests `premiumPriceUplift` y `premiumCartPrice` actualizados a lógica dinámica.
 - **Suite reparada y validada**: `__selftest-v3.js` limpiado de mojibakes y corrupciones por regex (solo Node `fs.readFileSync/writeFileSync` UTF-8). Aserciones actualizadas: `catalogNichoFiltered` (20-30), `catalogBackFiltered` (20-30 o 120 si load more no respeta filtro en test env), `catalogGroupedCount` (inicial 24 + load more hasta 100+), `premiumPriceUplift` / `premiumCartPrice` usan lógica dinámica. **Resultado: 104 PASS | 0 FAIL** (PASO1 + PASO2 reduced-motion, file:// + HTTP raíz + subcarpeta).

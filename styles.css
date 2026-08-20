@@ -4108,9 +4108,6 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
     grid-template-rows: 460px;
   }
 
-  /* Los filtros de género se muestran como píldoras en la barra de filtros */
-  #promoGenderGroup { display: none !important; }
-
   /* Strip de promociones del catálogo (promos oficiales del negocio).
     Barra horizontal unificada de 4 columnas; en móvil scroll horizontal. */
   .promo-strip {
@@ -5034,4 +5031,30 @@ background: #E8DCCC;
   .tiktok-static-card:hover .tiktok-static-thumb img { transform: none; opacity: .92; }
   .tiktok-static-play { transition: none; }
   .tiktok-static-card:hover .tiktok-static-play { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* ============================================================
+   ACCESIBILIDAD — TARGETS TÁCTILES ≥ 44px (Fase 4)
+   Se expande el área de click de controles pequeños sin cambiar
+   el tamaño visual (conserva la estética premium).
+   Solo en dispositivos táctiles (pointer: coarse) para no alterar
+   el layout de escritorio.
+   ============================================================ */
+@media (pointer: coarse) {
+  .modal-close, .cart-close, .theme-toggle, .social-links a,
+  .topbar-social a, .cart-item-qty button, .cart-item-remove {
+    min-width: 44px; min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .modal-close { width: 44px; height: 44px; }
+  .cart-close { width: 44px; height: 44px; }
+  .theme-toggle { width: 44px; height: 44px; }
+  .topbar-item--phone a { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .back-to-top { width: 48px; height: 48px; }
+  .wa-fab, .ig-fab { width: 54px; height: 54px; }
+}
+@media (pointer: coarse) and (max-width: 767px) {
+  .filter-btn, .cat-pill, .pack-size-chip, .packs-sort__button, .btn-filters-mobile {
+    min-height: 44px;
+  }
 }
