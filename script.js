@@ -1321,12 +1321,14 @@
   /* ══════════════════════════════════════════════════════════════
      RENDER — CATALOG
   ══════════════════════════════════════════════════════════════ */
-  function renderCatalog() {
+  function renderCatalog(isLoadMore = false) {
     const grid = $("catalogGrid");
     if (!grid) return;
 
-    // Reinicia el contador de vista progresiva al renderizar
-    catalogVisibleCount = 24;
+    // Solo reinicia el contador si NO es carga incremental
+    if (!isLoadMore) {
+      catalogVisibleCount = 24;
+    }
 
     // Cancela renders pendientes para evitar que pinten resultados viejos
     clearTimeout(window.__catalogRenderTimer);
@@ -1376,30 +1378,44 @@
       }
       if (filtered.length) {
         if (FO.GROUP_BY_BRAND !== false) {
-          // Agrupación por marca (mantiene el orden original de aparición)
-          const groups = [];
-          const byBrand = new Map();
-          filtered.forEach((p) => {
-            const b = (p.brand || "Otros").trim();
-            if (!byBrand.has(b)) {
-              byBrand.set(b, []);
-              groups.push(b);
-            }
-            byBrand.get(b).push(p);
-          });
-          grid.innerHTML = groups
-            .map(
-              (b) =>
-                `<section class="brand-group" aria-label="Marca ${esc(b)}">` +
-                `<h3 class="brand-heading">${esc(b)}</h3>` +
-                `<div class="brand-grid">${byBrand.get(b).map(createProductCard).join("")}</div>` +
-                `</section>`,
-            )
-            .join("");
+          // Agrupación por marca: en carga incremental no se soporta bien, hacer render completo
+          if (!isLoadMore) {
+            const groups = [];
+            const byBrand = new Map();
+            filtered.forEach((p) => {
+              const b = (p.brand || "Otros").trim();
+              if (!byBrand.has(b)) {
+                byBrand.set(b, []);
+                groups.push(b);
+              }
+              byBrand.get(b).push(p);
+            });
+            grid.innerHTML = groups
+              .map(
+                (b) =>
+                  `<section class="brand-group" aria-label="Marca ${esc(b)}">` +
+                  `<h3 class="brand-heading">${esc(b)}</h3>` +
+                  `<div class="brand-grid">${byBrand.get(b).map(createProductCard).join("")}</div>` +
+                  `</section>`,
+              )
+              .join("");
+          }
         } else {
-          grid.innerHTML = visible.map(createProductCard).join("");
+          if (isLoadMore) {
+            // Añadir solo las nuevas tarjetas (incremental)
+            const newCards = visible.slice(catalogVisibleCount - 24, catalogVisibleCount);
+            if (newCards.length > 0) {
+              grid.insertAdjacentHTML("beforeend", newCards.map(createProductCard).join(""));
+            }
+          } else {
+            // Render inicial completo
+            grid.innerHTML = visible.map(createProductCard).join("");
+          }
         }
         // Botón "Cargar más" si hay productos adicionales ocultos
+        // Eliminar botón existente si existe
+        const existingBtn = document.getElementById("loadMoreCatalog");
+        if (existingBtn) existingBtn.remove();
         if (filtered.length > catalogVisibleCount) {
           grid.insertAdjacentHTML(
             "afterend",
@@ -3104,7 +3120,7 @@ function renderTikTokStatic() {
       if (e.target.id === "loadMoreCatalog") {
         catalogVisibleCount += 24;
         if (catalogVisibleCount > products.length) catalogVisibleCount = products.length;
-        renderCatalog();
+        renderCatalog(true); // carga incremental
       }
     });
   }
