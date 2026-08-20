@@ -108,13 +108,18 @@ window.FO_CONFIG = {
   WHATSAPP_COTIZAR_MSG: (name, brand) =>
     `Hola, quiero cotizar el frasco completo de ${name} (${brand}). ¿Me pueden dar más información?`,
 
-  /* ── DECANTS PREMIUM (5ml y 10ml) ─────────────────────────────
-     Añade automáticamente variantes "premium" al modal de producto
-     (y solo si el producto ya tiene el tamaño normal):
-       · 5ml  → "5ml decant premium"  = precio normal + PREMIUM_UPLIFT["5ml"]
-       · 10ml → "10ml decant premium" = precio normal + PREMIUM_UPLIFT["10ml"]
-     El ejemplo del cliente fue 5ml S/25→S/29 (+4) y 10ml S/39→S/45 (+6).
-     Si prefieres +6 para 10ml, cambia el valor a 6 aquí. */
+/* ── DECANTS PREMIUM (5ml y 10ml) ─────────────────────────────
+      Añade automáticamente variantes "premium" al modal de producto
+      (y solo si el producto ya tiene el tamaño normal):
+        · 5ml  → "5ml decant premium"  = precio normal + 4 si termina en 5,
+           o +6 si termina en 9 (lógica dinámica por último dígito).
+        · 10ml → "10ml decant premium" = precio normal + 6 si termina en 9,
+           o +4 si termina en 5 (lógica dinámica por último dígito).
+      La función `getPremiumUplift(basePrice)` en script.js usa
+      `basePrice % 10` para determinar el recargo: si el precio base
+      termina en 5 → +4; si termina en 9 → +6; otro dígito → 0.
+      El ejemplo del cliente fue 5ml S/25→S/29 (+4) y 10ml S/39→S/45 (+6).
+      Si se desactiva `PREMIUM_DECANTS: false`, no se añaden variantes. */
   PREMIUM_DECANTS: true,
   PREMIUM_UPLIFT: { "5": 4, "10": 5 },
 

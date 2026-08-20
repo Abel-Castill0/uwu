@@ -197,6 +197,7 @@
   let currentModalView = "full";
   let currentModalSize = null;
   let currentPage = "home";
+  let catalogVisibleCount = 24;
   let currentPackPromo = null;
   let selectedPackProducts = [];
   let currentPackIsGroup = false;
@@ -1324,6 +1325,9 @@
     const grid = $("catalogGrid");
     if (!grid) return;
 
+    // Reinicia el contador de vista progresiva al renderizar
+    catalogVisibleCount = 24;
+
     // Cancela renders pendientes para evitar que pinten resultados viejos
     clearTimeout(window.__catalogRenderTimer);
 
@@ -1353,6 +1357,11 @@
         `${p.name} ${p.brand} ${p.notes || ""} ${p.category}`.toLowerCase().includes(query),
       );
     }
+
+    // Aplica conteo progresivo: solo muestra los primeros N productos
+    // para evitar crash en Safari móvil por exceso de nodos DOM
+    catalogVisibleCount = Math.min(Math.max((catalogVisibleCount || 24), 12), filtered.length);
+    const visible = filtered.slice(0, catalogVisibleCount);
 
     // Transición fade suave al actualizar resultados en tiempo real
     grid.classList.add("switching");
@@ -1388,7 +1397,14 @@
             )
             .join("");
         } else {
-          grid.innerHTML = filtered.map(createProductCard).join("");
+          grid.innerHTML = visible.map(createProductCard).join("");
+        }
+        // Botón "Cargar más" si hay productos adicionales ocultos
+        if (filtered.length > catalogVisibleCount) {
+          grid.insertAdjacentHTML(
+            "afterend",
+            `<button id="loadMoreCatalog" class="btn-load-more">Mostrar más</button>`,
+          );
         }
       } else {
         grid.innerHTML = `
@@ -3082,6 +3098,15 @@ function renderTikTokStatic() {
     // Trust cards reveal (they're static, not rendered dynamically)
     setTimeout(() => observeRevealElements(), 100);
     renderTikTokStatic();
+
+    // Load More catálogo (delegado para contenido dinámico)
+    document.addEventListener("click", e => {
+      if (e.target.id === "loadMoreCatalog") {
+        catalogVisibleCount += 24;
+        if (catalogVisibleCount > products.length) catalogVisibleCount = products.length;
+        renderCatalog();
+      }
+    });
   }
 
   init();
