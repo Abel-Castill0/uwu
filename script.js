@@ -921,10 +921,6 @@
   if (infoModalEl) {
     infoModalEl.addEventListener("keydown", (e) => trapTabFocus(infoModalEl, e));
   }
-  const tiktokModalEl = $("tiktokVideoModal");
-  if (tiktokModalEl) {
-    tiktokModalEl.addEventListener("keydown", (e) => trapTabFocus(tiktokModalEl, e));
-  }
   function focusModal(container) {
     if (!container) return;
     lastFocusedEl = document.activeElement;
@@ -2611,7 +2607,6 @@
       closeCart();
       closePackModal();
       closeFiltersPanel();
-      closeTikTokModal();
     }
   });
 
@@ -3079,129 +3074,35 @@
   }
 
   /* ══════════════════════════════════════════════════════════════
-     TIKTOK — tarjetas con miniatura + modal de video ligero.
-     Cero requests a TikTok al cargar la página o al hacer scroll: cada
-     tarjeta es un botón con miniatura local; el video solo se crea al
-     hacer clic, dentro de un modal (#tiktokVideoModal), como un
-     <iframe> DIRECTO a tiktok.com/embed/v2/{id} — sin embed.js ni
-     blockquote (ese script quedaba residente en la página incluso
-     después de reproducir, lo que en dispositivos reales se notó como
-     lentitud). Al cerrar el modal el iframe se destruye por completo
-     (innerHTML = "": nada sigue corriendo en segundo plano). Si no
-     carga en 8s, fallback elegante con enlace directo al video. Los
-     videos se definen en config.js → TIKTOK_VIDEOS / TIKTOK_PROFILE_URL.
+     TIKTOK — galería estática (cero iframes, cero scripts de terceros).
+     Cada tarjeta es un enlace directo al video en TikTok (target=_blank):
+     miniatura local + botón de play decorativo. Cero requests a
+     tiktok.com en ningún momento (ni al cargar, ni al hacer scroll, ni
+     al hacer clic — el navegador navega a TikTok, no hay red desde nuestra
+     página). Se abandonaron el modal con iframe directo y, antes, el
+     facade+embed.js oficial: ambos dependían de que TikTok renderizara
+     dentro de nuestra página, y en producción (Safari/iPhone real) el
+     cliente reportó que el video no se reproducía y la página se sentía
+     lenta — un iframe/embed de terceros es peso y una dependencia
+     externa inestable que una tienda no necesita. Los videos se
+     definen en config.js → TIKTOK_VIDEOS / TIKTOK_PROFILE_URL.
   ══════════════════════════════════════════════════════════════ */
   const TIKTOK_ICON_PATH =
     "M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z";
-  let tiktokModalTimer = null;
 
-  function renderTikTok() {
+  function renderTikTokGallery() {
     const grid = document.getElementById("tiktokGrid");
     if (!grid || !FO.TIKTOK_VIDEOS) return;
-    grid.innerHTML = FO.TIKTOK_VIDEOS.map((v, i) => `
-      <button type="button" class="tiktok-card" data-index="${i}" aria-label="Reproducir video de TikTok: ${esc(v.title)}">
+    grid.innerHTML = FO.TIKTOK_VIDEOS.map((v) => `
+      <a class="tiktok-card" href="${esc(v.url)}" target="_blank" rel="noopener noreferrer" aria-label="Ver video en TikTok: ${esc(v.title)}">
         <img class="tiktok-card__img" src="${esc(v.thumbnail)}" alt="" loading="lazy" decoding="async" />
         <span class="tiktok-card__scrim" aria-hidden="true"></span>
         <span class="tiktok-card__play" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"/></svg></span>
         <span class="tiktok-card__meta">
           <strong class="tiktok-card__title">${esc(v.title)}</strong>
-          <span class="tiktok-card__cta"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="${TIKTOK_ICON_PATH}"/></svg>Reproducir video</span>
+          <span class="tiktok-card__cta"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="${TIKTOK_ICON_PATH}"/></svg>Ver en TikTok</span>
         </span>
-      </button>`).join("");
-    grid.querySelectorAll(".tiktok-card").forEach((btn) => {
-      btn.addEventListener("click", () => openTikTokModal(FO.TIKTOK_VIDEOS[Number(btn.dataset.index)]));
-    });
-  }
-
-  function renderTikTokModalFallback(video) {
-    const frame = $("tiktokVideoFrame");
-    if (!frame) return;
-    const url = (video && video.url) || FO.TIKTOK_PROFILE_URL || "https://www.tiktok.com/@fraganceobsession.pe";
-    frame.innerHTML = `<a class="tiktok-fallback" href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="Ver este video en TikTok (se abre en una pestaña nueva)">
-        <span class="tiktok-fallback__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="${TIKTOK_ICON_PATH}"/></svg></span>
-        <span class="tiktok-fallback__text">Ver en TikTok</span>
-        <span class="tiktok-fallback__hint">Se abre en una pestaña nueva</span>
-      </a>`;
-    // El fallback ya trae su propio enlace: oculta el persistente para no duplicar.
-    const openLink = $("tiktokVideoOpenLink");
-    if (openLink) openLink.hidden = true;
-  }
-
-  function openTikTokModal(video) {
-    const modal = $("tiktokVideoModal");
-    const frame = $("tiktokVideoFrame");
-    if (!modal || !frame || !video) return;
-    clearTimeout(tiktokModalTimer);
-    frame.innerHTML = "";
-
-    // Enlace de escape SIEMPRE visible mientras hay iframe: sin embed.js no
-    // hay forma de saber desde fuera (cross-origin) si TikTok rechazó el
-    // embed en silencio (devuelve una página vacía con 200 OK — dispara
-    // `load` igual que un video real, sin dimensiones distintas una vez el
-    // modal es visible). El timer de 8s cubre fallos de red genuinos; este
-    // link cubre el rechazo silencioso que ningún JS puede detectar.
-    const openLink = $("tiktokVideoOpenLink");
-    if (openLink) {
-      openLink.href = video.url || FO.TIKTOK_PROFILE_URL || "https://www.tiktok.com/@fraganceobsession.pe";
-      openLink.hidden = !video.videoId;
-    }
-
-    if (!video.videoId) {
-      renderTikTokModalFallback(video);
-    } else {
-      let iframeLoaded = false;
-      const iframe = document.createElement("iframe");
-      iframe.className = "tiktok-video-modal__iframe";
-      iframe.loading = "lazy";
-      iframe.setAttribute("allow", "fullscreen; encrypted-media");
-      iframe.referrerPolicy = "no-referrer";
-      iframe.title = video.title || "Video de TikTok";
-      // Error de red real (DNS, conexión rechazada, bloqueo CSP del iframe)
-      // → fallback inmediato, sin esperar los 8s.
-      iframe.addEventListener("error", () => renderTikTokModalFallback(video));
-      iframe.addEventListener("load", () => { iframeLoaded = true; });
-      iframe.src = `https://www.tiktok.com/embed/v2/${video.videoId}?lang=es`;
-      frame.appendChild(iframe);
-      // Nota honesta: sin embed.js no hay postMessage de TikTok confirmando
-      // que el video renderizó de verdad — un rechazo "silencioso" por
-      // origen/dispositivo también dispara `load` (la respuesta llega,
-      // solo que vacía). Este timer cubre lo que SÍ es detectable desde
-      // fuera del iframe (cross-origin): que nunca cargue nada o que quede
-      // sin alto real; no puede inspeccionar el contenido del iframe.
-      tiktokModalTimer = setTimeout(() => {
-        if (!iframeLoaded || iframe.offsetWidth === 0 || iframe.offsetHeight === 0) {
-          renderTikTokModalFallback(video);
-        }
-      }, 8000);
-    }
-
-    modal.hidden = false;
-    document.body.style.overflow = "hidden";
-    document.body.classList.add("modal-open");
-    document.documentElement.classList.add("modal-open");
-    focusModal(modal.querySelector(".tiktok-video-modal__panel"));
-    track("tiktok_video_open", { item_id: video.videoId || "", item_title: video.title });
-  }
-
-  function closeTikTokModal() {
-    const modal = $("tiktokVideoModal");
-    if (!modal || modal.hidden) return;
-    clearTimeout(tiktokModalTimer);
-    modal.hidden = true;
-    document.body.style.overflow = "";
-    document.body.classList.remove("modal-open");
-    document.documentElement.classList.remove("modal-open");
-    const frame = $("tiktokVideoFrame");
-    if (frame) frame.innerHTML = ""; // destruye el iframe: nada queda corriendo
-    restoreFocus();
-  }
-  window.closeTikTokModal = closeTikTokModal;
-
-  const tiktokVideoModalEl = $("tiktokVideoModal");
-  if (tiktokVideoModalEl) {
-    tiktokVideoModalEl.addEventListener("click", (e) => {
-      if (e.target.closest("[data-tiktok-close]")) closeTikTokModal();
-    });
+      </a>`).join("");
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -3247,7 +3148,7 @@
 
     // Trust cards reveal (they're static, not rendered dynamically)
     setTimeout(() => observeRevealElements(), 100);
-    renderTikTok();
+    renderTikTokGallery();
 
     // Load More catálogo (delegado para contenido dinámico)
     document.addEventListener("click", e => {

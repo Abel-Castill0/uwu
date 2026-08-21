@@ -16,14 +16,27 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Responsive (`cdp-responsive-check.js`, 320-1440px) | **5/5 OK** (columnas 1/1/3/5/5, modal 92dvh, sin overflow horizontal) |
 | Contraste AA (`cdp-contrast-check.js`, reparado) | Todo ≥4.5:1 en ambos temas (body 15.6-16.1, producto 16-18.5, muted 5.2-5.4, link footer 4.97-4.99) |
 | Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
-| SW | `fo-v44-ghpages` |
+| SW | `fo-v45-ghpages` |
 | Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
-| TikTok videos | Modal con iframe directo (sin embed.js/blockquote), creado/destruido con el modal, fallback a 8s + enlace persistente (ver Prompt 26) |
+| TikTok videos | Galería estática: tarjetas `<a target="_blank">` a TikTok, cero iframes/scripts/requests (ver Prompt 27) |
 | Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
 | Modal 30ml (id:6 Angels Share / id:7 Apple Brandy) | Corregido: `FO_PRODUCT_IMAGES[6\|7].sizes` no tenía clave `"30"` (ver Prompt 24) |
 | Modal 10ml premium (id:5 Angels Share on the Rocks) | Corregido: `"10_premium"` apuntaba por error a la imagen de 30ml; eliminada la clave, cae al fallback correcto (ver Prompt 24) |
 | srcset | Corregido: filenames con espacios omiten srcset (sin errores de consola) |
 | SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 27 — TikTok: de modal con iframe a galería 100% estática (cerrado)
+
+- **Reporte del cliente en navegador real (2ª ronda)**: incluso con el modal + iframe directo del Prompt 26 (sin `embed.js`), el video seguía sin reproducirse en su dispositivo real y la sensación de lentitud persistía. Decisión del cliente, tras evaluar el riesgo restante ya documentado en el Prompt 26 ("ningún JS puede detectar un rechazo silencioso de TikTok en un iframe cross-origin sin cooperación de la página embebida"): **dejar de pelear contra TikTok** y no depender de ningún iframe/script de terceros para esta sección.
+- **Implementación**: la sección `#contenido` vuelve a ser una galería 100% estática — cada tarjeta es un `<a href="..." target="_blank" rel="noopener noreferrer">` que navega directo al video en TikTok; no existe ningún elemento en la página (iframe, script, modal) que dependa de TikTok en tiempo de carga.
+  - `script.js`: `renderTikTok()`/`openTikTokModal()`/`closeTikTokModal()`/`renderTikTokModalFallback()` eliminados por completo, junto con el listener de Escape y el Tab-trap del modal. Reemplazados por una única función `renderTikTokGallery()` (llamada en `init()`) que genera los `<a class="tiktok-card">`.
+  - `index.html`: eliminado `#tiktokVideoModal` completo (overlay, panel, botón cerrar, frame, enlace persistente). `.tiktok-static-more` renombrado a `.tiktok-follow` (mismo enlace "Síguenos en TikTok").
+  - `styles.css`: eliminadas `.tiktok-video-modal*` y `.tiktok-fallback*` (~145 líneas). `.tiktok-card` y sus `__img`/`__scrim`/`__play`/`__meta`/`__title`/`__cta` se conservan tal cual (ya eran el diseño premium correcto; solo cambia el elemento HTML de `<button>` a `<a>`, la apariencia es idéntica).
+  - `config.js`: `TIKTOK_VIDEOS` pierde el campo `videoId` (ya no se usa; el enlace corto `url` es lo único necesario). Comentario actualizado.
+- **Verificado con CDP (Edge headless, file://)**: **0 requests a tiktok.com** en todo momento — al cargar, al hacer scroll, e incluso simulando hover/focus sobre las tarjetas (solo navegaría al hacer clic real, que el test no ejecuta para no salir de la página). 2 tarjetas `<a>` con `href`/`target="_blank"`/`rel="noopener noreferrer"`/`aria-label` correctos; sin `#tiktokVideoModal`, sin `<iframe>`, sin `<script src*="embed.js">` en el DOM. Consola sin errores. Barrido completo del repo confirma cero referencias a `embed.js`, `blockquote`, `tiktokEmbed`, `MutationObserver` o clases del modal fuera de comentarios históricos.
+- **SW**: bump `fo-v44-ghpages` → `fo-v45-ghpages`.
+- **Validación**: `node --check` script.js/config.js = OK; `npm run smoke` = 14/14; `npm test` = **9/9 corridas 104 PASS | 0 FAIL**.
+- **Riesgo restante**: ninguno crítico — sin iframes ni scripts de terceros, la sección no puede fallar ni ralentizar la página bajo ninguna circunstancia (el único "fallo" posible es que TikTok cambie las URLs cortas, cubierto por el comentario en `config.js`).
 
 ## Prompt 26 — TikTok: de facade+embed.js a modal con iframe directo (cerrado)
 
