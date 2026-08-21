@@ -227,14 +227,16 @@
       "main": "img/perfumes/Angel Share edp.png",
       "sizes": {
         "5_premium": "img/perfumes/Angel Share edp decant premium 5ml.png",
-        "10_premium": "img/perfumes/Angel Share edp decant premium 10 ml.png"
+        "10_premium": "img/perfumes/Angel Share edp decant premium 10 ml.png",
+        "30": "img/perfumes/Angel Share edp decant premium 30 ml.png"
       }
     },
     7: {
       "main": "img/perfumes/Apple Brandy.png",
       "sizes": {
         "5_premium": "img/perfumes/Apple Brandy decant premium 5ml.png",
-        "10_premium": "img/perfumes/Apple Brandy decant premium 10 ml.png"
+        "10_premium": "img/perfumes/Apple Brandy decant premium 10 ml.png",
+        "30": "img/perfumes/Apple Brandy decant premium 30 ml.png"
       }
     },
     8: {
