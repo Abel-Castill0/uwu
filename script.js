@@ -742,11 +742,16 @@
       currentModalSize = Object.keys(sizes)[0];
     }
     // La imagen del modal cambia según el tamaño seleccionado (5ml/10ml)
-    const modalImg = $("modalImage").querySelector("img");
-    modalImg.src =
-      (isFull ? product.fullImage : sizeImage(product, currentModalSize)) ||
-      cardImg(product);
-    modalImg.alt = product.name;
+    const modalImgContainer = $("modalImage");
+    if (modalImgContainer) {
+      const modalImg = modalImgContainer.querySelector("img");
+      if (modalImg) {
+        modalImg.src =
+          (isFull ? product.fullImage : sizeImage(product, currentModalSize)) ||
+          cardImg(product);
+        modalImg.alt = product.name;
+      }
+    }
     $("modalName").textContent = product.name;
     $("modalBrand").textContent = product.brand;
     $("modalNotes").textContent =
