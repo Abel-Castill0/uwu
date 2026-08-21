@@ -40,7 +40,8 @@
   /* Imagen específica por tamaño de decant (vial "5ml" / "10 ml").
      Si no hay variante para ese tamaño, cae a la imagen base del producto. */
   function sizeImage(p, size) {
-    return (p && p.sizeImages && p.sizeImages[size]) || (p && p.cardImage) || "";
+    if (!p || !p.sizeImages) return p && p.cardImage || "";
+    return p.sizeImages[size] || p.sizeImages[size + "ml"] || p.sizeImages[size + " ml"] || p.cardImage || "";
   }
   /* ── Decants premium ──────────────────────────────────────────
      Las variantes "5ml_premium" / "10ml_premium" se generan en el modal
@@ -163,10 +164,11 @@
   const IMG_SIZES = "(max-width: 640px) 160px, (max-width: 1024px) 200px, 260px";
 
   // Devuelve los atributos srcset/sizes para una imagen de producto.
-  // Si IMG_OPTIMIZED está desactivado, devuelve cadena vacía (solo se usa src).
+  // Si IMG_OPTIMIZED está desactivado o el nombre tiene espacios, devuelve cadena vacía (solo se usa src).
   function imgSrcsetAttrs(src) {
     if (!IMG_OPTIMIZED || !src) return "";
     const file = src.split("/").pop();
+    if (/[\s()]/.test(file)) return "";
     const small = OPTIMIZED_DIR + file.replace(/\.(png|jpe?g)$/i, ".webp");
     return ` srcset="${esc(small)} 400w, ${esc(src)} 2048w" sizes="${IMG_SIZES}"`;
   }
@@ -2810,14 +2812,9 @@
   }
 
   /* Botón flotante de WhatsApp (fade-in tras 1.5s) */
-  /* Enlaces de redes desde config.js: elementos marcados con data-ig-link / data-wa-link */
+  /* Enlaces de redes desde config.js: elementos marcados con data-wa-link */
   function applyConfigLinks() {
-    const ig = FO.INSTAGRAM_URL || "https://instagram.com/fraganceobsession.pe";
     const wa = "https://wa.me/" + WHATSAPP_NUMBER;
-    document.querySelectorAll("[data-ig-link]").forEach((a) => {
-      a.href = ig;
-      if (a.dataset.igPendingTitle) { a.title = a.dataset.igPendingTitle; a.setAttribute("aria-label", a.dataset.igPendingTitle); }
-    });
     document.querySelectorAll("[data-wa-link]").forEach((a) => {
       if (a.hasAttribute("data-wa-text")) {
         a.href = wa + "?text=" + encodeURIComponent(a.dataset.waText);
@@ -3012,13 +3009,6 @@
     setTimeout(() => fab.classList.add("visible"), 1500);
   }
 
-  /* Botón flotante de Instagram (fade-in tras 2s) */
-  function setupInstagramFab() {
-    const fab = $("igFab");
-    if (!fab) return;
-    setTimeout(() => fab.classList.add("visible"), 2000);
-  }
-
   /* Avisos de conexión (online / offline) */
   function setupConnectivityToasts() {
     window.addEventListener("offline", () =>
@@ -3093,6 +3083,7 @@ function renderTikTokStatic() {
   const grid = document.getElementById('tiktokStaticGrid');
   if (!grid || !FO.TIKTOK_VIDEOS) return;
   const videos = FO.TIKTOK_VIDEOS;
+  const profileUrl = FO.TIKTOK_PROFILE_URL || "https://www.tiktok.com/@fraganceobsession.pe";
   grid.innerHTML = videos.map((v, i) => {
     return `<a class='tiktok-static-card' href='${v.url}' target='_blank' rel='noopener noreferrer' aria-label='Ver video en TikTok: ${v.title}'>
       <div class='tiktok-static-thumb'>
@@ -3127,7 +3118,6 @@ function renderTikTokStatic() {
     setupConnectivityToasts();
     applyConfigLinks();
     setupWhatsAppFab();
-    setupInstagramFab();
     maybeRemindCart();
     injectItemList();
     registerSW();

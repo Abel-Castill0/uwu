@@ -360,7 +360,7 @@ step(function () {
     ok(wa && bg === "none", "waFabMono", "bg=" + bg);
     ok(wa && wa.getAttribute("aria-label") === "Escríbenos por WhatsApp", "waFabAria", "sin aria-label");
     var ig = document.getElementById("igFab");
-    ok(ig && ig.getAttribute("aria-label") === "Síguenos en Instagram", "igFabAria", "sin aria-label");
+    ok(!ig, "igFabRemoved", "igFab should not exist");
     var sticky = document.querySelector(".sticky-cart");
     ok(!!sticky, "stickyCartStill", "sin sticky-cart");
   }, 300);

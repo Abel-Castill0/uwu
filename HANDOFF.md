@@ -1,6 +1,6 @@
 # HANDOFF — FRAGRANCE OBSESSION
 
-Estado final del proyecto al cierre (Prompt 17, 2026-08-18). Este documento es para el próximo agente o la persona que continúe.
+Estado final del proyecto al cierre (Prompt 22, 2026-08-21). Este documento es para el próximo agente o la persona que continúe.
 
 ## Qué es el proyecto
 
@@ -10,13 +10,57 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 
 | Verificación | Resultado |
 |---|---|
-| Suite completa (99 aserciones, DOM + CSS + reduced-motion) | **6/6 corridas: 99 PASS \| 0 FAIL** (3× file://, 1× raíz HTTP, 2× subcarpeta `/site/`) |
-| Smoke Playwright (`%TEMP%\opencode\pwtest\smoke.mjs`) | **14/14 PASS** (135 tarjetas, modal, búsqueda, legales, 404, 0 errores consola) |
-| Auditoría cyber-neo (SCA + SAST + secretos) | **0 críticos / 0 vulnerabilidades / 0 secretos** (1 medio resuelto: PNG→WebP). Reporte: `C:\Users\ABEL\OneDrive\Desktop\cyber-neo-report-Fragance-Obsession-2026-08-18.md` |
-| WebP | 69 imágenes referenciadas optimizadas (400px q80) en `img/perfumes_optimized/` (68 fotos + placeholder), fotos nuevas incluidas |
-| Capturas | v17 (13 PNG) y v18 (ver abajo) en `%TEMP%\opencode\shots\` |
-| Marca | Unificada a **FRAGRANCE OBSESSION** en metadata/visible; prosa usa "Fragrance Obsession" (detalle abajo) |
-| SW | `fo-v35-ghpages` (bump con Node, sin BOM) |
+| Suite completa (104 aserciones, DOM + CSS + reduced-motion) | **reduced-motion: 104 PASS \| 0 FAIL** |
+| Smoke (`npm run smoke`) | **14/14 PASS** |
+| Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
+| SW | `fo-v40-ghpages` |
+| Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
+| TikTok videos | 2 videos reales (ZSVyQTpeK, ZSVyC1pGB) + perfil |
+| Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
+| srcset | Corregido: filenames con espacios omiten srcset (sin errores de consola) |
+| SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 22 — SPA page visibility fix (cerrado)
+
+- **Causa raíz**: faltaba la regla CSS `.page { display: none; }` en `styles.css`. Sin ella, todos los contenedores `.page` (home, catalogo, promos, checkout) eran visibles simultáneamente → se apilaban en la pantalla.
+- **Fix**: añadido al final de `styles.css`:
+  ```css
+  .page { display: none; }
+  .page.active { display: block; }
+  ```
+- **Verificación de rutas**: todos los `navigateTo()` usan nombres correctos (`home`, `catalogo`, `promos`, `checkout`). No existe `navigateTo('packs')` ni `href="#packs"`. Footer, nav, hero CTAs y logo todos apuntan correctamente. `applyHashRoute()` funciona con `hashchange`.
+- **Service Worker**: bump a `fo-v40-ghpages`
+- **Validación**: `node --check` OK; `npm test` reduced-motion = 104/104; `npm run smoke` = 14/14
+
+## Prompt 21 — srcset fix + Angels Share on the Rocks 30ml + validación (cerrado)
+
+- **srcset corregido** (`script.js` `imgSrcsetAttrs`): si el nombre del archivo contiene espacios o paréntesis (`/[\s()]/`), devuelve cadena vacía → el navegador usa solo `src` (que ya maneja URLs escapadas). Elimina todos los errores "Failed parsing 'srcset'" y "Dropped srcset candidate" de la consola.
+- **`sizeImage()` mejorado** (`script.js`): ahora busca `sizeImages[size]`, luego `sizeImages[size+"ml"]`, luego `sizeImages[size+" ml"]`, y finalmente `cardImage`. Cubre variaciones de formato ("30" vs "30ml" vs "30 ml").
+- **Angels Share on the Rocks (id:5) corregido** (`productos.js`):
+  - Añadido `cardImage: "img/perfumes/Angel Share on the Rocks.png"` (antes estaba vacío)
+  - Añadido `sizeImages` con claves "5", "5_premium", "30" apuntando a las imágenes reales del disco
+  - `FO_PRODUCT_IMAGES[5]` actualizado con "30" apuntando a la imagen de 30ml
+- **Service Worker**: bump a `fo-v39-ghpages`
+- **Validación**: `node --check` OK en script.js, config.js, productos.js; `npm test` reduced-motion = 104/104; `npm run smoke` = 14/14
+
+## Prompt 20 — Instagram out, TikTok real, Angels Share fix (cerrado)
+
+- **Instagram eliminado**: se removió toda referencia a Instagram de:
+  - `config.js`: eliminado `INSTAGRAM_URL`
+  - `index.html`: topbar (data-ig-link), FAB (#igFab), footer (social-links)
+  - `script.js`: eliminado `setupInstagramFab()` y su llamada; `applyConfigLinks()` ya no procesa `data-ig-link`
+  - `styles.css`: eliminadas todas las reglas `.ig-fab` (bloque principal, light theme, dark theme, media queries, body:has rules)
+  - Tests: actualizado `igFabAria` → `igFabRemoved` (assert !ig); CDP mobile check actualizado para TikTok
+- **TikTok actualizado**:
+  - `config.js`: `TIKTOK_VIDEOS` reducido a 2 videos con URLs reales (vt.tiktok.com); añadido `TIKTOK_PROFILE_URL`
+  - `script.js`: `renderTikTokStatic()` usa `FO.TIKTOK_PROFILE_URL`
+  - `index.html`: enlace "Síguenos en TikTok" actualizado con URL del perfil
+  - `img/tiktok/`: eliminados `thumb3.svg` y `thumb4.svg` (huérfanos)
+- **Angels Share 30ml corregido**:
+  - `productos.js` id 6: añadido `sizeImages` con mapeo {5 → premium 5ml, 10 → premium 10ml, 30 → edp.png}
+  - `script.js` `sizeImage()`: ahora busca `sizeImages[size]` y `sizeImages[size+"ml"]` antes de fallback a `cardImage`
+- **Service Worker**: bump a `fo-v38-ghpages`
+- **Validación**: `node --check` script.js/config.js/productos.js = OK; `npm test` reduced-motion = 104/104; `npm run smoke` = 14/14
 
 ## Prompt 19 — Noir & Silver + catálogo 5 col + modal UX (cerrado)
 

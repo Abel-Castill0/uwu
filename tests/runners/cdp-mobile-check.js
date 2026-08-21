@@ -69,7 +69,7 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
       const waClass = await evalv("var w=document.querySelector('.topbar-social a[data-wa-link]'); w ? w.className : null");
       const socialVisible = await evalv("document.querySelector('.topbar-social') ? getComputedStyle(document.querySelector('.topbar-social')).display !== 'none' : null");
       const socialH = await evalv("document.querySelector('.topbar-social a') ? Math.round(document.querySelector('.topbar-social a').getBoundingClientRect().height) : 0");
-      const waAlign = await evalv("(function(){ var w=document.querySelector('.topbar-social a[data-wa-link]'); var i=document.querySelector('.topbar-social a[data-ig-link]'); if(!w||!i) return null; var rw=w.getBoundingClientRect(), ri=i.getBoundingClientRect(); return Math.abs(rw.top - ri.top) < 2 && Math.abs(rw.height - ri.height) < 2; })()");
+      const waAlign = await evalv("(function(){ var w=document.querySelector('.topbar-social a[data-wa-link]'); var t=document.querySelector('.topbar-social a[title=\"TikTok\"]'); if(!w||!t) return null; var rw=w.getBoundingClientRect(), rt=t.getBoundingClientRect(); return Math.abs(rw.top - rt.top) < 2 && Math.abs(rw.height - rt.height) < 2; })()");
 
       // Offcanvas: abrir, verificar, cerrar
       let oc = null;
