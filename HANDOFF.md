@@ -16,14 +16,29 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Responsive (`cdp-responsive-check.js`, 320-1440px) | **5/5 OK** (columnas 1/1/3/5/5, modal 92dvh, sin overflow horizontal) |
 | Contraste AA (`cdp-contrast-check.js`, reparado) | Todo ≥4.5:1 en ambos temas (body 15.6-16.1, producto 16-18.5, muted 5.2-5.4, link footer 4.97-4.99) |
 | Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
-| SW | `fo-v43-ghpages` |
+| SW | `fo-v44-ghpages` |
 | Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
-| TikTok videos | Facade loading + embed real (blockquote + embed.js), 1 solo video activo a la vez, fallback a 10s (ver Prompt 25) |
+| TikTok videos | Modal con iframe directo (sin embed.js/blockquote), creado/destruido con el modal, fallback a 8s + enlace persistente (ver Prompt 26) |
 | Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
 | Modal 30ml (id:6 Angels Share / id:7 Apple Brandy) | Corregido: `FO_PRODUCT_IMAGES[6\|7].sizes` no tenía clave `"30"` (ver Prompt 24) |
 | Modal 10ml premium (id:5 Angels Share on the Rocks) | Corregido: `"10_premium"` apuntaba por error a la imagen de 30ml; eliminada la clave, cae al fallback correcto (ver Prompt 24) |
 | srcset | Corregido: filenames con espacios omiten srcset (sin errores de consola) |
 | SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 26 — TikTok: de facade+embed.js a modal con iframe directo (cerrado)
+
+- **Reporte del cliente en navegador real**: tras el Prompt 25 (facade + blockquote + embed.js), el video no se reproducía y la página se sentía lenta. Diagnóstico técnico: plausible — `embed.js` de TikTok queda residente en la página (listeners/observers propios del SDK) incluso después de reproducir, y el propio auditado histórico del proyecto (Prompt 19.2-19.3) ya documentaba que TikTok puede rechazar el embed en silencio según origen/dispositivo. La suite CDP automatizada del Prompt 25 nunca llegó a ejercitar el video realmente reproduciéndose (el iframe de `embed.js` quedaba en `width:0;height:0` indefinidamente en ese entorno), así que ese riesgo nunca se validó con evidencia real hasta ahora.
+- **Decisión del cliente**: eliminar `embed.js` y el blockquote oficial por completo; usar un **modal ligero** que crea un `<iframe src="tiktok.com/embed/v2/{id}">` **directo** solo al abrir el modal, y lo destruye por completo (`innerHTML = ""`) al cerrarlo. Cero scripts de terceros.
+- **Implementación**:
+  - `script.js`: `renderTikTok()` ahora genera tarjetas (`<button class="tiktok-card">`) que solo abren `openTikTokModal(video)`. Esta crea el `<iframe>` directo dentro de `#tiktokVideoFrame`, mueve el foco al panel (reutiliza `focusModal`/`restoreFocus`/`trapTabFocus`, igual que el resto de modales del sitio) y bloquea el scroll (`.modal-open`, mismo patrón que el modal de producto). `closeTikTokModal()` vacía el frame — el iframe se destruye, nada queda corriendo en segundo plano. Cerrado por: overlay, botón ×, tecla Escape (agregado al handler global) y Tab-trap.
+  - **Fallback de 8s + hallazgo real durante la verificación**: se probó en vivo (CDP) que un iframe apuntando a un dominio inexistente **también dispara `load`** (el navegador considera "cargada" su propia página de error) y que, una vez el modal es visible, `offsetWidth/offsetHeight` del iframe son siempre >0 por el propio CSS (`width/height:100%`) — es decir, **ningún signal de JS puede distinguir, para un iframe cross-origin sin cooperación de la página embebida (que es justo lo que aportaba `embed.js` vía postMessage), un rechazo silencioso de un video real**. Por eso se agregó un **enlace persistente "¿No carga? Ver en TikTok"** (pill visible en la esquina inferior del modal mientras hay iframe, oculto solo si el fallback automático toma el control) como red de seguridad real ante ese caso — el timer de 8s (`load` no disparado o sin dimensiones) sigue cubriendo fallos de red genuinos.
+  - `config.js`: mismo `TIKTOK_VIDEOS` (title/thumbnail/url/videoId), comentario actualizado.
+  - `index.html`: `#tiktokVideoModal` (overlay + panel 9:16 + botón cerrar + `#tiktokVideoFrame` + enlace persistente) agregado junto a los demás modales globales (info/cart).
+  - `styles.css`: reemplazadas `.tiktok-facade*`/`.tiktok-embed-wrap*` por `.tiktok-card__*` (la tarjeta es directamente el botón) + `.tiktok-video-modal*` (overlay con blur, panel 9:16, cierre 44×44px, enlace persistente). Mismo diseño visual (Cormorant/Manrope, dorado/marrón, sin emojis).
+- **Verificado con CDP (Edge headless, file://)**: 0 requests a `tiktok.com` al cargar/scroll; 0 requests a `embed.js` en toda la sesión; clic abre el modal y crea **un solo** `<iframe src="tiktok.com/embed/v2/{id}?lang=es">`; cerrar el modal vacía el frame (iframe destruido); Escape cierra; consola sin errores. **Evidencia visual fuerte**: ambos videos renderizaron el contenido real de TikTok (miniatura, caption, contador de likes, botón "Ver ahora", cuenta) dentro del iframe — no una página en blanco — tanto en desktop como en móvil (capturas P26 adjuntas al cliente).
+- **SW**: bump `fo-v43-ghpages` → `fo-v44-ghpages`.
+- **Validación**: `node --check` script.js/config.js = OK; `npm run smoke` = 14/14; `npm test` = **9/9 corridas 104 PASS | 0 FAIL** (incluido warm-up esta vez, sin ningún fallo).
+- **Riesgo restante, honesto**: el enlace persistente cubre el caso de rechazo silencioso que ningún JS puede detectar; si en el iPhone del cliente el video sigue sin reproducirse (a pesar de que en las pruebas automatizadas SÍ renderizó contenido real), el siguiente paso ya acordado con el cliente es eliminar también el iframe y dejar solo tarjetas con enlace a TikTok (cero iframes).
 
 ## Prompt 25 — TikTok: de tarjetas estáticas a facade loading + embed real (cerrado)
 

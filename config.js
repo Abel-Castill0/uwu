@@ -134,16 +134,17 @@ window.FO_CONFIG = {
      Ejemplo: PROXIMAMENTE: [42, 73] */
   PROXIMAMENTE: [],
 
-  /* ── CONTENIDO: VIDEOS DE TIKTOK (facade loading + embed real) ──
-     Cada tarjeta muestra "thumbnail" con un botón de play; el video
-     solo se carga (blockquote oficial + embed.js) al hacer clic.
+  /* ── CONTENIDO: VIDEOS DE TIKTOK (miniatura + modal con iframe directo) ──
+     Cada tarjeta muestra "thumbnail" con un botón de play; al hacer
+     clic se abre un modal y ahí se crea un <iframe> directo a
+     tiktok.com/embed/v2/{videoId} (sin embed.js ni blockquote).
      · thumbnail: miniatura local en img/tiktok/ (SVG/WebP).
      · url:       enlace corto público del video (fallback "Ver en
-                  TikTok" si el embed no responde en 10s).
-     · videoId:   id numérico del video, usado para el embed oficial
-                  (data-video-id). Resuelto una sola vez siguiendo el
-                  redirect de la url corta — si TikTok cambia el link,
-                  reemplaza aquí url + videoId juntos. */
+                  TikTok" si el iframe no responde en 8s).
+     · videoId:   id numérico del video, usado en el src del iframe.
+                  Resuelto una sola vez siguiendo el redirect de la
+                  url corta — si TikTok cambia el link, reemplaza
+                  aquí url + videoId juntos. */
   TIKTOK_PROFILE_URL: "https://www.tiktok.com/@fraganceobsession.pe?_r=1&_t=ZS-993ZhxTLNmH",
   TIKTOK_VIDEOS: [
     { title: "El perfume ideal para el calor", thumbnail: "img/tiktok/thumb1.svg", url: "https://vt.tiktok.com/ZSVyQTpeK/", videoId: "7490728805271751942" },

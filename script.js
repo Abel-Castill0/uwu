@@ -921,6 +921,10 @@
   if (infoModalEl) {
     infoModalEl.addEventListener("keydown", (e) => trapTabFocus(infoModalEl, e));
   }
+  const tiktokModalEl = $("tiktokVideoModal");
+  if (tiktokModalEl) {
+    tiktokModalEl.addEventListener("keydown", (e) => trapTabFocus(tiktokModalEl, e));
+  }
   function focusModal(container) {
     if (!container) return;
     lastFocusedEl = document.activeElement;
@@ -2607,6 +2611,7 @@
       closeCart();
       closePackModal();
       closeFiltersPanel();
+      closeTikTokModal();
     }
   });
 
@@ -3074,181 +3079,128 @@
   }
 
   /* ══════════════════════════════════════════════════════════════
-     TIKTOK — facade loading + embed oficial (blockquote + embed.js).
+     TIKTOK — tarjetas con miniatura + modal de video ligero.
      Cero requests a TikTok al cargar la página o al hacer scroll: cada
-     tarjeta muestra una miniatura local con botón de play y solo carga
-     el video real al hacer clic. Un solo video activo a la vez — al
-     elegir otro, el anterior se desactiva (se retira su iframe) y
-     vuelve a mostrar su miniatura. embed.js se inyecta una única vez
-     por página: los clics siguientes usan la API oficial
-     tiktokEmbed.lib.render() para re-escanear el DOM sin recargar el
-     script (evita la ráfaga de peticiones que antes disparaba el
-     "overload protect" de TikTok). Si TikTok no responde en 10s,
-     fallback elegante con enlace directo al video (nunca un iframe en
-     blanco). Los videos se definen en config.js → TIKTOK_VIDEOS /
-     TIKTOK_PROFILE_URL.
+     tarjeta es un botón con miniatura local; el video solo se crea al
+     hacer clic, dentro de un modal (#tiktokVideoModal), como un
+     <iframe> DIRECTO a tiktok.com/embed/v2/{id} — sin embed.js ni
+     blockquote (ese script quedaba residente en la página incluso
+     después de reproducir, lo que en dispositivos reales se notó como
+     lentitud). Al cerrar el modal el iframe se destruye por completo
+     (innerHTML = "": nada sigue corriendo en segundo plano). Si no
+     carga en 8s, fallback elegante con enlace directo al video. Los
+     videos se definen en config.js → TIKTOK_VIDEOS / TIKTOK_PROFILE_URL.
   ══════════════════════════════════════════════════════════════ */
   const TIKTOK_ICON_PATH =
     "M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z";
-  const TIKTOK_SCRIPT_SRC = "https://www.tiktok.com/embed.js";
-  let tiktokScriptEl = null;
-  let tiktokScriptLoaded = false;
-  let tiktokActiveCard = null;
-  let tiktokFallbackTimer = null;
-  let tiktokObserver = null;
-
-  function tiktokProfileHandle() {
-    const m = /@([^/?]+)/.exec(FO.TIKTOK_PROFILE_URL || "");
-    return m ? m[1] : "fraganceobsession.pe";
-  }
+  let tiktokModalTimer = null;
 
   function renderTikTok() {
     const grid = document.getElementById("tiktokGrid");
     if (!grid || !FO.TIKTOK_VIDEOS) return;
-    const handle = tiktokProfileHandle();
-    grid.innerHTML = FO.TIKTOK_VIDEOS.map((v, i) => {
-      const canonicalUrl = v.videoId ? `https://www.tiktok.com/@${handle}/video/${v.videoId}` : v.url;
-      return `<div class="tiktok-card" data-index="${i}" data-video-id="${esc(v.videoId || "")}" data-video-url="${esc(canonicalUrl)}" data-fallback-url="${esc(v.url)}">
-        <button type="button" class="tiktok-facade" aria-label="Reproducir video de TikTok: ${esc(v.title)}" aria-pressed="false">
-          <img class="tiktok-facade__img" src="${esc(v.thumbnail)}" alt="" loading="lazy" decoding="async" />
-          <span class="tiktok-facade__scrim" aria-hidden="true"></span>
-          <span class="tiktok-facade__play" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"/></svg></span>
-          <span class="tiktok-facade__meta">
-            <strong class="tiktok-facade__title">${esc(v.title)}</strong>
-            <span class="tiktok-facade__cta"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="${TIKTOK_ICON_PATH}"/></svg>Reproducir video</span>
-          </span>
-        </button>
-      </div>`;
-    }).join("");
-    setupTikTok(grid);
-  }
-
-  function ensureTikTokScript() {
-    if (tiktokScriptEl) return;
-    const existing = document.querySelector(`script[src="${TIKTOK_SCRIPT_SRC}"]`);
-    if (existing) { tiktokScriptEl = existing; tiktokScriptLoaded = true; return; }
-    tiktokScriptEl = document.createElement("script");
-    tiktokScriptEl.src = TIKTOK_SCRIPT_SRC;
-    tiktokScriptEl.async = true;
-    tiktokScriptEl.onload = () => { tiktokScriptLoaded = true; };
-    tiktokScriptEl.onerror = () => { tiktokScriptEl = null; tiktokScriptLoaded = false; };
-    document.body.appendChild(tiktokScriptEl);
-  }
-
-  // Re-procesa los blockquotes SIN recargar embed.js: la API oficial
-  // (tiktokEmbed.lib.render) re-escanea el DOM sin peticiones extra del
-  // script; recargarlo duplicaría el escaneo y la carga de peticiones.
-  function tiktokReRender() {
-    if (window.tiktokEmbed && window.tiktokEmbed.lib && typeof window.tiktokEmbed.lib.render === "function") {
-      try {
-        const r = window.tiktokEmbed.lib.render();
-        if (r && typeof r.then === "function") r.catch(() => {});
-        return true;
-      } catch (e) { /* noop */ }
-    }
-    return false;
-  }
-
-  function clearTikTokWatchers() {
-    if (tiktokFallbackTimer) { clearTimeout(tiktokFallbackTimer); tiktokFallbackTimer = null; }
-    if (tiktokObserver) { tiktokObserver.disconnect(); tiktokObserver = null; }
-  }
-
-  function deactivateTikTokCard(card) {
-    if (!card) return;
-    clearTikTokWatchers();
-    const embedWrap = card.querySelector(".tiktok-embed-wrap");
-    if (embedWrap) embedWrap.remove();
-    const fallbackLink = card.querySelector(".tiktok-fallback");
-    if (fallbackLink) fallbackLink.remove();
-    card.classList.remove("tiktok-card--active", "tiktok-card--loading", "tiktok-card--fallback");
-    const facade = card.querySelector(".tiktok-facade");
-    if (facade) { facade.hidden = false; facade.setAttribute("aria-pressed", "false"); }
-    if (tiktokActiveCard === card) tiktokActiveCard = null;
-  }
-
-  function showTikTokFallback(card) {
-    card.classList.remove("tiktok-card--loading");
-    card.classList.add("tiktok-card--fallback");
-    const embedWrap = card.querySelector(".tiktok-embed-wrap");
-    if (embedWrap) embedWrap.remove();
-    const facade = card.querySelector(".tiktok-facade");
-    if (facade) facade.hidden = true;
-    if (card.querySelector(".tiktok-fallback")) return;
-    const url = card.dataset.fallbackUrl || FO.TIKTOK_PROFILE_URL || "https://www.tiktok.com/@fraganceobsession.pe";
-    const a = document.createElement("a");
-    a.className = "tiktok-fallback";
-    a.href = url;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.setAttribute("aria-label", "Ver este video en TikTok (se abre en una pestaña nueva)");
-    a.innerHTML =
-      `<span class="tiktok-fallback__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="${TIKTOK_ICON_PATH}"/></svg></span>` +
-      `<span class="tiktok-fallback__text">Ver en TikTok</span>` +
-      `<span class="tiktok-fallback__hint">Se abre en una pestaña nueva</span>`;
-    card.appendChild(a);
-  }
-
-  function activateTikTokCard(card) {
-    if (!card || card === tiktokActiveCard) return;
-    if (tiktokActiveCard) deactivateTikTokCard(tiktokActiveCard);
-
-    const videoId = card.dataset.videoId;
-    const videoUrl = card.dataset.videoUrl;
-    if (!videoId) { showTikTokFallback(card); return; }
-
-    tiktokActiveCard = card;
-    card.classList.add("tiktok-card--loading");
-    const facade = card.querySelector(".tiktok-facade");
-    if (facade) facade.setAttribute("aria-pressed", "true");
-
-    const wrap = document.createElement("div");
-    wrap.className = "tiktok-embed-wrap";
-    const bq = document.createElement("blockquote");
-    bq.className = "tiktok-embed";
-    bq.setAttribute("cite", videoUrl);
-    bq.setAttribute("data-video-id", videoId);
-    bq.appendChild(document.createElement("section"));
-    wrap.appendChild(bq);
-    card.appendChild(wrap);
-
-    if (tiktokScriptLoaded) {
-      if (!tiktokReRender()) ensureTikTokScript();
-    } else {
-      ensureTikTokScript(); // el script re-escanea el DOM completo al cargar
-    }
-
-    tiktokFallbackTimer = setTimeout(() => {
-      if (!tiktokIframeVisible(card)) showTikTokFallback(card);
-    }, 10000);
-
-    // TikTok inserta el iframe casi de inmediato pero puede dejarlo en
-    // width:0/height:0/display:none mientras negocia el tamaño real (o si
-    // el entorno es detectado como automatizado/bloqueado, indefinidamente).
-    // Por eso no basta con que el iframe exista: se observan también sus
-    // cambios de atributos (style) y solo se da por "cargado" cuando tiene
-    // dimensiones reales — si nunca las obtiene, gana el fallback a los 10s.
-    tiktokObserver = new MutationObserver(() => {
-      if (tiktokIframeVisible(card)) {
-        card.classList.remove("tiktok-card--loading");
-        card.classList.add("tiktok-card--active");
-        if (facade) facade.hidden = true;
-        clearTikTokWatchers();
-      }
+    grid.innerHTML = FO.TIKTOK_VIDEOS.map((v, i) => `
+      <button type="button" class="tiktok-card" data-index="${i}" aria-label="Reproducir video de TikTok: ${esc(v.title)}">
+        <img class="tiktok-card__img" src="${esc(v.thumbnail)}" alt="" loading="lazy" decoding="async" />
+        <span class="tiktok-card__scrim" aria-hidden="true"></span>
+        <span class="tiktok-card__play" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"/></svg></span>
+        <span class="tiktok-card__meta">
+          <strong class="tiktok-card__title">${esc(v.title)}</strong>
+          <span class="tiktok-card__cta"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="${TIKTOK_ICON_PATH}"/></svg>Reproducir video</span>
+        </span>
+      </button>`).join("");
+    grid.querySelectorAll(".tiktok-card").forEach((btn) => {
+      btn.addEventListener("click", () => openTikTokModal(FO.TIKTOK_VIDEOS[Number(btn.dataset.index)]));
     });
-    tiktokObserver.observe(card, { childList: true, subtree: true, attributes: true, attributeFilter: ["style", "width", "height"] });
   }
 
-  function tiktokIframeVisible(card) {
-    const iframe = card.querySelector("iframe");
-    return !!iframe && iframe.offsetWidth > 0 && iframe.offsetHeight > 0;
+  function renderTikTokModalFallback(video) {
+    const frame = $("tiktokVideoFrame");
+    if (!frame) return;
+    const url = (video && video.url) || FO.TIKTOK_PROFILE_URL || "https://www.tiktok.com/@fraganceobsession.pe";
+    frame.innerHTML = `<a class="tiktok-fallback" href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="Ver este video en TikTok (se abre en una pestaña nueva)">
+        <span class="tiktok-fallback__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="${TIKTOK_ICON_PATH}"/></svg></span>
+        <span class="tiktok-fallback__text">Ver en TikTok</span>
+        <span class="tiktok-fallback__hint">Se abre en una pestaña nueva</span>
+      </a>`;
+    // El fallback ya trae su propio enlace: oculta el persistente para no duplicar.
+    const openLink = $("tiktokVideoOpenLink");
+    if (openLink) openLink.hidden = true;
   }
 
-  // Facade en cada tarjeta; sin IntersectionObserver ni auto-carga por
-  // scroll: el usuario decide cuándo reproducir (un video a la vez).
-  function setupTikTok(grid) {
-    grid.querySelectorAll(".tiktok-facade").forEach((facade) => {
-      facade.addEventListener("click", () => activateTikTokCard(facade.closest(".tiktok-card")));
+  function openTikTokModal(video) {
+    const modal = $("tiktokVideoModal");
+    const frame = $("tiktokVideoFrame");
+    if (!modal || !frame || !video) return;
+    clearTimeout(tiktokModalTimer);
+    frame.innerHTML = "";
+
+    // Enlace de escape SIEMPRE visible mientras hay iframe: sin embed.js no
+    // hay forma de saber desde fuera (cross-origin) si TikTok rechazó el
+    // embed en silencio (devuelve una página vacía con 200 OK — dispara
+    // `load` igual que un video real, sin dimensiones distintas una vez el
+    // modal es visible). El timer de 8s cubre fallos de red genuinos; este
+    // link cubre el rechazo silencioso que ningún JS puede detectar.
+    const openLink = $("tiktokVideoOpenLink");
+    if (openLink) {
+      openLink.href = video.url || FO.TIKTOK_PROFILE_URL || "https://www.tiktok.com/@fraganceobsession.pe";
+      openLink.hidden = !video.videoId;
+    }
+
+    if (!video.videoId) {
+      renderTikTokModalFallback(video);
+    } else {
+      let iframeLoaded = false;
+      const iframe = document.createElement("iframe");
+      iframe.className = "tiktok-video-modal__iframe";
+      iframe.loading = "lazy";
+      iframe.setAttribute("allow", "fullscreen; encrypted-media");
+      iframe.referrerPolicy = "no-referrer";
+      iframe.title = video.title || "Video de TikTok";
+      // Error de red real (DNS, conexión rechazada, bloqueo CSP del iframe)
+      // → fallback inmediato, sin esperar los 8s.
+      iframe.addEventListener("error", () => renderTikTokModalFallback(video));
+      iframe.addEventListener("load", () => { iframeLoaded = true; });
+      iframe.src = `https://www.tiktok.com/embed/v2/${video.videoId}?lang=es`;
+      frame.appendChild(iframe);
+      // Nota honesta: sin embed.js no hay postMessage de TikTok confirmando
+      // que el video renderizó de verdad — un rechazo "silencioso" por
+      // origen/dispositivo también dispara `load` (la respuesta llega,
+      // solo que vacía). Este timer cubre lo que SÍ es detectable desde
+      // fuera del iframe (cross-origin): que nunca cargue nada o que quede
+      // sin alto real; no puede inspeccionar el contenido del iframe.
+      tiktokModalTimer = setTimeout(() => {
+        if (!iframeLoaded || iframe.offsetWidth === 0 || iframe.offsetHeight === 0) {
+          renderTikTokModalFallback(video);
+        }
+      }, 8000);
+    }
+
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+    document.body.classList.add("modal-open");
+    document.documentElement.classList.add("modal-open");
+    focusModal(modal.querySelector(".tiktok-video-modal__panel"));
+    track("tiktok_video_open", { item_id: video.videoId || "", item_title: video.title });
+  }
+
+  function closeTikTokModal() {
+    const modal = $("tiktokVideoModal");
+    if (!modal || modal.hidden) return;
+    clearTimeout(tiktokModalTimer);
+    modal.hidden = true;
+    document.body.style.overflow = "";
+    document.body.classList.remove("modal-open");
+    document.documentElement.classList.remove("modal-open");
+    const frame = $("tiktokVideoFrame");
+    if (frame) frame.innerHTML = ""; // destruye el iframe: nada queda corriendo
+    restoreFocus();
+  }
+  window.closeTikTokModal = closeTikTokModal;
+
+  const tiktokVideoModalEl = $("tiktokVideoModal");
+  if (tiktokVideoModalEl) {
+    tiktokVideoModalEl.addEventListener("click", (e) => {
+      if (e.target.closest("[data-tiktok-close]")) closeTikTokModal();
     });
   }
 
