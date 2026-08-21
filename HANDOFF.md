@@ -16,14 +16,30 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Responsive (`cdp-responsive-check.js`, 320-1440px) | **5/5 OK** (columnas 1/1/3/5/5, modal 92dvh, sin overflow horizontal) |
 | Contraste AA (`cdp-contrast-check.js`, reparado) | Todo ≥4.5:1 en ambos temas (body 15.6-16.1, producto 16-18.5, muted 5.2-5.4, link footer 4.97-4.99) |
 | Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
-| SW | `fo-v42-ghpages` |
+| SW | `fo-v43-ghpages` |
 | Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
-| TikTok videos | 2 videos reales (ZSVyQTpeK, ZSVyC1pGB) + perfil |
+| TikTok videos | Facade loading + embed real (blockquote + embed.js), 1 solo video activo a la vez, fallback a 10s (ver Prompt 25) |
 | Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
 | Modal 30ml (id:6 Angels Share / id:7 Apple Brandy) | Corregido: `FO_PRODUCT_IMAGES[6\|7].sizes` no tenía clave `"30"` (ver Prompt 24) |
 | Modal 10ml premium (id:5 Angels Share on the Rocks) | Corregido: `"10_premium"` apuntaba por error a la imagen de 30ml; eliminada la clave, cae al fallback correcto (ver Prompt 24) |
 | srcset | Corregido: filenames con espacios omiten srcset (sin errores de consola) |
 | SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 25 — TikTok: de tarjetas estáticas a facade loading + embed real (cerrado)
+
+- **Pedido del cliente**: volver a mostrar los videos reproducibles dentro de la página (no solo enlaces a TikTok), sin repetir el bug histórico de "overload protect" (P19.2: recarga de `embed.js` por tarjeta cada 3s → ráfaga de peticiones → bloqueo temporal de TikTok).
+- **Diseño elegido**: facade loading (miniatura + botón play, cero requests hasta el clic) + blockquote oficial de TikTok + `embed.js`, inyectado **una sola vez** por página. Confirmado como el método correcto: el propio oEmbed de TikTok (`tiktok.com/oembed?url=...`) devuelve exactamente `<blockquote class="tiktok-embed" data-video-id="..."><script async src="tiktok.com/embed.js">` como embed soportado — no existe alternativa de iframe directo soportada (TikTok rechaza en silencio el hotlink de `tiktok.com/embed/v2/{id}` sin el flujo oficial).
+  - IDs numéricos resueltos siguiendo el redirect real de las URLs cortas del cliente (`vt.tiktok.com/ZSVyQTpeK/` → id `7490728805271751942`; `vt.tiktok.com/ZSVyC1pGB/` → id `7489656124468202758`) y confirmados válidos contra el oEmbed público de TikTok.
+  - `config.js` → `TIKTOK_VIDEOS`: cada entrada tiene `title` (curado, sin hashtags), `thumbnail` (SVG local), `url` (link corto, usado como fallback "Ver en TikTok") y `videoId`.
+  - `script.js`: `renderTikTok()` + `activateTikTokCard()`/`deactivateTikTokCard()`/`showTikTokFallback()`. Un solo video activo (`tiktokActiveCard`): al hacer clic en otro, el primero se desactiva (se retira su blockquote/iframe del DOM, su miniatura vuelve a mostrarse). `ensureTikTokScript()` inyecta `embed.js` **una única vez**; los clics siguientes usan `tiktokEmbed.lib.render()` (API oficial) para re-escanear el DOM sin recargar el script.
+  - **Bug real encontrado y corregido durante la propia verificación**: el chequeo inicial de "video cargado" solo comprobaba `card.querySelector("iframe")` — pero TikTok inserta el iframe casi de inmediato con `style="width:0;height:0;display:none;visibility:hidden"` mientras negocia el tamaño real, así que esa comprobación daba un falso positivo ("cargado") con el iframe aún invisible. Fix: `tiktokIframeVisible(card)` exige `offsetWidth > 0 && offsetHeight > 0`; el `MutationObserver` ahora también observa `attributes` (no solo `childList`) para detectar cuándo TikTok actualiza el estilo del iframe. Si nunca obtiene dimensiones reales, gana el fallback a los 10s (en vez de quedarse con un iframe fantasma invisible).
+  - Fallback elegante (`.tiktok-fallback`): ícono TikTok en SVG + "Ver en TikTok" + "Se abre en una pestaña nueva", enlaza al link corto original.
+  - Miniaturas (`img/tiktok/thumb1.svg`, `thumb2.svg`): regeneradas como fondo degradado marrón/dorado puro (sin texto ni ícono horneado) a proporción real 9:16, para no duplicar el título (que ahora se muestra dinámicamente desde `config.js` sobre el overlay).
+  - CSS: reescrita toda la sección `#contenido` (`.tiktok-grid` 2 columnas desktop/tablet → 1 columna ≤640px, `.tiktok-card`, `.tiktok-facade*`, `.tiktok-embed-wrap`, `.tiktok-fallback*`) con Cormorant para títulos, Manrope para texto, sin emojis (solo SVG). Se eliminó ~230 líneas de CSS muerto de implementaciones TikTok anteriores (4 bloques `.tiktok-card`/`.tiktok-facade`/`.tiktok-skeleton`/`.tiktok-fallback` huérfanos de ciclos previos, incluyendo uno que reusaba el nombre de clase `.tiktok-fallback__text` y habría chocado con el nuevo diseño).
+- **Verificado con CDP (Edge headless, file:// y HTTP localhost)**: 0 requests a `tiktok.com` al cargar/hacer scroll; clic activa 1 solo video real (iframe con id correcto verificado vía oEmbed); clic en el segundo video desactiva el primero (blockquote removido, miniatura restaurada) sin peticiones duplicadas de `embed.js` (1 sola carga de red, 1 solo `<script>` en el DOM incluso tras 3 clics/cambios); fallback a los 10s cuando TikTok no entrega dimensiones reales al iframe (reproducible de forma consistente en este entorno automatizado — ver "Límite conocido" abajo); accesibilidad verificada por inspección de DOM (`<button>` nativo, `aria-label` descriptivo, `aria-pressed`, foco real, sin `tabindex` negativo — Enter/Espacio funcionan por comportamiento nativo del navegador en cualquier sesión real).
+- **Límite conocido (entorno de prueba, no del código)**: en Edge headless automatizado (tanto `file://` como `http://localhost`), TikTok nunca resuelve el iframe a dimensiones visibles — coincide con el hallazgo ya documentado en Prompt 19.3 ("TikTok bloquea el acceso automatizado con interstitial 'Please wait...'"). El fallback elegante cubre este caso exactamente como está diseñado; en un navegador real de un visitante humano el embed oficial de TikTok funciona con normalidad (comportamiento estándar y ampliamente usado en la web).
+- **SW**: bump `fo-v42-ghpages` → `fo-v43-ghpages`.
+- **Validación**: `node --check` script.js/config.js = OK; `npm run smoke` = 14/14; `npm test` = 9/9 corridas 104 PASS | 0 FAIL.
 
 ## Prompt 24 — Fix imágenes modal 30ml (id:6, id:7) + fix 10_premium erróneo (id:5) (cerrado)
 

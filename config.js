@@ -134,14 +134,19 @@ window.FO_CONFIG = {
      Ejemplo: PROXIMAMENTE: [42, 73] */
   PROXIMAMENTE: [],
 
-  /* ── CONTENIDO: VIDEOS DE TIKTOK (sección estática) ──────────
-     Tarjetas con miniatura local que enlazan al video en TikTok
-     (se abre en pestaña nueva; cero embeds/iframes).
-     · thumbnail: ruta local en img/tiktok/ (SVG/WebP).
-     · url:      enlace público del video en TikTok. */
+  /* ── CONTENIDO: VIDEOS DE TIKTOK (facade loading + embed real) ──
+     Cada tarjeta muestra "thumbnail" con un botón de play; el video
+     solo se carga (blockquote oficial + embed.js) al hacer clic.
+     · thumbnail: miniatura local en img/tiktok/ (SVG/WebP).
+     · url:       enlace corto público del video (fallback "Ver en
+                  TikTok" si el embed no responde en 10s).
+     · videoId:   id numérico del video, usado para el embed oficial
+                  (data-video-id). Resuelto una sola vez siguiendo el
+                  redirect de la url corta — si TikTok cambia el link,
+                  reemplaza aquí url + videoId juntos. */
   TIKTOK_PROFILE_URL: "https://www.tiktok.com/@fraganceobsession.pe?_r=1&_t=ZS-993ZhxTLNmH",
   TIKTOK_VIDEOS: [
-    { title: "FRAGRANCE OBSESSION · Video 1", thumbnail: "img/tiktok/thumb1.svg", url: "https://vt.tiktok.com/ZSVyQTpeK/" },
-    { title: "FRAGRANCE OBSESSION · Video 2", thumbnail: "img/tiktok/thumb2.svg", url: "https://vt.tiktok.com/ZSVyC1pGB/" },
+    { title: "El perfume ideal para el calor", thumbnail: "img/tiktok/thumb1.svg", url: "https://vt.tiktok.com/ZSVyQTpeK/", videoId: "7490728805271751942" },
+    { title: "Colección Stéphane Humbert Lucas", thumbnail: "img/tiktok/thumb2.svg", url: "https://vt.tiktok.com/ZSVyC1pGB/", videoId: "7489656124468202758" },
   ],
 };
