@@ -1,6 +1,6 @@
 # HANDOFF — FRAGRANCE OBSESSION
 
-Estado final del proyecto al cierre (Prompt 22, 2026-08-21). Este documento es para el próximo agente o la persona que continúe.
+Estado final del proyecto al cierre (Prompt 23, 2026-08-21). Este documento es para el próximo agente o la persona que continúe.
 
 ## Qué es el proyecto
 
@@ -10,15 +10,32 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 
 | Verificación | Resultado |
 |---|---|
-| Suite completa (104 aserciones, DOM + CSS + reduced-motion) | **reduced-motion: 104 PASS \| 0 FAIL** |
+| Suite completa (104 aserciones × 3 targets × 3 modos) | **9/9 corridas: 104 PASS \| 0 FAIL** (file://, HTTP raíz, HTTP /site/ — warm-up + normal + reduced-motion) |
 | Smoke (`npm run smoke`) | **14/14 PASS** |
+| `test-descuentos.js` | **17/17 PASS** |
+| Responsive (`cdp-responsive-check.js`, 320-1440px) | **5/5 OK** (columnas 1/1/3/5/5, modal 92dvh, sin overflow horizontal) |
+| Contraste AA (`cdp-contrast-check.js`, reparado) | Todo ≥4.5:1 en ambos temas (body 15.6-16.1, producto 16-18.5, muted 5.2-5.4, link footer 4.97-4.99) |
 | Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
-| SW | `fo-v40-ghpages` |
+| SW | `fo-v41-ghpages` |
 | Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
 | TikTok videos | 2 videos reales (ZSVyQTpeK, ZSVyC1pGB) + perfil |
 | Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
 | srcset | Corregido: filenames con espacios omiten srcset (sin errores de consola) |
 | SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 23 — Auditoría completa + fix de regresión crítica en styles.css (cerrado)
+
+- **BUG CRÍTICO encontrado y corregido**: el commit anterior (`32870e8`, "Fix stacked pages...") borró por accidente **2,628 de las 5,082 líneas de `styles.css`** (>50% del archivo), incluyendo el bloque `:root { --color-bg, --gold, --text-primary... }` completo y el bloque `[data-theme="dark"] {...}`. El commit real solo pretendía ~9 líneas (limpieza de restos `.ig-fab`/Instagram + añadir `.page{display:none}`), pero el método de edición usado se llevó por delante todo el contenido intermedio, dejando un `:root {` huérfano que nunca se cerraba (todo el resto del CSS quedaba anidado dentro).
+  - **Impacto real**: todas las variables CSS (`--color-bg`, `--gold`, etc.) resolvían a cadena vacía en el navegador; `body` quedaba con `background: transparent` y `color: black` (valores por defecto del user-agent, no el diseño). Confirmado en vivo con `getComputedStyle`.
+  - **Detectado independientemente por la propia suite**: `catalogUniformHeights` fallaba en modo normal (alturas de tarjeta 1147px vs 1157px, ya que el CSS que igualaba alturas había desaparecido) — la afirmación de "104 PASS" del Prompt 22 nunca se volvió a verificar tras ese commit.
+  - **Fix**: se restauró `styles.css` desde el commit padre (`32870e8^`, 5,082 líneas) y se re-aplicaron a mano las ediciones legítimas del commit malo (limpieza de restos `.ig-fab`/`#igFab` + el propio fix de `.page`). Además se terminó de eliminar el bloque muerto completo de `.ig-fab` ("INSTAGRAM FLOTANTE", ~25 líneas huérfanas desde que Instagram se quitó en el Prompt 20) — 0 referencias `ig-fab`/`igFab` restantes en todo el proyecto.
+  - **Verificado**: llaves balanceadas (profundidad final 0), `--color-bg` y el resto de tokens resuelven correctamente, `git diff` contra el commit padre muestra únicamente los cambios esperados (limpieza `.ig-fab` + bloque `.page` añadido, nada más).
+- **Fix de la herramienta de auditoría** (`tests/runners/cdp-contrast-check.js`, no es código de producción): el chequeo de contraste tenía dos bugs propios que generaban falsos positivos — (1) no compositaba colores semitransparentes (`rgba(255,255,255,.48)`) contra su fondo real antes de medir luminancia (ignoraba el canal alpha), y (2) comparaba siempre contra el fondo de `<body>` en vez de subir por los ancestros hasta el primer fondo opaco real (el footer tiene su propio fondo oscuro fijo en ambos temas, distinto del body). Esto hacía que el link de footer (`data-info-modal`) reportara 1.08:1 en claro y 18.50:1 en oscuro — ambos falsos. Corregido: composita alpha + sube por ancestros; el resultado real es **4.97:1 (claro) / 4.99:1 (oscuro)**, AA correcto. También se actualizó el selector `muted` (apuntaba a `.product-meta`, clase que ya no existe; ahora usa `.product-category`).
+- **SW**: bump `fo-v40-ghpages` → `fo-v41-ghpages`.
+- **Validación**: `node --check` en los 6 JS = OK; `npm test` = **9/9 corridas 104 PASS \| 0 FAIL**; `npm run smoke` = 14/14; `test-descuentos.js` = 17/17; `cdp-responsive-check.js` = 5/5 OK (320/390/768/1280/1440); `cdp-contrast-check.js` reparado = AA en ambos temas.
+- **Auditoría de todo lo demás (FASE 0-5) sin hallazgos nuevos**: se verificó contra el código real (no solo se asumió el HANDOFF anterior) — SPA navigation (1 sola `.page.active`), catálogo progresivo (24 iniciales confirmadas en vivo), grid 1/2/3/4/5 columnas en los breakpoints exactos pedidos, modal 92dvh con scrollbar oculta, hero video solo desktop (removido de mobile por JS, no solo CSS), Font Awesome cargado una sola vez, Lenis ausente, GSAP activo, teléfono validado con `/^9\d{8}$/` tanto visual como en el gate de envío, 0 referencias de imagen rotas (68 en productos.js + todas las páginas HTML), consola limpia en home/catálogo/checkout, `!important` (33 usos, todos justificados: reduced-motion, estados forzados de imagen, fixes de layout), preconnect/preload de fuentes correctos.
+- **Nota de higiene CSS (no corregida, decisión deliberada)**: quedan ~196 selectores que se repiten en el mismo contexto (`:root` aparece 2 veces de forma aditiva sin conflicto, `.hero`/`.modal-close`/etc. se redefinen en distintos bloques de override histórico). El propio README ya documentaba esta decisión ("el CSS no se consolidó mecánicamente... se pospone cualquier refactor hasta contar con regresión visual automatizada") y, dado que el bug de esta misma ronda fue causado por una edición que sí tocó el archivo de forma agresiva, se decidió NO tocarlos: son aditivos/no conflictivos, y consolidarlos no aporta beneficio funcional frente al riesgo real demostrado.
+- **Entorno de ejecución de la suite**: en esta sesión, la suite CDP se volvió extremadamente lenta (>15 min) por acumulación de procesos `msedge.exe` huérfanos (~85-90) de sesiones de navegador previas del propio entorno; matar esos procesos (`taskkill /F /IM msedge.exe /T`) restauró tiempos normales (~2-3 min para las 9 corridas). Si un futuro agente ve la suite colgada sin motivo aparente, revisar primero el conteo de procesos `msedge.exe` residuales.
 
 ## Prompt 22 — SPA page visibility fix (cerrado)
 

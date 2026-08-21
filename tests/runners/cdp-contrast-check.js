@@ -48,37 +48,48 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
       await evalv(`document.documentElement.setAttribute('data-theme','${theme}')`);
       await delay(400);
       const checks = JSON.parse(await evalv(`(() => {
-        const lum = (c) => {
-          const rgb = c.match(/\\d+/g).slice(0,3).map(Number);
-          const f = rgb.map((v) => { v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); });
-          return 0.2126*f[0] + 0.7152*f[1] + 0.0722*f[2];
+        // Fondo/color pueden venir en rgb() o rgba(); parseamos los 3-4 números tal cual.
+        const parts = (c) => (c.match(/[\\d.]+/g) || []).map(Number);
+        const lum = ([r, g, b]) => {
+          const f = [r, g, b].map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+          return 0.2126 * f[0] + 0.7152 * f[1] + 0.0722 * f[2];
         };
-        const ratio = (a,b) => { const [l1,l2]=[lum(a),lum(b)].sort((x,y)=>y-x); return ((l1+0.05)/(l2+0.05)).toFixed(2); };
+        const ratio = (a, b) => { const [l1, l2] = [lum(a), lum(b)].sort((x, y) => y - x); return ((l1 + 0.05) / (l2 + 0.05)).toFixed(2); };
+        // Composita fg (que puede ser semitransparente, p.ej. rgba(255,255,255,.48))
+        // sobre bg antes de medir luminancia: ignorar el alpha da ratios falsos.
+        const composite = (fg, bg) => {
+          const [r, g, b, a = 1] = parts(fg);
+          const [br, bg2, bb] = parts(bg);
+          if (a >= 0.999) return [r, g, b];
+          return [r, g, b].map((v, i) => a * v + (1 - a) * [br, bg2, bb][i]);
+        };
         const cs = getComputedStyle;
-        const sel = (s, fg, bg) => {
+        // Sube por los ancestros hasta encontrar el primer fondo opaco real
+        // (un <a> o <span> normalmente no pinta su propio fondo).
+        const effectiveBg = (el) => {
+          let node = el;
+          while (node) {
+            const bg = cs(node).backgroundColor;
+            const p = parts(bg);
+            if (p.length >= 3 && (p.length < 4 || p[3] > 0.01)) return bg;
+            node = node.parentElement;
+          }
+          return cs(document.body).backgroundColor;
+        };
+        const sel = (s, fgProp) => {
           const el = document.querySelector(s);
           if (!el) return null;
-          const f = cs(el)[fg];
-          const own = cs(el)[bg];
-          const bodyBg = cs(document.body).backgroundColor;
-          const pick = (c) => {
-            if (!c) return bodyBg;
-            const m = c.match(/rgba?\\(([\\d.,\\s]+)\\)/);
-            if (m && m[1].split(',').length === 4) {
-              const parts = m[1].split(',').map(Number);
-              if (parts[3] < 0.95) return bodyBg;
-            }
-            return c;
-          };
-          return ratio(f, pick(own));
+          const fg = cs(el)[fgProp];
+          const bg = effectiveBg(el);
+          return ratio(composite(fg, bg), parts(bg));
         };
         return JSON.stringify({
-          bodyText: sel('body', 'color', 'backgroundColor'),
-          productName: sel('.product-card .product-name', 'color', 'backgroundColor'),
-          productPrice: sel('.product-card .product-price', 'color', 'backgroundColor'),
-          cardBtn: sel('.product-card .btn-add', 'color', 'backgroundColor'),
-          muted: sel('.product-card .product-meta', 'color', 'backgroundColor'),
-          link: sel('a[data-info-modal]', 'color', 'backgroundColor'),
+          bodyText: sel('body', 'color'),
+          productName: sel('.product-card .product-name', 'color'),
+          productPrice: sel('.product-card .product-price', 'color'),
+          cardBtn: sel('.product-card .btn-add', 'color'),
+          muted: sel('.product-card .product-category', 'color'),
+          link: sel('#footerInfoLinks a', 'color'),
         });
       })()`));
       console.log(`--- TEMA ${theme.toUpperCase()} (ratio ≥4.5 normal / ≥3 grande) ---`);
