@@ -16,12 +16,25 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Responsive (`cdp-responsive-check.js`, 320-1440px) | **5/5 OK** (columnas 1/1/3/5/5, modal 92dvh, sin overflow horizontal) |
 | Contraste AA (`cdp-contrast-check.js`, reparado) | Todo ≥4.5:1 en ambos temas (body 15.6-16.1, producto 16-18.5, muted 5.2-5.4, link footer 4.97-4.99) |
 | Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
-| SW | `fo-v41-ghpages` |
+| SW | `fo-v42-ghpages` |
 | Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
 | TikTok videos | 2 videos reales (ZSVyQTpeK, ZSVyC1pGB) + perfil |
 | Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
+| Modal 30ml (id:6 Angels Share / id:7 Apple Brandy) | Corregido: `FO_PRODUCT_IMAGES[6\|7].sizes` no tenía clave `"30"` (ver Prompt 24) |
+| Modal 10ml premium (id:5 Angels Share on the Rocks) | Corregido: `"10_premium"` apuntaba por error a la imagen de 30ml; eliminada la clave, cae al fallback correcto (ver Prompt 24) |
 | srcset | Corregido: filenames con espacios omiten srcset (sin errores de consola) |
 | SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 24 — Fix imágenes modal 30ml (id:6, id:7) + fix 10_premium erróneo (id:5) (cerrado)
+
+- **BUG encontrado**: `productos.js` tiene dos fuentes de imágenes por tamaño — un `sizeImages` inline dentro del array `FO_PRODUCTS` (decorativo) y el mapa real `FO_PRODUCT_IMAGES` (por id), aplicado al final del archivo con `p.sizeImages = imgs.sizes || {};`, que **sobrescribe** el inline. Un intento previo de arreglar el inline no tuvo efecto porque no era la fuente de verdad real.
+  - `FO_PRODUCT_IMAGES[6]` (Angels Share / Angel Share edp) y `[7]` (Apple Brandy) no tenían clave `"30"` → al elegir 30ml en el modal, `sizeImage()` caía al `cardImage` (imagen principal) en vez de mostrar la foto del decant de 30ml.
+  - **Fix**: agregada `"30": "img/perfumes/Angel Share edp decant premium 30 ml.png"` y `"30": "img/perfumes/Apple Brandy decant premium 30 ml.png"` a sus respectivos `sizes`.
+- **Bug adicional encontrado durante la verificación** (no relacionado al de arriba): `FO_PRODUCT_IMAGES[5]` (Angels Share on the Rocks) tenía `"10_premium"` apuntando por error a `Angel Share on the Rocks decant premium 30 ml.png` (no existe archivo de 10ml para este producto). Al elegir 10ml premium en el modal se mostraba la foto de 30ml.
+  - **Fix**: eliminada la clave `"10_premium"` de `FO_PRODUCT_IMAGES[5].sizes` — ahora el tamaño 10ml (normal y premium) cae correctamente al fallback `cardImage` (`Angel Share on the Rocks.png`), sin mostrar una imagen equivocada.
+- **Verificado con CDP (Edge headless)**: para ids 5, 6 y 7, cada tamaño (`1,2,3,5,5_premium,10,10_premium,30`) produce el `src` esperado en `#modalImage img` — sin regresiones en ninguna talla existente.
+- **SW**: bump `fo-v41-ghpages` → `fo-v42-ghpages`.
+- **Validación**: `node --check productos.js` = OK; `npm run smoke` = 14/14; `npm test` = 9/9 corridas 104 PASS | 0 FAIL.
 
 ## Prompt 23 — Auditoría completa + fix de regresión crítica en styles.css (cerrado)
 

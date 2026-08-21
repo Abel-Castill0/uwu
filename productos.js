@@ -219,7 +219,6 @@
       "main": "img/perfumes/Angel Share on the Rocks.png",
       "sizes": {
         "5_premium": "img/perfumes/Angel Share on the Rocks decant premium 5ml.png",
-        "10_premium": "img/perfumes/Angel Share on the Rocks decant premium 30 ml.png",
         "30": "img/perfumes/Angel Share on the Rocks decant premium 30 ml.png"
       }
     },
