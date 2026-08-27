@@ -89,44 +89,6 @@
   }
   </script>
 
-  <!-- ════════ GOOGLE ANALYTICS 4 ════════
-       👉 REEMPLAZA "G-XXXXXXXXXX" por tu ID de medición real (Admin → Flujos de datos).
-       Mientras esté el placeholder, GA NO se carga (sin errores ni peticiones). -->
-  <script>
-    window.GA_MEASUREMENT_ID = "G-XXXXXXXXXX"; /* ← REEMPLAZA AQUÍ */
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    (function () {
-      var id = window.GA_MEASUREMENT_ID;
-      if (!id || /XXXXXX/.test(id)) return; // sin ID real: no inicializa GA
-      var s = document.createElement("script");
-      s.async = true;
-      s.src = "https://www.googletagmanager.com/gtag/js?id=" + id;
-      document.head.appendChild(s);
-      gtag("js", new Date());
-      gtag("config", id);
-    })();
-  </script>
-
-  <!-- ════════ META PIXEL (Facebook/Instagram Ads) ════════
-       👉 REEMPLAZA "XXXXXXXXXXXXXXX" por tu Pixel ID real (Meta Business → Píxeles).
-       Mientras esté el placeholder, el Pixel NO se carga (sin errores ni peticiones).
-       Declarado en la Política de Privacidad (sección 4). -->
-  <script>
-    window.META_PIXEL_ID = "XXXXXXXXXXXXXXX"; /* ← REEMPLAZA AQUÍ */
-    (function () {
-      var id = window.META_PIXEL_ID;
-      if (!id || /XXXXXXX/.test(id)) return; // sin ID real: no inicializa el Pixel
-      var s = document.createElement("script");
-      s.async = true;
-      s.src = "https://connect.facebook.net/en_US/fbevents.js";
-      document.head.appendChild(s);
-      window.fbq = window.fbq || function () { (window.fbq.q = window.fbq.q || []).push(arguments); };
-      fbq("init", id);
-      fbq("track", "PageView");
-    })();
-  </script>
-
   <!-- Preconnects -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
