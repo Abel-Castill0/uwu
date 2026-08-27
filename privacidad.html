@@ -3,137 +3,116 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#1A120B" />
-  <meta name="robots" content="index, follow" />
-  <meta name="description" content="Política de Privacidad de Fragrance Obsession: qué datos recopilamos por WhatsApp, uso de Google Analytics y Meta Pixel, uso de IA generativa y tus derechos según la Ley 29733 (Perú)." />
-  <link rel="canonical" href="https://fraganceobsession.pe/privacidad" />
+  <meta name="robots" content="noindex, nofollow" />
   <title>Política de Privacidad · FRAGRANCE OBSESSION</title>
-  <link rel="icon" type="image/webp" href="logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" />
-  <script>
-    (function () {
-      try {
-        var t = localStorage.getItem("fo_theme") || localStorage.getItem("paco_theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-        document.documentElement.setAttribute("data-theme", t);
-      } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
-    })();
-  </script>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Manrope:wght@300;400;500;600&display=swap" media="print" onload="this.media='all'" />
   <style>
-    .legal-wrap { max-width: 780px; margin: 0 auto; padding: 4.5rem 1.5rem 5rem; }
-    .legal-logo { width: 56px; height: 56px; margin-bottom: 1.4rem; filter: drop-shadow(0 8px 22px rgba(113,113,122,.28)); }
-    .legal-title { font-family: var(--font-display); font-weight: 500; font-size: clamp(1.9rem, 5vw, 2.8rem); color: var(--gold-deep); line-height: 1.15; margin-bottom: .5rem; }
-    .legal-updated { color: var(--text-muted); font-size: .82rem; margin-bottom: 2.2rem; }
-    .legal-section { margin-bottom: 1.9rem; }
-    .legal-section h2 { font-family: var(--font-display); font-weight: 500; font-size: 1.3rem; color: var(--gold-deep); margin-bottom: .55rem; }
-    .legal-section p, .legal-section li { color: var(--text-secondary); font-size: .95rem; line-height: 1.75; }
-    .legal-section ul { padding-left: 1.2rem; margin-top: .4rem; }
-    .legal-back { display: inline-flex; align-items: center; gap: .45rem; margin-top: 2.6rem; color: var(--gold-deep); font-weight: 500; text-decoration: none; border-bottom: 1px solid rgba(113,113,122,.35); padding-bottom: 2px; }
-    .legal-back:hover { color: var(--gold); }
+    :root { --gold: #C99B5F; --bg: #FBF7F0; --text: #1A120B; --text-sec: #5C4B3A; --surface: #fff; }
+    [data-theme="dark"] { --bg: #1A120B; --text: #F5EFE6; --text-sec: #C9B8A3; --surface: #1C130C; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Manrope',sans-serif; background:var(--bg); color:var(--text); line-height:1.75; padding:2rem; }
+    .container { max-width:800px; margin:0 auto; }
+    h1 { font-family:'Cormorant Garamond',serif; font-size:2.2rem; font-weight:300; margin-bottom:.5rem; }
+    h2 { font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:400; margin:2rem 0 .8rem; color:var(--gold); }
+    p, li { font-size:.95rem; color:var(--text-sec); margin-bottom:1rem; }
+    ul { padding-left:1.5rem; }
+    a { color:var(--gold); }
+    .back { display:inline-block; margin-top:2rem; color:var(--gold); font-weight:500; }
+    .theme-toggle { position:fixed; top:1rem; right:1rem; background:var(--surface); border:1px solid rgba(0,0,0,.1); border-radius:50%; width:40px; height:40px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
   </style>
 </head>
 <body>
-  <main class="legal-wrap">
-    <img src="logo.webp" alt="FRAGRANCE OBSESSION" class="legal-logo" width="56" height="56" decoding="async" />
-    <h1 class="legal-title">Política de Privacidad</h1>
-    <p class="legal-updated">Última actualización: 18 de agosto de 2026</p>
+  <button class="theme-toggle" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'':'dark';localStorage.setItem('fo_theme',document.documentElement.dataset.theme)" aria-label="Cambiar tema">🌙</button>
+  <div class="container">
+    <h1>Política de Privacidad</h1>
+    <p><em>Última actualización: 25 de agosto de 2026</em></p>
 
-    <section class="legal-section">
-      <h2>1. Responsable del tratamiento</h2>
-      <p>Fragrance Obsession ("Fragrance Obsession", "nosotros") es una tienda de decants de perfumes con operación en Lima, Perú.
-        Correo de contacto: <strong>contacto@fraganceobsession.pe</strong> · WhatsApp: <strong>+51 994 467 586</strong>.</p>
-    </section>
+    <h2>1. Datos del Responsable</h2>
+    <p><strong>FRAGRANCE OBSESSION</strong><br>
+    Lima, Perú<br>
+    WhatsApp: +51 994 467 586<br>
+    Correo: contacto@fraganceobsession.pe</p>
 
-    <section class="legal-section">
-      <h2>2. Datos que recopilamos</h2>
-      <p>No creamos cuentas de usuario ni almacenamos tarjetas de pago. Los datos que tratamos son los que tú compartes al
-        comprar o consultar por WhatsApp:</p>
-      <ul>
-        <li>Nombre y número de WhatsApp.</li>
-        <li>Dirección de entrega (para coordinar el envío).</li>
-        <li>Detalle de tu pedido (productos, tamaños, montos).</li>
-        <li>Mensajes y fotografías que nos envías (por ejemplo, reseñas o evidencia de pago).</li>
-      </ul>
-    </section>
+    <h2>2. Información que Recopilamos</h2>
+    <p>Recopilamos la siguiente información cuando utilizas nuestro sitio web:</p>
+    <ul>
+      <li><strong>Datos de navegación:</strong> Dirección IP, tipo de navegador, sistema operativo, páginas visitadas, tiempo de permanencia y origen del tráfico.</li>
+      <li><strong>Datos de contacto:</strong> Nombre, número de teléfono, dirección de envío y correo electrónico (solo cuando realizas un pedido).</li>
+      <li><strong>Datos de pago:</strong> No almacenamos datos de tarjetas de crédito/débito. Los pagos se procesan a través de plataformas seguras de terceros (Yape, Plin, Visa, Mastercard).</li>
+    </ul>
 
-    <section class="legal-section">
-      <h2>3. Finalidad del tratamiento</h2>
-      <ul>
-        <li>Atender y coordinar pedidos, pagos y entregas.</li>
-        <li>Brindar soporte y responder consultas.</li>
-        <li>Enviarte comunicaciones comerciales, solo si diste tu consentimiento y con opción de baja.</li>
-        <li>Mejorar la experiencia del sitio y detectar fallas.</li>
-      </ul>
-    </section>
+    <h2>3. Cookies y Tecnologías de Rastreo</h2>
+    <p>Utilizamos las siguientes tecnologías de rastreo:</p>
+    <ul>
+      <li><strong>Google Analytics 4 (GA4):</strong> Para analizar el tráfico del sitio,了解 el comportamiento de los usuarios y mejorar nuestros servicios. Google Analytics utiliza cookies para recopilar información de forma anónima. Los datos recopilados incluyen: páginas visitadas, tiempo en el sitio, dispositivo y ubicación aproximada.</li>
+      <li><strong>Meta Pixel (Facebook/Instagram):</strong> Para medir la efectividad de nuestras campañas publicitarias y crear audiencias personalizadas. El Pixel recopila información sobre tus acciones en el sitio web.</li>
+      <li><strong>Cookies esenciales:</strong> Necesarias para el funcionamiento del sitio (carrito de compras, preferencias de tema, sesión).</li>
+    </ul>
+    <p>Puedes gestionar las cookies desde la configuración de tu navegador. Si deseas evitar el rastreo de Google Analytics, puedes instalar el <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">complemento de inhabilitación de Google Analytics</a>.</p>
 
-    <section class="legal-section">
-      <h2>4. Google Analytics 4 y Meta Pixel</h2>
-      <p>El sitio puede incorporar herramientas de medición y publicidad de terceros:</p>
-      <ul>
-        <li><strong>Google Analytics 4 (GA4)</strong>: mide el tráfico y el comportamiento de navegación (páginas visitadas,
-          duración, origen, tipo de dispositivo). Google trata estos datos según su política de privacidad.</li>
-        <li><strong>Meta Pixel</strong>: permite medir conversiones y mostrar anuncios en Facebook/Instagram a audiencias
-          similares a quienes visitan el sitio.</li>
-      </ul>
-      <p>Estas herramientas usan cookies y recopilan datos seudonimizados (por ejemplo, dirección IP). Se activan únicamente
-        cuando la tienda configura sus identificadores de medición; mientras no se configuren, no se envían datos. Puedes
-        bloquearlas con la configuración de cookies de tu navegador o con bloqueadores de rastreadores.</p>
-    </section>
+    <h2>4. Uso de la Información</h2>
+    <p>Utilizamos tu información para:</p>
+    <ul>
+      <li>Procesar y entregar tus pedidos.</li>
+      <li>Enviar confirmaciones, actualizaciones de envío y soporte al cliente.</li>
+      <li>Mejorar nuestro sitio web y experiencia de usuario.</li>
+      <li>Enviarte promociones y ofertas (solo si has dado tu consentimiento).</li>
+      <li>Cumplir con obligaciones legales.</li>
+    </ul>
 
-    <section class="legal-section">
-      <h2>5. Uso de inteligencia artificial generativa</h2>
-      <p>Parte del contenido de este sitio (textos, imágenes de producto, diseño y código) ha sido creado o asistido por
-        herramientas de inteligencia artificial generativa, revisadas y ajustadas por nuestro equipo. Estas herramientas no
-        reciben ni procesan tus datos personales: la IA generativa solo se usa para producir contenido del sitio, nunca para
-        analizar pedidos ni mensajes de clientes.</p>
-    </section>
+    <h2>5. Compartición de Datos con Terceros</h2>
+    <p>No vendemos tu información personal. Compartimos datos únicamente con:</p>
+    <ul>
+      <li><strong>Google (Analytics):</strong> Datos de navegación anónimos para análisis.</li>
+      <li><strong>Meta (Facebook/Instagram):</strong> Datos de conversión para publicidad.</li>
+      <li><strong>Plataformas de pago:</strong> Yape, Plin, Visa, Mastercard (solo para procesar pagos).</li>
+      <li><strong>Servicios de mensajería:</strong> WhatsApp Business API para comunicaciones de pedido.</li>
+    </ul>
 
-    <section class="legal-section">
-      <h2>6. Cookies</h2>
-      <ul>
-        <li><strong>Técnicas</strong>: necesarias para el funcionamiento (preferencia de tema, carrito en tu dispositivo).</li>
-        <li><strong>Analíticas</strong>: las de GA4 descritas arriba.</li>
-        <li><strong>Publicitarias</strong>: las del Meta Pixel descritas arriba.</li>
-      </ul>
-      <p>El carrito y el tema se guardan en el almacenamiento local de tu navegador y no salen de tu dispositivo.</p>
-    </section>
+    <h2>6. Tus Derechos</h2>
+    <p>De conformidad con la Ley de Protección de Datos Personales del Perú (Ley N° 29733), tienes derecho a:</p>
+    <ul>
+      <li>Acceder a tus datos personales.</li>
+      <li>Solicitar la rectificación o eliminación de tus datos.</li>
+      <li>Oponerte al tratamiento de tus datos.</li>
+      <li>Solicitar la portabilidad de tus datos.</li>
+    </ul>
+    <p>Para ejercer estos derechos, contáctanos a través de WhatsApp o correo electrónico.</p>
 
-    <section class="legal-section">
-      <h2>7. Conservación y transferencia</h2>
-      <p>Conservamos la información de pedidos el tiempo necesario para cumplir obligaciones comerciales y tributarias. Los
-        datos que compartes por WhatsApp se rigen además por la política de privacidad de WhatsApp/Meta. No vendemos ni
-        alquilamos datos personales a terceros.</p>
-    </section>
+    <h2>7. Seguridad de los Datos</h2>
+    <p>Implementamos medidas de seguridad técnicas y organizativas para proteger tu información, incluyendo:</p>
+    <ul>
+      <li>Conexión HTTPS (certificado SSL) en todo el sitio.</li>
+      <li>Almacenamiento seguro en servidores con acceso restringido.</li>
+      <li>No almacenamos datos de tarjetas de crédito/débito.</li>
+    </ul>
 
-    <section class="legal-section">
-      <h2>8. Tus derechos (Ley 29733, Perú)</h2>
-      <p>De acuerdo con la Ley N.° 29733 (Ley de Protección de Datos Personales) y su reglamento, puedes ejercer los derechos
-        de <strong>acceso, rectificación, cancelación y oposición</strong> escribiendo a <strong>contacto@fraganceobsession.pe</strong>
-        indicando tu nombre y el derecho que deseas ejercer. Responderemos en un plazo máximo de 15 días hábiles. También
-        puedes presentar una reclamación ante la Autoridad Nacional de Protección de Datos Personales del Perú.</p>
-    </section>
+    <h2>8. Contenido Subido por Usuarios</h2>
+    <p>Si la plataforma permite subir archivos, fotos o audios, el usuario es el único responsable del contenido que sube. FRAGRANCE OBSESSION no se hace responsable por contenido que infrinja derechos de autor o sea indebido. Nos reservamos el derecho de eliminar cualquier contenido que viol nuestras políticas.</p>
 
-    <section class="legal-section">
-      <h2>9. Menores de edad</h2>
-      <p>Los productos se ofrecen a mayores de 18 años. Si eres menor, no compartas datos personales a través del sitio.</p>
-    </section>
+    <h2>9. Menores de Edad</h2>
+    <p>Nuestro sitio web no está dirigido a menores de 18 años. No recopilamos intencionalmente información de menores de edad.</p>
 
-    <section class="legal-section">
-      <h2>10. Cambios a esta política</h2>
-      <p>Podemos actualizar esta política cuando sea necesario; la versión vigente se publicará siempre en esta página con su
-        fecha de actualización.</p>
-    </section>
+    <h2>10. Cambios en esta Política</h2>
+    <p>Podemos actualizar esta política de privacidad en cualquier momento. Los cambios se publicarán en esta página con la fecha de la última actualización.</p>
 
-    <section class="legal-section">
-      <h2>11. Contacto</h2>
-      <p>Para cualquier consulta sobre privacidad: <strong>contacto@fraganceobsession.pe</strong> o WhatsApp
-        <strong>+51 994 467 586</strong>.</p>
-    </section>
+    <h2>11. Contacto</h2>
+    <p>Si tienes preguntas sobre esta política de privacidad, puedes contactarnos a través de:</p>
+    <ul>
+      <li>WhatsApp: +51 994 467 586</li>
+      <li>Correo electrónico: contacto@fraganceobsession.pe</li>
+    </ul>
 
-    <a class="legal-back" href="index.html">← Volver al inicio</a>
-  </main>
+    <a href="index.html" class="back">← Volver al inicio</a>
+  </div>
+
+  <script>
+    (function() {
+      var saved = localStorage.getItem("fo_theme") || "dark";
+      if (saved) document.documentElement.dataset.theme = saved;
+    })();
+  </script>
 </body>
 </html>

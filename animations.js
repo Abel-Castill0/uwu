@@ -16,6 +16,24 @@
   /* ─── Reducción de movimiento ─────────────────────────────── */
   var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* ─── Lenis Smooth Scroll ─────────────────────────────────── */
+  function initLenis() {
+    if (prefersReduced || typeof Lenis === "undefined") return;
+    try {
+      var lenis = new Lenis({
+        autoRaf: true,
+        duration: 1.2,
+        easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
+        touchMultiplier: 2,
+      });
+      /* Connect Lenis to GSAP ScrollTrigger */
+      lenis.on("scroll", ScrollTrigger.update);
+      gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
+      gsap.ticker.lagSmoothing(0);
+      window._lenis = lenis;
+    } catch (e) { /* Lenis not loaded, skip */ }
+  }
+
   /* ─── Helpers ─────────────────────────────────────────────── */
   function ready(fn) {
     if (document.readyState !== "loading") fn();
@@ -272,6 +290,7 @@
   /* ── Boot ─────────────────────────────────────────────── */
   ready(function () {
     if (hasGsap()) gsap.registerPlugin(ScrollTrigger);
+    initLenis();
     initScrollReveals();
     initCategoryShowcaseAnimations();
     initHoverTilt();
