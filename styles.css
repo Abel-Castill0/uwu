@@ -4112,13 +4112,13 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
     #catalogGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
   @media (min-width: 768px) and (max-width: 1023px) {
-    #catalogGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    #catalogGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .9rem; }
   }
   @media (max-width: 767px) {
-    #catalogGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+    #catalogGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; }
   }
-  @media (max-width: 399px) {
-    #catalogGrid { grid-template-columns: 1fr; }
+  @media (max-width: 359px) {
+    #catalogGrid { grid-template-columns: 1fr; gap: .6rem; }
   }
 
   /* ---- Modal: selector de tamaños en cuadrícula, ordenado y con check ---- */

@@ -15,10 +15,13 @@
 
   /* ─── Reducción de movimiento ─────────────────────────────── */
   var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var isMobile = window.matchMedia("(max-width: 768px)").matches;
 
   /* ─── Lenis Smooth Scroll ─────────────────────────────────── */
   function initLenis() {
     if (prefersReduced || typeof Lenis === "undefined") return;
+    /* Disable Lenis on mobile — native scroll is smoother on touch */
+    if (window.matchMedia("(max-width: 768px)").matches) return;
     try {
       var lenis = new Lenis({
         autoRaf: true,
@@ -49,11 +52,15 @@
     if (!hasGsap() || prefersReduced) return;
     gsap.registerPlugin(ScrollTrigger);
 
+    /* On mobile, use simpler reveals — less stagger, shorter duration */
+    var dur = isMobile ? 0.5 : 0.85;
+    var stag = isMobile ? 0.04 : 0.12;
+
     /* Section headers */
     gsap.utils.toArray(".section-header").forEach(function (el) {
       gsap.from(el, {
         scrollTrigger: { trigger: el, start: "top 88%", toggleActions: "play none none none" },
-        y: 40, opacity: 0, duration: 0.85, ease: EASE_OUT,
+        y: isMobile ? 20 : 40, opacity: 0, duration: dur, ease: EASE_OUT,
       });
     });
 
@@ -62,8 +69,8 @@
     if (trust.length) {
       gsap.from(trust, {
         scrollTrigger: { trigger: ".trust-grid", start: "top 84%", toggleActions: "play none none none" },
-        y: 50, opacity: 0, scale: 0.96,
-        duration: 0.7, stagger: 0.12, ease: EASE_OUT, clearProps: "transform",
+        y: isMobile ? 24 : 50, opacity: 0, scale: 0.98,
+        duration: isMobile ? 0.45 : 0.7, stagger: stag, ease: EASE_OUT, clearProps: "transform",
       });
     }
 
@@ -72,7 +79,7 @@
     if (reviews.length) {
       gsap.from(reviews, {
         scrollTrigger: { trigger: ".reviews-carousel", start: "top 84%", toggleActions: "play none none none" },
-        y: 35, opacity: 0, duration: 0.6, stagger: 0.08, ease: EASE_OUT, clearProps: "transform",
+        y: isMobile ? 16 : 35, opacity: 0, duration: isMobile ? 0.4 : 0.6, stagger: stag, ease: EASE_OUT, clearProps: "transform",
       });
     }
 
@@ -81,7 +88,7 @@
     if (statsInner) {
       gsap.from(statsInner, {
         scrollTrigger: { trigger: ".stats-bar", start: "top 92%", toggleActions: "play none none none" },
-        y: 24, opacity: 0, duration: 0.7, ease: EASE_OUT,
+        y: isMobile ? 12 : 24, opacity: 0, duration: isMobile ? 0.45 : 0.7, ease: EASE_OUT,
       });
     }
 
@@ -90,8 +97,17 @@
     if (tiktok.length) {
       gsap.from(tiktok, {
         scrollTrigger: { trigger: ".tiktok-grid", start: "top 85%", toggleActions: "play none none none" },
-        y: 38, opacity: 0, scale: 0.97,
-        duration: 0.6, stagger: 0.09, ease: EASE_OUT, clearProps: "transform",
+        y: isMobile ? 18 : 38, opacity: 0, scale: 0.98,
+        duration: isMobile ? 0.4 : 0.6, stagger: stag, ease: EASE_OUT, clearProps: "transform",
+      });
+    }
+
+    /* FAQ items */
+    var faqItems = gsap.utils.toArray(".faq-item");
+    if (faqItems.length) {
+      gsap.from(faqItems, {
+        scrollTrigger: { trigger: ".section-faq", start: "top 85%", toggleActions: "play none none none" },
+        y: isMobile ? 12 : 24, opacity: 0, duration: isMobile ? 0.35 : 0.5, stagger: stag, ease: EASE_OUT, clearProps: "transform,opacity",
       });
     }
 
@@ -100,14 +116,14 @@
     if (footerBrand) {
       gsap.from(footerBrand, {
         scrollTrigger: { trigger: ".footer", start: "top 90%", toggleActions: "play none none none" },
-        y: 26, opacity: 0, duration: 0.65, ease: EASE_OUT,
+        y: isMobile ? 14 : 26, opacity: 0, duration: isMobile ? 0.4 : 0.65, ease: EASE_OUT,
       });
     }
     var footerCols = gsap.utils.toArray(".footer-col");
     if (footerCols.length) {
       gsap.from(footerCols, {
         scrollTrigger: { trigger: ".footer", start: "top 88%", toggleActions: "play none none none" },
-        y: 26, opacity: 0, duration: 0.65, stagger: 0.1, ease: EASE_OUT,
+        y: isMobile ? 14 : 26, opacity: 0, duration: isMobile ? 0.4 : 0.65, stagger: stag, ease: EASE_OUT,
       });
     }
   }
@@ -139,7 +155,7 @@
      Sólo en pointer: fine (desktop), no interfiere con touch.
   ══════════════════════════════════════════════════════════ */
   function initHoverTilt() {
-    if (!window.matchMedia("(pointer: fine)").matches || prefersReduced) return;
+    if (!window.matchMedia("(pointer: fine)").matches || prefersReduced || isMobile) return;
 
     document.querySelectorAll(".cat-tile").forEach(function (tile) {
       var img = tile.querySelector(".cat-tile__img img");
@@ -176,11 +192,11 @@
        resto aparece al instante. Con 135 cards se creaban ~135 tweens en cada
        render (churn de ~1.3 MB/navegación); con el tope se conserva el
        stagger visual con ~1/6 del costo. */
-    var toAnimate = Array.prototype.slice.call(items, 0, 24);
+    var toAnimate = Array.prototype.slice.call(items, 0, isMobile ? 12 : 24);
 
     gsap.fromTo(toAnimate,
-      { y: 28, opacity: 0, scale: 0.97 },
-      { y: 0, opacity: 1, scale: 1, duration: 0.48, stagger: 0.06, ease: EASE_OUT, clearProps: "transform,opacity" }
+      { y: isMobile ? 16 : 28, opacity: 0, scale: 0.98 },
+      { y: 0, opacity: 1, scale: 1, duration: isMobile ? 0.35 : 0.48, stagger: isMobile ? 0.03 : 0.06, ease: EASE_OUT, clearProps: "transform,opacity" }
     );
   }
 
@@ -243,7 +259,7 @@
      7. MAGNETIC BUTTONS — btn-gold
   ══════════════════════════════════════════════════════════ */
   function initMagneticButtons() {
-    if (!window.matchMedia("(pointer: fine)").matches || prefersReduced) return;
+    if (!window.matchMedia("(pointer: fine)").matches || prefersReduced || isMobile) return;
 
     var STRENGTH = 0.22;
     document.querySelectorAll(".btn-gold").forEach(function (btn) {
@@ -268,20 +284,7 @@
   }
 
   /* ══════════════════════════════════════════════════════════
-     9. FAQ REVEAL — scroll-triggered stagger
-  ══════════════════════════════════════════════════════════ */
-  function initFAQReveal() {
-    if (!hasGsap() || prefersReduced) return;
-    var items = gsap.utils.toArray(".faq-item");
-    if (!items.length) return;
-    gsap.from(items, {
-      scrollTrigger: { trigger: ".section-faq", start: "top 85%", toggleActions: "play none none none" },
-      y: 24, opacity: 0, duration: 0.5, stagger: 0.08, ease: EASE_OUT, clearProps: "transform,opacity",
-    });
-  }
-
-  /* ══════════════════════════════════════════════════════════
-     10. PUBLIC API — window.FraganceAnimations
+     9. PUBLIC API — window.FraganceAnimations
      refresh()  → llamar después de cada renderizado dinámico
      destroy()  → limpiar todo (observers, ScrollTrigger)
   ══════════════════════════════════════════════════════════ */
@@ -310,7 +313,6 @@
     initProductGridAnimations();
     initCounters();
     initMagneticButtons();
-    initFAQReveal();
   });
 
 })();

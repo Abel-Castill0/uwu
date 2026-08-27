@@ -23,17 +23,29 @@
   /* Imagen por defecto elegante: monograma dorado sobre marrón profundo.
      Se genera en SVG (data URI) cuando el perfume no tiene foto propia. */
   function cardImg(p) {
-    const label = ((p && (p.name || p.brand)) || "Fragrance Obsession").replace(/[^\w\s-]/g, "");
+    const name = (p && (p.name || p.brand)) || "Fragrance Obsession";
+    const label = name.replace(/[^\w\s-]/g, "");
     const initials = label.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "FO";
     const svg =
       '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">' +
-      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
-      '<stop offset="0" stop-color="#2C2015"/><stop offset="0.55" stop-color="#1A120B"/><stop offset="1" stop-color="#140E08"/>' +
-      '</linearGradient></defs>' +
-      '<rect width="600" height="600" fill="url(#g)"/>' +
-      '<rect x="24" y="24" width="552" height="552" fill="none" stroke="#C99B5F" stroke-opacity="0.3" stroke-width="3"/>' +
-      '<text x="300" y="298" text-anchor="middle" dominant-baseline="central" font-family="Georgia, \'Times New Roman\', serif" font-size="170" fill="#E8CE9C" fill-opacity="0.9">' + initials + '</text>' +
-      '<text x="300" y="500" text-anchor="middle" font-family="Georgia, \'Times New Roman\', serif" font-size="24" letter-spacing="6" fill="#B88A4E" fill-opacity="0.6">FRAGRANCE OBSESSION</text>' +
+      '<defs>' +
+      '<linearGradient id="bg" x1="0" y1="0" x2="0.6" y2="1">' +
+      '<stop offset="0" stop-color="#1C130C"/><stop offset="0.5" stop-color="#140E08"/><stop offset="1" stop-color="#0D0A06"/>' +
+      '</linearGradient>' +
+      '<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" stop-color="#E5C896"/><stop offset="0.5" stop-color="#C99B5F"/><stop offset="1" stop-color="#A67C3D"/>' +
+      '</linearGradient>' +
+      '<radialGradient id="glow" cx="0.5" cy="0.42" r="0.55">' +
+      '<stop offset="0" stop-color="#C99B5F" stop-opacity="0.08"/><stop offset="1" stop-color="#C99B5F" stop-opacity="0"/>' +
+      '</radialGradient>' +
+      '</defs>' +
+      '<rect width="600" height="600" fill="url(#bg)"/>' +
+      '<rect width="600" height="600" fill="url(#glow)"/>' +
+      '<rect x="32" y="32" width="536" height="536" rx="8" fill="none" stroke="url(#gold)" stroke-opacity="0.2" stroke-width="1.5"/>' +
+      '<rect x="44" y="44" width="512" height="512" rx="4" fill="none" stroke="url(#gold)" stroke-opacity="0.08" stroke-width="0.5"/>' +
+      '<text x="300" y="278" text-anchor="middle" dominant-baseline="central" font-family="Georgia, \'Times New Roman\', serif" font-size="160" font-weight="300" fill="url(#gold)" fill-opacity="0.85">' + initials + '</text>' +
+      '<line x1="220" y1="340" x2="380" y2="340" stroke="url(#gold)" stroke-opacity="0.25" stroke-width="1"/>' +
+      '<text x="300" y="490" text-anchor="middle" font-family="Georgia, \'Times New Roman\', serif" font-size="18" letter-spacing="8" fill="#C99B5F" fill-opacity="0.4">FRAGRANCE OBSESSION</text>' +
       '</svg>';
     return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   }
