@@ -6,7 +6,7 @@
  * OJO: si algún día se vuelve a cache-first para assets, CADA deploy
  * DEBE bumpear VERSION o los clientes se quedan con código viejo.
  */
-const VERSION = "fo-v45-ghpages";
+const VERSION = "fo-v46-ghpages";
 const CORE_CACHE = `core-${VERSION}`;
 const IMG_CACHE = `img-${VERSION}`;
 const FONT_CACHE = `font-${VERSION}`;
@@ -22,6 +22,12 @@ const CORE_ASSETS = [
   "descuentos.js",
   "animations.js",
   "offline.html",
+  "404.html",
+  "gracias.html",
+  "terminos.html",
+  "privacidad.html",
+  "robots.txt",
+  "sitemap.xml",
   "logo.webp",
   "icon-192.png",
   "icon-512.png",
