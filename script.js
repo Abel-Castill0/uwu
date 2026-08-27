@@ -2442,6 +2442,9 @@
     if (header) header.classList.toggle("scrolled", window.scrollY > 50);
     const btt = $("backToTop");
     if (btt) btt.classList.toggle("visible", window.scrollY > 500);
+    // Mobile CTA: show after scrolling past hero
+    const mCta = $("mobileCta");
+    if (mCta) mCta.classList.toggle("visible", window.scrollY > 400);
   }, { passive: true });
 
   /* ══════════════════════════════════════════════════════════════
@@ -3153,6 +3156,12 @@
         closeModal(true);
       }
     });
+    // Dismiss loading screen
+    var ls = document.getElementById("loadingScreen");
+    if (ls) {
+      setTimeout(function() { ls.classList.add("hidden"); }, 800);
+      setTimeout(function() { ls.remove(); }, 1500);
+    }
 
     // Trust cards reveal (they're static, not rendered dynamically)
     setTimeout(() => observeRevealElements(), 100);
@@ -3165,6 +3174,7 @@
       setTimeout(hydrateLoadedImages, 200);
     });
     renderTikTokGallery();
+    setupFAQ();
 
     // Load More catálogo (delegado para contenido dinámico)
     document.addEventListener("click", e => {
@@ -3172,6 +3182,30 @@
         catalogVisibleCount += 24;
         if (catalogVisibleCount > products.length) catalogVisibleCount = products.length;
         renderCatalog(true); // carga incremental
+      }
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     FAQ ACCORDION
+  ══════════════════════════════════════════════════════════════ */
+  function setupFAQ() {
+    var faqList = $("faqList");
+    if (!faqList) return;
+    faqList.addEventListener("click", function(e) {
+      var trigger = e.target.closest(".faq-trigger");
+      if (!trigger) return;
+      var item = trigger.closest(".faq-item");
+      var isOpen = item.classList.contains("open");
+      // Close all others
+      faqList.querySelectorAll(".faq-item.open").forEach(function(el) {
+        el.classList.remove("open");
+        el.querySelector(".faq-trigger").setAttribute("aria-expanded", "false");
+      });
+      // Toggle current
+      if (!isOpen) {
+        item.classList.add("open");
+        trigger.setAttribute("aria-expanded", "true");
       }
     });
   }

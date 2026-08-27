@@ -3,81 +3,122 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#1A120B" />
-  <meta name="robots" content="noindex, follow" />
-  <title>¡Pedido Confirmado! · FRAGRANCE OBSESSION</title>
-  <link rel="icon" type="image/webp" href="logo.webp" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Gracias por tu compra · FRAGRANCE OBSESSION</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" />
-  <script>
-    (function () {
-      try {
-        var t = localStorage.getItem("fo_theme") || localStorage.getItem("paco_theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-        document.documentElement.setAttribute("data-theme", t);
-      } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
-    })();
-  </script>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Manrope:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'" />
   <style>
-    .ty-wrap { max-width: 920px; margin: 0 auto; padding: 4rem 1.5rem 5rem; text-align: center; }
-    .ty-logo { width: 72px; height: 72px; margin: 0 auto 1.6rem; filter: drop-shadow(0 8px 22px rgba(113,113,122,.28)); }
-    .ty-check {
-      width: 76px; height: 76px; margin: 0 auto 1.4rem; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; font-size: 2.4rem; color: #fff;
-      background: linear-gradient(135deg, var(--gold-light), var(--gold-deep));
-      box-shadow: 0 12px 30px rgba(113,113,122,.4); animation: tyPop .5s cubic-bezier(.28,.84,.42,1.2) both;
+    :root {
+      --gold: #C99B5F; --gold-light: #E5C896; --gold-deep: #A67C3D;
+      --bg: #0d0a06; --text: #F5EFE6; --text-sec: #C9B8A3;
+      --font-body: 'Manrope', sans-serif; --font-display: 'Cormorant Garamond', serif;
     }
-    @keyframes tyPop { 0% { transform: scale(.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-    .ty-title { font-family: var(--font-display); font-weight: 500; font-size: clamp(2rem, 6vw, 3.2rem); color: var(--gold-deep); line-height: 1.1; margin-bottom: .8rem; }
-    .ty-sub { color: var(--text-secondary); font-size: 1.02rem; max-width: 540px; margin: 0 auto 2.6rem; line-height: 1.75; }
-    .ty-rec-title { font-family: var(--font-display); font-size: 1.5rem; color: var(--text-primary); margin-bottom: 1.4rem; font-weight: 500; }
-    .ty-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-bottom: 2.8rem; }
-    .ty-card { background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-xs); transition: transform var(--t-base), box-shadow var(--t-base); }
-    .ty-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-gold); }
-    .ty-card .ty-img { aspect-ratio: 1; background: radial-gradient(circle at 50% 38%, #fff, var(--cream-1)); display: flex; align-items: center; justify-content: center; }
-    .ty-card img { width: 100%; height: 100%; object-fit: contain; padding: 1rem; }
-    .ty-card .ty-info { padding: .85rem 1rem 1.1rem; }
-    .ty-card .ty-name { font-family: var(--font-display); font-size: 1.05rem; color: var(--text-primary); }
-    .ty-card .ty-brand { font-size: .74rem; color: var(--text-muted); margin: .1rem 0 .4rem; }
-    .ty-card .ty-price { font-size: .92rem; font-weight: 700; color: var(--gold-deep); }
-    .ty-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-    @media (max-width: 560px) { .ty-grid { grid-template-columns: 1fr 1fr; } .ty-grid .ty-card:last-child { grid-column: 1 / -1; max-width: 60%; margin: 0 auto; } }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: var(--font-body); background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none;
+      background: radial-gradient(circle at 50% 40%, rgba(201,155,95,.08), transparent 60%);
+    }
+    .container { text-align: center; padding: 2rem; position: relative; z-index: 1; max-width: 600px; }
+    .checkmark {
+      width: 80px; height: 80px; margin: 0 auto 2rem; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      animation: popIn .6s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    .checkmark svg { width: 40px; height: 40px; stroke: #fff; stroke-width: 3; fill: none; }
+    .title {
+      font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 300; letter-spacing: .03em; margin-bottom: 1rem; animation: fadeUp .8s .2s ease both;
+    }
+    .msg {
+      color: var(--text-sec); font-size: .95rem; max-width: 450px; margin: 0 auto 1.5rem;
+      line-height: 1.8; font-weight: 300; animation: fadeUp .8s .4s ease both;
+    }
+    .order-id {
+      display: inline-block; padding: .6rem 1.5rem; border-radius: 9999px;
+      background: rgba(201,155,95,.1); border: 1px solid rgba(201,155,95,.25);
+      font-size: .8rem; letter-spacing: .08em; color: var(--gold-light);
+      margin-bottom: 2rem; animation: fadeUp .8s .5s ease both;
+    }
+    .steps {
+      text-align: left; max-width: 400px; margin: 0 auto 2.5rem;
+      animation: fadeUp .8s .6s ease both;
+    }
+    .step {
+      display: flex; gap: 1rem; align-items: flex-start; padding: .8rem 0;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(201,155,95,.15); color: var(--gold-light);
+      font-size: .7rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    }
+    .step-text { font-size: .88rem; color: var(--text-sec); line-height: 1.6; }
+    .step-text strong { color: var(--text); font-weight: 500; }
+    .actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; animation: fadeUp .8s .8s ease both; }
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem; padding: 1rem 2.4rem;
+      font-size: .75rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+      border: none; border-radius: 9999px; cursor: pointer; transition: all .4s cubic-bezier(.16,1,.3,1);
+      font-family: var(--font-body); text-decoration: none;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-deep));
+      color: #fff; box-shadow: 0 8px 32px rgba(201,155,95,.4);
+    }
+    .btn-gold:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 18px 48px rgba(201,155,95,.55); }
+    .btn-ghost {
+      background: rgba(255,255,255,.06); color: var(--text); border: 1px solid rgba(255,255,255,.15);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,.12); border-color: var(--gold); color: var(--gold-light); transform: translateY(-3px); }
+    @keyframes popIn { from { opacity:0; transform:scale(.3); } to { opacity:1; transform:scale(1); } }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; } }
   </style>
 </head>
 <body>
-  <main class="ty-wrap">
-    <img src="logo.webp" alt="FRAGRANCE OBSESSION" class="ty-logo" width="72" height="72" decoding="async" />
-    <div class="ty-check" aria-hidden="true">✓</div>
-    <h1 class="ty-title">¡Pedido Confirmado!</h1>
-    <p class="ty-sub">Te contactaremos por WhatsApp para coordinar el pago y envío. Gracias por confiar en nosotros.</p>
-
-    <h2 class="ty-rec-title">También te puede gustar</h2>
-    <div class="ty-grid">
-      <article class="ty-card">
-        <div class="ty-img"><img src="img/perfumes_optimized/placeholder.webp" alt="Angels Share" loading="lazy" decoding="async" onerror="this.style.display='none'" /></div>
-        <div class="ty-info"><div class="ty-name">Angels Share</div><div class="ty-brand">Kilian</div><div class="ty-price">Desde S/ 25.00</div></div>
-      </article>
-      <article class="ty-card">
-        <div class="ty-img"><img src="img/perfumes_optimized/placeholder.webp" alt="Sedley" loading="lazy" decoding="async" onerror="this.style.display='none'" /></div>
-        <div class="ty-info"><div class="ty-name">Sedley</div><div class="ty-brand">Parfums de Marly</div><div class="ty-price">Desde S/ 19.00</div></div>
-      </article>
-      <article class="ty-card">
-        <div class="ty-img"><img src="img/perfumes_optimized/placeholder.webp" alt="Grand Soir" loading="lazy" decoding="async" onerror="this.style.display='none'" /></div>
-        <div class="ty-info"><div class="ty-name">Grand Soir</div><div class="ty-brand">Maison Francis Kurkdjian</div><div class="ty-price">Desde S/ 25.00</div></div>
-      </article>
+  <div class="container">
+    <div class="checkmark">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
-
-    <div class="ty-actions">
-      <a class="btn btn-gold" href="index.html">
-        <span>Volver al Catálogo →</span>
-      </a>
-      <a class="btn btn-ghost" href="https://wa.me/51994467586" target="_blank" rel="noopener noreferrer"
-        style="background: var(--whatsapp); border-color: var(--whatsapp); color: #fff;">
-        <span>Seguir en WhatsApp</span>
-      </a>
+    <h1 class="title">¡Gracias por tu compra!</h1>
+    <p class="msg">Tu pedido ha sido recibido exitosamente. Pronto recibirás un mensaje de confirmación por WhatsApp con los detalles de tu envío.</p>
+    <div class="order-id" id="orderId">Pedido #FO-0000</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>Confirmación</strong> — Te contactaremos por WhatsApp en menos de 30 minutos.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>Preparación</strong> — Empacamos tu pedido con cuidado premium.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>Envío</strong> — Recíbelo en 24-72 horas según tu ubicación.</div>
+      </div>
     </div>
-  </main>
+    <div class="actions">
+      <a href="index.html" class="btn btn-gold">Volver al Inicio</a>
+      <a href="https://wa.me/51994467586" class="btn btn-ghost" target="_blank" rel="noopener">Contactar por WhatsApp</a>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var orderId = params.get('order');
+      if (orderId) {
+        document.getElementById('orderId').textContent = 'Pedido #' + orderId;
+      }
+    })();
+  </script>
 </body>
 </html>

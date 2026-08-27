@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta http-equiv="X-Frame-Options" content="DENY" />
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
   <meta name="theme-color" content="#1A120B" />
   <meta name="description"
     content="Fragrance Obsession · Decants premium de perfumes árabes, de diseñador y nicho en Lima, Perú. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el país." />
@@ -66,6 +71,20 @@
       { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://fraganceobsession.pe/" },
       { "@type": "ListItem", "position": 2, "name": "Catálogo", "item": "https://fraganceobsession.pe/#catalogo" },
       { "@type": "ListItem", "position": 3, "name": "Promociones", "item": "https://fraganceobsession.pe/#promos" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "¿Qué es un decant?", "acceptedAnswer": { "@type": "Answer", "text": "Un decant es una porción de fragancia original transferida a un frasco de vidrio de alta calidad. Te permite probar perfumes de lujo sin comprar el frasco completo." } },
+      { "@type": "Question", "name": "¿Las fragancias son originales?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Todas nuestras fragancias son 100% originales. Compramos los frascos originales de marcas reconocidas y las transferimos a nuestros frascos premium." } },
+      { "@type": "Question", "name": "¿Cuánto duran los decants?", "acceptedAnswer": { "@type": "Answer", "text": "Un decant de 5ml dura aproximadamente 2-3 meses con uso diario. Las fragancias de niche tienden a ser más concentradas y duran más." } },
+      { "@type": "Question", "name": "¿Hacen envíos a todo el Perú?", "acceptedAnswer": { "@type": "Answer", "text": "Sí, realizamos envíos a todo el territorio peruano. El tiempo de entrega es de 24 a 72 horas dependiendo de tu ubicación." } },
+      { "@type": "Question", "name": "¿Puedo pedir una fragancia que no está en el catálogo?", "acceptedAnswer": { "@type": "Answer", "text": "¡Claro! Contáctanos por WhatsApp y te consignamos la fragancia que buscas. Trabajamos con más de 135 fragancias." } },
+      { "@type": "Question", "name": "¿Cuáles son los métodos de pago?", "acceptedAnswer": { "@type": "Answer", "text": "Aceptamos Yape, Plin, Visa, Mastercard y efectivo." } }
     ]
   }
   </script>
@@ -159,6 +178,14 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- Loading Screen -->
+  <div id="loadingScreen" class="loading-screen">
+    <div class="loading-inner">
+      <div class="loading-logo">FO</div>
+      <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+      <div class="loading-text">Preparando tu experiencia...</div>
+    </div>
+  </div>
   <noscript>
     <div style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#7a1f1f;color:#fff;text-align:center;padding:.8rem 1rem;font-family:Arial,sans-serif;font-size:.9rem;">
       Esta tienda requiere JavaScript para funcionar. Actívalo o usa un navegador compatible.
@@ -391,6 +418,71 @@
         <a href="https://www.tiktok.com/@fraganceobsession.pe?_r=1&_t=ZS-993ZhxTLNmH" target="_blank" rel="noopener noreferrer" class="btn-gold">
           <i class="fab fa-tiktok" aria-hidden="true"></i><span>Síguenos en TikTok</span>
         </a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section section-faq" id="faq">
+      <div class="section-header">
+        <div class="section-eyebrow">Preguntas Frecuentes</div>
+        <h2 class="section-title">¿Tienes Dudas?</h2>
+        <p class="section-subtitle">Resolvemos las preguntas más comunes sobre nuestros decants premium.</p>
+      </div>
+      <div class="faq-list" id="faqList">
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span>¿Qué es un decant?</span>
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          </button>
+          <div class="faq-answer" role="region">
+            <p>Un decant es una porción de fragancia original transferida a un frasco de vidrio de alta calidad. Te permite probar perfumes de lujo sin comprar el frasco completo, ideal para descubrir nuevas favoritas.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span>¿Las fragancias son originales?</span>
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          </button>
+          <div class="faq-answer" role="region">
+            <p>Sí. Todas nuestras fragancias son 100% originales. Compramos los frascos originales de marcas reconocidas y las transferimos a nuestros frascos premium con el máximo cuidado.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span>¿Cuánto duran los decants?</span>
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          </button>
+          <div class="faq-answer" role="region">
+            <p>Depende de la fragancia y el uso. Un decant de 5ml dura aproximadamente 2-3 meses con uso diario. Las fragancias de niche tienden a ser más concentradas y duran más.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span>¿Hacen envíos a todo el Perú?</span>
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          </button>
+          <div class="faq-answer" role="region">
+            <p>Sí, realizamos envíos a todo el territorio peruano. El tiempo de entrega es de 24 a 72 horas dependiendo de tu ubicación. Lima y Callao reciben envíos en 24 horas.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span>¿Puedo pedir una fragancia que no está en el catálogo?</span>
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          </button>
+          <div class="faq-answer" role="region">
+            <p>¡Claro! Contáctanos por WhatsApp y te consignamos la fragancia que buscas. Trabajamos con un catálogo extenso de más de 135 fragancias de marcas reconocidas.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span>¿Cuáles son los métodos de pago?</span>
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          </button>
+          <div class="faq-answer" role="region">
+            <p>Aceptamos Yape, Plin, Visa, Mastercard y efectivo. También ofrecemos pagos con criptomonedas para tu comodidad.</p>
+          </div>
+        </div>
       </div>
     </section>
   </div>
@@ -940,6 +1032,19 @@
       </p>
     </div>
   </footer>
+
+  <!-- Fixed Mobile CTA -->
+  <div class="mobile-cta" id="mobileCta">
+    <a href="https://wa.me/51994467586?text=Hola%2C%20quiero%20hacer%20un%20pedido" class="mobile-cta-btn" target="_blank" rel="noopener">
+      <i class="fab fa-whatsapp" aria-hidden="true"></i>
+      <span>Hacer Pedido</span>
+    </a>
+  </div>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="backToTop" aria-label="Volver arriba">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
 
   <!-- Animation libraries (orden importa: Lenis → GSAP → ScrollTrigger → app → animations) -->
   <script src="https://unpkg.com/lenis@1.3.26/dist/lenis.min.js" defer></script>

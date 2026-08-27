@@ -268,7 +268,20 @@
   }
 
   /* ══════════════════════════════════════════════════════════
-     8. PUBLIC API — window.FraganceAnimations
+     9. FAQ REVEAL — scroll-triggered stagger
+  ══════════════════════════════════════════════════════════ */
+  function initFAQReveal() {
+    if (!hasGsap() || prefersReduced) return;
+    var items = gsap.utils.toArray(".faq-item");
+    if (!items.length) return;
+    gsap.from(items, {
+      scrollTrigger: { trigger: ".section-faq", start: "top 85%", toggleActions: "play none none none" },
+      y: 24, opacity: 0, duration: 0.5, stagger: 0.08, ease: EASE_OUT, clearProps: "transform,opacity",
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     10. PUBLIC API — window.FraganceAnimations
      refresh()  → llamar después de cada renderizado dinámico
      destroy()  → limpiar todo (observers, ScrollTrigger)
   ══════════════════════════════════════════════════════════ */
@@ -297,6 +310,7 @@
     initProductGridAnimations();
     initCounters();
     initMagneticButtons();
+    initFAQReveal();
   });
 
 })();
