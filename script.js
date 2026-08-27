@@ -87,12 +87,6 @@
     }
     return sizes;
   }
-  function getDecantPrice(product, size) {
-    const sizes = product.decantSizes || {};
-    const base = sizes[baseSizeOf(size)];
-    if (typeof base !== "number") return null;
-    return isPremiumSize(size) ? base + getPremiumUplift(base) : base;
-  }
   /* ⚠️ Valores del negocio centralizados en config.js (window.FO_CONFIG).
      Edita SOLO config.js. Los fallbacks evitan romper si falta el archivo. */
   const FO = window.FO_CONFIG || {};
@@ -352,7 +346,7 @@
     const baseSize = baseSizeOf(size);
     const basePrice = sizes[baseSize];
     if (typeof basePrice !== "number") return;
-    const price = isPremiumSize(size) ? basePrice + getPremiumUplift(baseSize) : basePrice;
+    const price = isPremiumSize(size) ? basePrice + getPremiumUplift(basePrice) : basePrice;
     const existing = cart.find(
       (item) =>
         item.productId === productId &&
@@ -433,7 +427,7 @@
           !hasGift;
         let imageHtml = "";
         if (!isMultiPack) {
-          imageHtml = `<img src="${esc(item.image)}" alt="${esc(item.name)}" loading="lazy" decoding="async" onerror="this.style.display='none'" />`;
+          imageHtml = `<img src="${esc(item.image)}" alt="${esc(item.name)}" loading="lazy" decoding="async" onerror="if(this.src!=='${PLACEHOLDER_IMG}'){this.src='${PLACEHOLDER_IMG}';}else{this.style.display='none';}" />`;
           if (hasGift) {
             imageHtml = `
               <div class="cart-gift-wrap">
@@ -533,7 +527,7 @@
         const price = p.decantSizes["2ml"];
         return `
           <div class="upsell-item">
-            <img src="${esc(p.cardImage || p.decantImage || cardImg(p))}" alt="${esc(p.name)}" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+            <img src="${esc(p.cardImage || p.decantImage || cardImg(p))}" alt="${esc(p.name)}" loading="lazy" decoding="async" onerror="if(this.src!=='${PLACEHOLDER_IMG}'){this.src='${PLACEHOLDER_IMG}';}else{this.style.display='none';}" />
             <div class="upsell-item__info">
               <div class="upsell-item__name">${esc(p.name)}</div>
               <div class="upsell-item__meta">2ml · ${esc(p.brand)}</div>
@@ -682,7 +676,8 @@
     currentModalView =
       product.fullSizes && Object.keys(product.fullSizes).length > 0 ? "full" : "decant";
     currentModalSize =
-      Object.keys(product.fullSizes)[0] || Object.keys(product.decantSizes)[0];
+      (product.fullSizes && Object.keys(product.fullSizes)[0]) ||
+      (product.decantSizes && Object.keys(product.decantSizes)[0]) || null;
     updateModalContent();
     $("modalOverlay").classList.add("active");
     document.body.style.overflow = "hidden";
@@ -746,10 +741,13 @@
     if (modalImgContainer) {
       const modalImg = modalImgContainer.querySelector("img");
       if (modalImg) {
-        modalImg.src =
-          (isFull ? product.fullImage : sizeImage(product, currentModalSize)) ||
-          cardImg(product);
+        const imgSrc = (isFull ? product.fullImage : sizeImage(product, currentModalSize)) || cardImg(product);
+        modalImg.src = imgSrc;
         modalImg.alt = product.name;
+        modalImg.onerror = function() {
+          if (this.src !== PLACEHOLDER_IMG) { this.src = PLACEHOLDER_IMG; }
+          else { this.style.display = 'none'; }
+        };
       }
     }
     $("modalName").textContent = product.name;
@@ -958,8 +956,6 @@
       counterEl.style.display = "block";
       confirmBtn.style.display = "flex";
       priceDisplay.textContent = "";
-      currentPackPromo.size = undefined;
-      currentPackPromo.price = undefined;
       renderPackSizeOptions();
       productGrid.innerHTML = '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;padding:1.5rem;">Selecciona un tamaño para ver los perfumes disponibles</p>';
       counterEl.style.display = "none";
@@ -1112,8 +1108,6 @@
     productGrid.style.display = "grid";
     counterEl.style.display = "block";
     confirmBtn.style.display = "flex";
-    currentPackPromo.size = currentPackGroupSize;
-    currentPackPromo.price = packGroupPrice;
     selectedPackProducts = [];
     renderPackGrid();
     updatePackCounter();
@@ -1298,7 +1292,7 @@
           ${soon ? `<span class="product-badge soon">Próximamente</span>` : ""}
           ${bestsellerHTML}
           ${presentationHTML}
-          <img src="${esc(product.cardImage || cardImg(product))}"${imgSrcsetAttrs(product.cardImage)} alt="${esc(product.name)} - ${esc(product.brand)}" loading="lazy" decoding="async" onload="this.classList.add('img-loaded'); this.closest('.img-wrapper').classList.add('skeleton-done');" onerror="this.style.display='none'; this.closest('.img-wrapper').classList.add('skeleton-done');" />
+          <img src="${esc(product.cardImage || cardImg(product))}"${imgSrcsetAttrs(product.cardImage)} alt="${esc(product.name)} - ${esc(product.brand)}" decoding="async" onload="this.classList.add('img-loaded'); this.closest('.img-wrapper').classList.add('skeleton-done');" onerror="if(this.src!=='${PLACEHOLDER_IMG}'){this.src='${PLACEHOLDER_IMG}';}else{this.style.display='none'; this.closest('.img-wrapper').classList.add('skeleton-done');}" />
         </div>
         <div class="product-info">
           <div class="product-category">${catLabel} · ${esc(product.gender)}</div>
@@ -2356,6 +2350,7 @@
       revealObserver.observe(el);
     });
     hydrateLoadedImages();
+    hydrateLoadedImagesDelayed();
   }
   // Red de seguridad para skeletons: marca como cargadas las imágenes que ya
   // estaban completas en caché antes de adjuntar el handler onload inline.
@@ -2366,6 +2361,19 @@
         const wrap = img.closest(".img-wrapper");
         if (wrap) wrap.classList.add("skeleton-done");
       }
+    });
+  }
+  // Segunda pasada: imágenes que se completaron entre el primer check y ahora.
+  // Resuelve el race condition con loading="lazy" + caché del navegador.
+  function hydrateLoadedImagesDelayed() {
+    requestAnimationFrame(() => {
+      document.querySelectorAll(".img-wrapper img:not(.img-loaded), .promo-img:not(.img-loaded), .pill-bg img:not(.img-loaded)").forEach((img) => {
+        if (img.complete && img.naturalWidth > 0) {
+          img.classList.add("img-loaded");
+          const wrap = img.closest(".img-wrapper");
+          if (wrap) wrap.classList.add("skeleton-done");
+        }
+      });
     });
   }
 
@@ -2713,7 +2721,7 @@
       const price = min ? `Desde ${formatPrice(min)}` : "Consultar";
       return `
         <div class="reco-card" data-product-id="${p.id}" role="button" tabindex="0" aria-label="Ver ${esc(p.name)}" style="animation-delay:${(i * 0.05).toFixed(2)}s">
-          <div class="reco-img"><img src="${esc(p.cardImage)}" alt="${esc(p.name)}" loading="lazy" decoding="async" onerror="this.style.display='none'" /></div>
+          <div class="reco-img"><img src="${esc(p.cardImage)}" alt="${esc(p.name)}" loading="lazy" decoding="async" onerror="if(this.src!=='${PLACEHOLDER_IMG}'){this.src='${PLACEHOLDER_IMG}';}else{this.style.display='none';}" /></div>
           <div class="reco-info">
             <div class="reco-name">${esc(p.name)}</div>
             <div class="reco-brand">${esc(p.brand)}</div>
@@ -3148,6 +3156,14 @@
 
     // Trust cards reveal (they're static, not rendered dynamically)
     setTimeout(() => observeRevealElements(), 100);
+    // Safety net: re-hydrate images after short delays to catch race conditions
+    // with loading="lazy" + browser cache. Also fires on window load for slow connections.
+    setTimeout(hydrateLoadedImages, 300);
+    setTimeout(hydrateLoadedImages, 800);
+    window.addEventListener("load", () => {
+      hydrateLoadedImages();
+      setTimeout(hydrateLoadedImages, 200);
+    });
     renderTikTokGallery();
 
     // Load More catálogo (delegado para contenido dinámico)

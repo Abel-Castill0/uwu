@@ -186,162 +186,78 @@
      Se aplican sobre FO_PRODUCTS: cardImage/fullImage/decantImage
      usan "main" y "sizeImages" guarda las variantes por tamaño.
      ════════════════════════════════════════════════════════════════ */
-  w.FO_PRODUCT_IMAGES =   {
-    1: {
-      "main": "img/perfumes/Comteporary.png",
-      "sizes": {
-        "5_premium": "img/perfumes/Comteporary decant premium 5ml.png",
-        "10_premium": "img/perfumes/Comteporary decant premium 10 ml.png"
-      }
-    },
-    2: {
-      "main": "img/perfumes/Crab Apple Blossom.png",
-      "sizes": {
-        "5_premium": "img/perfumes/Crab Apple Blossom decant premium 5ml.png",
-        "10_premium": "img/perfumes/Crab Apple Blossom decant premium 10 ml.png"
-      }
-    },
-    3: {
-      "main": "img/perfumes/Rock rose.png",
-      "sizes": {
-        "5_premium": "img/perfumes/Rock rose decant premium 5ml.png",
-        "10_premium": "img/perfumes/Rock rose decant premium 10 ml.png"
-      }
-    },
-    4: {
-      "main": "img/perfumes/Angel Share Paradis.png",
-      "sizes": {
-        "5_premium": "img/perfumes/Angel Share Paradis decant premium 5ml.png",
-        "10_premium": "img/perfumes/Angel Share Paradis decant premium 10 ml.png"
-      }
-    },
-    5: {
-      "main": "img/perfumes/Angel Share on the Rocks.png",
-      "sizes": {
-        "5_premium": "img/perfumes/Angel Share on the Rocks decant premium 5ml.png",
-        "30": "img/perfumes/Angel Share on the Rocks decant premium 30 ml.png"
-      }
-    },
-    6: {
-      "main": "img/perfumes/Angel Share edp.png",
-      "sizes": {
-        "5_premium": "img/perfumes/Angel Share edp decant premium 5ml.png",
-        "10_premium": "img/perfumes/Angel Share edp decant premium 10 ml.png",
-        "30": "img/perfumes/Angel Share edp decant premium 30 ml.png"
-      }
-    },
-    7: {
-      "main": "img/perfumes/Apple Brandy.png",
-      "sizes": {
-        "5_premium": "img/perfumes/Apple Brandy decant premium 5ml.png",
-        "10_premium": "img/perfumes/Apple Brandy decant premium 10 ml.png",
-        "30": "img/perfumes/Apple Brandy decant premium 30 ml.png"
-      }
-    },
-    8: {
-      "main": "img/perfumes/P_RNSTAR.png",
-      "sizes": {
-        "5_premium": "img/perfumes/P_RNSTAR decant premium 5ml.png",
-        "10_premium": "img/perfumes/P_RNSTAR decant premium 10 ml.png"
-      }
-    },
-    9: {
-      "main": "img/perfumes/ICHIGO ICHIE.png",
-      "sizes": {
-        "5_premium": "img/perfumes/ICHIGO ICHIE decant premium 5ml.png",
-        "10_premium": "img/perfumes/ICHIGO ICHIE decant premium 10 ml.png"
-      }
-    },
-    10: {
-      "main": "img/perfumes/LAST BIRTHDAY CAKE.png",
-      "sizes": {
-        "5_premium": "img/perfumes/LAST BIRTHDAY CAKE decant premium 5ml.png",
-        "10_premium": "img/perfumes/LAST BIRTHDAY CAKE decant premium 10 ml.png"
-      }
-    },
-    11: {
-      "main": "img/perfumes/BLACK MANGO.png",
-      "sizes": {
-        "5_premium": "img/perfumes/BLACK MANGO decant premium 5ml.png",
-        "10_premium": "img/perfumes/BLACK MANGO decant premium 10 ml.png"
-      }
-    },
-    12: {
-      "main": "img/perfumes/GOLD JUICE.png",
-      "sizes": {
-        "5_premium": "img/perfumes/GOLD JUICE decant premium 5ml.png",
-        "10_premium": "img/perfumes/GOLD JUICE decant premium 10 ml.png"
-      }
-    },
-    13: {
-      "main": "img/perfumes/INDECENT CHERRY.png",
-      "sizes": {
-        "5_premium": "img/perfumes/INDECENT CHERRY decant premium 5ml.png",
-        "10_premium": "img/perfumes/INDECENT CHERRY decant premium 10 ml.png"
-      }
-    },
-    14: {
-      "main": "img/perfumes/BLACK GUAVA.png",
-      "sizes": {
-        "5_premium": "img/perfumes/BLACK GUAVA decant premium 5ml.png",
-        "10_premium": "img/perfumes/BLACK GUAVA decant premium 10 ml.png"
-      }
-    },
-    15: {
-      "main": "img/perfumes/OUD MARACUJA decant premium 5ml.png",
-      "sizes": {
-        "5_premium": "img/perfumes/OUD MARACUJA decant premium 5ml.png",
-        "10_premium": "img/perfumes/OUD MARACUJA decant premium 10 ml.png"
-      }
-    },
-    29: {
-      "main": "img/perfumes/TORINO 24.png",
-      "sizes": {
-        20: "img/perfumes/TORINO 24 20ml.png",
-        "5_premium": "img/perfumes/TORINO 24 decant premium 5ml.png",
-        "10_premium": "img/perfumes/TORINO 24 decant premium 10 ml.png"
-      }
-    },
-    30: {
-      "main": "img/perfumes/coro.png",
-      "sizes": {
-        30: "img/perfumes/coro 20ml.png",
-        "5_premium": "img/perfumes/coro  decant premium 5ml.png",
-        "10_premium": "img/perfumes/coro decant premium 10 ml.png"
-      }
-    },
-    31: {
-      "main": "img/perfumes/torino 21.png",
-      "sizes": {
-        30: "img/perfumes/torino 21 20ml.png",
-        "5_premium": "img/perfumes/torino 21 decant premium 5ml.png",
-        "10_premium": "img/perfumes/torino 21 decant premium 10 ml.png"
-      }
-    },
-    32: {
-      "main": "img/perfumes/AVANGUARDIA.png",
-      "sizes": {
-        30: "img/perfumes/AVANGUARDIA 30ml.png",
-        "5_premium": "img/perfumes/AVANGUARDIA decant premium 5ml.png",
-        "10_premium": "img/perfumes/AVANGUARDIA decant premium 10 ml.png"
-      }
-    },
-    33: {
-      "main": "img/perfumes/naxos.png",
-      "sizes": {
-        30: "img/perfumes/naxos 20ml.png",
-        "5_premium": "img/perfumes/naxos decant premium 5ml.png",
-        "10_premium": "img/perfumes/naxos decant premium 10 ml.png"
-      }
-    },
-    67: {
-      "main": "img/perfumes/dolce melodia.png",
-      "sizes": {
-        30: "img/perfumes/dolce melodia 20ml.png",
-        "5_premium": "img/perfumes/dolce melodia decant premium 5ml.png",
-        "10_premium": "img/perfumes/dolce melodia decant premium 10 ml.png"
-      }
-    }
+  w.FO_PRODUCT_IMAGES = {
+    1: { main: "img/perfumes/Comteporary.png", sizes: { "5_premium": "img/perfumes/Comteporary decant premium 5ml.png", "10_premium": "img/perfumes/Comteporary decant premium 10 ml.png" } },
+    2: { main: "img/perfumes/Crab Apple Blossom.png", sizes: { "5_premium": "img/perfumes/Crab Apple Blossom decant premium 5ml.png", "10_premium": "img/perfumes/Crab Apple Blossom decant premium 10 ml.png" } },
+    3: { main: "img/perfumes/Rock rose.png", sizes: { "5_premium": "img/perfumes/Rock rose decant premium 5ml.png", "10_premium": "img/perfumes/Rock rose decant premium 10 ml.png" } },
+    4: { main: "img/perfumes/Angel Share Paradis.png", sizes: { "5_premium": "img/perfumes/Angel Share Paradis decant premium 5ml.png", "10_premium": "img/perfumes/Angel Share Paradis decant premium 10 ml.png" } },
+    5: { main: "img/perfumes/Angel Share on the Rocks.png", sizes: { "5": "img/perfumes/Angel Share on the Rocks decant premium 5ml.png", "5_premium": "img/perfumes/Angel Share on the Rocks decant premium 5ml.png", "10": "img/perfumes/Angel Share on the Rocks decant premium 10 ml.png", "10_premium": "img/perfumes/Angel Share on the Rocks decant premium 10 ml.png", "30": "img/perfumes/Angel Share on the Rocks decant premium 30 ml.png" } },
+    6: { main: "img/perfumes/Angel Share edp.png", sizes: { "5": "img/perfumes/Angel Share edp decant premium 5ml.png", "5_premium": "img/perfumes/Angel Share edp decant premium 5ml.png", "10": "img/perfumes/Angel Share edp decant premium 10 ml.png", "10_premium": "img/perfumes/Angel Share edp decant premium 10 ml.png", "30": "img/perfumes/Angel Share edp decant premium 30 ml.png" } },
+    7: { main: "img/perfumes/Apple Brandy.png", sizes: { "5": "img/perfumes/Apple Brandy decant premium 5ml.png", "5_premium": "img/perfumes/Apple Brandy decant premium 5ml.png", "10": "img/perfumes/Apple Brandy decant premium 10 ml.png", "10_premium": "img/perfumes/Apple Brandy decant premium 10 ml.png", "30": "img/perfumes/Apple Brandy decant premium 30 ml.png" } },
+    8: { main: "img/perfumes/P_RNSTAR.png", sizes: { "5_premium": "img/perfumes/P_RNSTAR decant premium 5ml.png", "10_premium": "img/perfumes/P_RNSTAR decant premium 10 ml.png" } },
+    9: { main: "img/perfumes/ICHIGO ICHIE.png", sizes: { "5_premium": "img/perfumes/ICHIGO ICHIE decant premium 5ml.png", "10_premium": "img/perfumes/ICHIGO ICHIE decant premium 10 ml.png" } },
+    10: { main: "img/perfumes/LAST BIRTHDAY CAKE.png", sizes: { "5_premium": "img/perfumes/LAST BIRTHDAY CAKE decant premium 5ml.png", "10_premium": "img/perfumes/LAST BIRTHDAY CAKE decant premium 10 ml.png" } },
+    11: { main: "img/perfumes/BLACK MANGO.png", sizes: { "5_premium": "img/perfumes/BLACK MANGO decant premium 5ml.png", "10_premium": "img/perfumes/BLACK MANGO decant premium 10 ml.png" } },
+    12: { main: "img/perfumes/GOLD JUICE.png", sizes: { "5_premium": "img/perfumes/GOLD JUICE decant premium 5ml.png", "10_premium": "img/perfumes/GOLD JUICE decant premium 10 ml.png" } },
+    13: { main: "img/perfumes/INDECENT CHERRY.png", sizes: { "5_premium": "img/perfumes/INDECENT CHERRY decant premium 5ml.png", "10_premium": "img/perfumes/INDECENT CHERRY decant premium 10 ml.png" } },
+    14: { main: "img/perfumes/BLACK GUAVA.png", sizes: { "5_premium": "img/perfumes/BLACK GUAVA decant premium 5ml.png", "10_premium": "img/perfumes/BLACK GUAVA decant premium 10 ml.png" } },
+    15: { main: "img/perfumes/OUD MARACUJA decant premium 5ml.png", sizes: { "5_premium": "img/perfumes/OUD MARACUJA decant premium 5ml.png", "10_premium": "img/perfumes/OUD MARACUJA decant premium 10 ml.png" } },
+    16: { main: "img/perfumes/Venom Incarnat.png", sizes: { "20": "img/perfumes/Venom Incarnat 20ml.png", "5_premium": "img/perfumes/Venom Incarnat decant premium 5ml.png", "10_premium": "img/perfumes/Venom Incarnat decant premium 10 ml.png" } },
+    17: { main: "img/perfumes/GOD OF FIRE.png", sizes: { "20": "img/perfumes/GOD OF FIRE 20ml.png", "5_premium": "img/perfumes/GOD OF FIRE decant premium 5ml.png", "10_premium": "img/perfumes/GOD OF FIRE decant premium 10 ml.png" } },
+    18: { main: "img/perfumes/Sand Dance.png", sizes: { "20": "img/perfumes/Sand Dance 20ml.png", "5_premium": "img/perfumes/Sand Dance decant premium 5ml.png", "10_premium": "img/perfumes/Sand Dance decant premium 10 ml.png" } },
+    19: { main: "img/perfumes/MANGO KISS.png", sizes: { "20": "img/perfumes/MANGO KISS 20ml.png", "5_premium": "img/perfumes/MANGO KISS decant premium 5ml.png", "10_premium": "img/perfumes/MANGO KISS decant premium 10 ml.png" } },
+    20: { main: "img/perfumes/CRYING OF EVIL.png", sizes: { "20": "img/perfumes/CRYING OF EVIL 20ml.png", "5_premium": "img/perfumes/CRYING OF EVIL decant premium 5ml.png", "10_premium": "img/perfumes/CRYING OF EVIL decant premium 10 ml.png" } },
+    21: { main: "img/perfumes/SEA MY LOVE.png", sizes: { "20": "img/perfumes/SEA MY LOVE 20ml.png", "5_premium": "img/perfumes/SEA MY LOVE decant premium 5ml.png", "10_premium": "img/perfumes/SEA MY LOVE decant premium 10 ml.png" } },
+    22: { main: "img/perfumes/THE QUEEN AND THE VIPER.png", sizes: { "20": "img/perfumes/THE QUEEN AND THE VIPER 20ml.png", "5_premium": "img/perfumes/THE QUEEN AND THE VIPER decant premium 5ml.png", "10_premium": "img/perfumes/THE QUEEN AND THE VIPER decant premium 10 ml.png" } },
+    23: { main: "img/perfumes/PINK BOA.png", sizes: { "20": "img/perfumes/PINK BOA 20ml.png", "5_premium": "img/perfumes/PINK BOA decant premium 5ml.png", "10_premium": "img/perfumes/PINK BOA decant premium 10 ml.png" } },
+    24: { main: "img/perfumes/MANGOMACUMBA.png", sizes: { "20": "img/perfumes/MANGOMACUMBA 20ml.png", "5_premium": "img/perfumes/MANGOMACUMBA decant premium 5ml.png", "10_premium": "img/perfumes/MANGOMACUMBA decant premium 10 ml.png" } },
+    25: { main: "img/perfumes/PENGUIN.png", sizes: { "20": "img/perfumes/PENGUIN 20ml.png", "5_premium": "img/perfumes/PENGUIN decant premium 5ml.png", "10_premium": "img/perfumes/PENGUIN decant premium 10 ml.png" } },
+    26: { main: "img/perfumes/CAMALEON.png", sizes: { "20": "img/perfumes/CAMALEON 20ml.png", "5_premium": "img/perfumes/CAMALEON decant premium 5ml.png", "10_premium": "img/perfumes/CAMALEON decant premium 10 ml.png" } },
+    27: { main: "img/perfumes/SEAHORSE.png", sizes: { "20": "img/perfumes/SEAHORSE 20ml.png", "5_premium": "img/perfumes/SEAHORSE decant premium 5ml.png", "10_premium": "img/perfumes/SEAHORSE decant premium 10 ml.png" } },
+    28: { main: "img/perfumes/SQUID.png", sizes: { "20": "img/perfumes/SQUID 20ml.png", "5_premium": "img/perfumes/SQUID decant premium 5ml.png", "10_premium": "img/perfumes/SQUID decant premium 10 ml.png" } },
+    29: { main: "img/perfumes/TORINO 24.png", sizes: { "20": "img/perfumes/TORINO 24 20ml.png", "5_premium": "img/perfumes/TORINO 24 decant premium 5ml.png", "10_premium": "img/perfumes/TORINO 24 decant premium 10 ml.png" } },
+    30: { main: "img/perfumes/coro.png", sizes: { "20": "img/perfumes/coro 20ml.png", "5_premium": "img/perfumes/coro  decant premium 5ml.png", "10_premium": "img/perfumes/coro decant premium 10 ml.png" } },
+    31: { main: "img/perfumes/torino 21.png", sizes: { "20": "img/perfumes/torino 21 20ml.png", "5_premium": "img/perfumes/torino 21 decant premium 5ml.png", "10_premium": "img/perfumes/torino 21 decant premium 10 ml.png" } },
+    32: { main: "img/perfumes/AVANGUARDIA.png", sizes: { "30": "img/perfumes/AVANGUARDIA 30ml.png", "5_premium": "img/perfumes/AVANGUARDIA decant premium 5ml.png", "10_premium": "img/perfumes/AVANGUARDIA decant premium 10 ml.png" } },
+    33: { main: "img/perfumes/naxos.png", sizes: { "20": "img/perfumes/naxos 20ml.png", "5_premium": "img/perfumes/naxos decant premium 5ml.png", "10_premium": "img/perfumes/naxos decant premium 10 ml.png" } },
+    34: { main: "img/perfumes/dolce amalfi.png", sizes: { "20": "img/perfumes/dolce amalfi 20ml.png", "5_premium": "img/perfumes/dolce amalfi decant premium 5ml.png", "10_premium": "img/perfumes/dolce amalfi decant premium 10 ml.png" } },
+    35: { main: "img/perfumes/EXTREME PASSION.png", sizes: { "20": "img/perfumes/EXTREME PASSION 20ml.png", "5_premium": "img/perfumes/EXTREME PASSION decant premium 5ml.png", "10_premium": "img/perfumes/EXTREME PASSION decant premium 10 ml.png" } },
+    36: { main: "img/perfumes/BLACK SEA.png", sizes: { "20": "img/perfumes/BLACK SEA 20ml.png", "5_premium": "img/perfumes/BLACK SEA decant premium 5ml.png", "10_premium": "img/perfumes/BLACK SEA decant premium 10 ml.png" } },
+    37: { main: "img/perfumes/QUE CHIMBA.png", sizes: { "20": "img/perfumes/QUE CHIMBA 20ml.png", "5_premium": "img/perfumes/QUE CHIMBA decant premium 5ml.png", "10_premium": "img/perfumes/QUE CHIMBA decant premium 10 ml.png" } },
+    38: { main: "img/perfumes/FICUS IN FABULA.png", sizes: { "20": "img/perfumes/FICUS IN FABULA 20ml.png", "5_premium": "img/perfumes/FICUS IN FABULA decant premium 5ml.png", "10_premium": "img/perfumes/FICUS IN FABULA decant premium 10 ml.png" } },
+    39: { main: "img/perfumes/COFFEE PASSION.png", sizes: { "20": "img/perfumes/COFFEE PASSION 20ml.png", "5_premium": "img/perfumes/COFFEE PASSION decant premium 5ml.png", "10_premium": "img/perfumes/COFFEE PASSION decant premium 10 ml.png" } },
+    40: { main: "img/perfumes/SPEACHLESS.png", sizes: { "20": "img/perfumes/SPEACHLESS 20ml.png", "5_premium": "img/perfumes/SPEACHLESS decant premium 5ml.png", "10_premium": "img/perfumes/SPEACHLESS decant premium 10 ml.png" } },
+    41: { main: "img/perfumes/EVIL ANGEL.png", sizes: { "20": "img/perfumes/EVIL ANGEL 20ml.png", "5_premium": "img/perfumes/EVIL ANGEL decant premium 5ml.png", "10_premium": "img/perfumes/EVIL ANGEL decant premium 10 ml.png" } },
+    42: { main: "img/perfumes/CHOCO RAPTOR.png", sizes: { "20": "img/perfumes/CHOCO RAPTOR 20ml.png", "5_premium": "img/perfumes/CHOCO RAPTOR decant premium 5ml.png", "10_premium": "img/perfumes/CHOCO RAPTOR decant premium 10 ml.png" } },
+    43: { main: "img/perfumes/SUMMER HAMMER.png", sizes: { "20": "img/perfumes/SUMMER HAMMER 20ml.png", "5_premium": "img/perfumes/SUMMER HAMMER decant premium 5ml.png", "10_premium": "img/perfumes/SUMMER HAMMER decant premium 10 ml.png" } },
+    44: { main: "img/perfumes/SUN-GRIA.png", sizes: { "20": "img/perfumes/SUN-GRIA 20ml.png", "5_premium": "img/perfumes/SUN-GRIA decant premium 5ml.png", "10_premium": "img/perfumes/SUN-GRIA decant premium 10 ml.png" } },
+    45: { main: "img/perfumes/VESUVIUUR.png", sizes: { "20": "img/perfumes/VESUVIUUR 20ml.png", "5_premium": "img/perfumes/VESUVIUUR decant premium 5ml.png", "10_premium": "img/perfumes/VESUVIUUR decant premium 10 ml.png" } },
+    46: { main: "img/perfumes/GREEN ISLAND.png", sizes: { "20": "img/perfumes/GREEN ISLAND 20ml.png", "5_premium": "img/perfumes/GREEN ISLAND decant premium 5ml.png", "10_premium": "img/perfumes/GREEN ISLAND decant premium 10 ml.png" } },
+    47: { main: "img/perfumes/FORESTA MAGICA.png", sizes: { "20": "img/perfumes/FORESTA MAGICA 20ml.png", "5_premium": "img/perfumes/FORESTA MAGICA decant premium 5ml.png", "10_premium": "img/perfumes/FORESTA MAGICA decant premium 10 ml.png" } },
+    48: { main: "img/perfumes/MANGOMINA D.png", sizes: { "20": "img/perfumes/MANGOMINA D 20ml.png", "5_premium": "img/perfumes/MANGOMINA D decant premium 5ml.png", "10_premium": "img/perfumes/MANGOMINA D decant premium 10 ml.png" } },
+    49: { main: "img/perfumes/TALCO.png", sizes: { "20": "img/perfumes/TALCO 20ml.png", "5_premium": "img/perfumes/TALCO decant premium 5ml.png", "10_premium": "img/perfumes/TALCO decant premium 10 ml.png" } },
+    50: { main: "img/perfumes/COCKTAIL MARACUJA.png", sizes: { "20": "img/perfumes/COCKTAIL MARACUJA 20ml.png", "5_premium": "img/perfumes/COCKTAIL MARACUJA decant premium 5ml.png", "10_premium": "img/perfumes/COCKTAIL MARACUJA decant premium 10 ml.png" } },
+    51: { main: "img/perfumes/BIRTH OF VENUS.png", sizes: { "20": "img/perfumes/BIRTH OF VENUS 20ml.png", "5_premium": "img/perfumes/BIRTH OF VENUS decant premium 5ml.png", "10_premium": "img/perfumes/BIRTH OF VENUS decant premium 10 ml.png" } },
+    52: { main: "img/perfumes/La primavera.png", sizes: { "20": "img/perfumes/La primavera 20ml.png", "5_premium": "img/perfumes/La primavera decant premium 5ml.png", "10_premium": "img/perfumes/La primavera decant premium 10 ml.png" } },
+    53: { main: "img/perfumes/NARCISSUS OBSESSION.png", sizes: { "20": "img/perfumes/NARCISSUS OBSESSION 20ml.png", "5_premium": "img/perfumes/NARCISSUS OBSESSION decant premium 5ml.png", "10_premium": "img/perfumes/NARCISSUS OBSESSION decant premium 10 ml.png" } },
+    54: { main: "img/perfumes/JUPITER\u2019S LIGHTNING.png", sizes: { "20": "img/perfumes/JUPITER\u2019S LIGHTNING 20ml.png", "5_premium": "img/perfumes/JUPITER\u2019S LIGHTNING decant premium 5ml.png", "10_premium": "img/perfumes/JUPITER\u2019S LIGHTNING decant premium 10 ml.png" } },
+    55: { main: "img/perfumes/PORTHOLE.png", sizes: { "20": "img/perfumes/PORTHOLE 20ml.png", "5_premium": "img/perfumes/PORTHOLE decant premium 5ml.png", "10_premium": "img/perfumes/PORTHOLE decant premium 10 ml.png" } },
+    56: { main: "img/perfumes/BLUE TALISMAN.png", sizes: { "20": "img/perfumes/BLUE TALISMAN 20ml.png", "5_premium": "img/perfumes/BLUE TALISMAN decant premium 5ml.png", "10_premium": "img/perfumes/BLUE TALISMAN decant premium 10 ml.png" } },
+    57: { main: "img/perfumes/VAN SEA.png", sizes: { "20": "img/perfumes/VAN SEA 20ml.png", "5_premium": "img/perfumes/VAN SEA decant premium 5ml.png", "10_premium": "img/perfumes/VAN SEA decant premium 10 ml.png" } },
+    58: { main: "img/perfumes/DREAM SEA.png", sizes: { "20": "img/perfumes/DREAM SEA 20ml.png", "5_premium": "img/perfumes/DREAM SEA decant premium 5ml.png", "10_premium": "img/perfumes/DREAM SEA decant premium 10 ml.png" } },
+    59: { main: "img/perfumes/SEX SEA.png", sizes: { "20": "img/perfumes/SEX SEA 20ml.png", "5_premium": "img/perfumes/SEX SEA decant premium 5ml.png", "10_premium": "img/perfumes/SEX SEA decant premium 10 ml.png" } },
+    60: { main: "img/perfumes/TROPIKALYS KARMA.png", sizes: { "20": "img/perfumes/TROPIKALYS KARMA 20ml.png", "5_premium": "img/perfumes/TROPIKALYS KARMA decant premium 5ml.png", "10_premium": "img/perfumes/TROPIKALYS KARMA decant premium 10 ml.png" } },
+    61: { main: "img/perfumes/BAHAR.png", sizes: { "20": "img/perfumes/BAHAR 20ml.png", "5_premium": "img/perfumes/BAHAR decant premium 5ml.png", "10_premium": "img/perfumes/BAHAR decant premium 10 ml.png" } },
+    62: { main: "img/perfumes/NARCOTIC DELIGHT.png", sizes: { "20": "img/perfumes/NARCOTIC DELIGHT 20ml.png", "5_premium": "img/perfumes/NARCOTIC DELIGHT decant premium 5ml.png", "10_premium": "img/perfumes/NARCOTIC DELIGHT decant premium 10 ml.png" } },
+    63: { main: "img/perfumes/MUSK THERAPY.png", sizes: { "20": "img/perfumes/MUSK THERAPY 20ml.png", "5_premium": "img/perfumes/MUSK THERAPY decant premium 5ml.png", "10_premium": "img/perfumes/MUSK THERAPY decant premium 10 ml.png" } },
+    64: { main: "img/perfumes/PARAGON.png", sizes: { "20": "img/perfumes/PARAGON 20ml.png", "5_premium": "img/perfumes/PARAGON decant premium 5ml.png", "10_premium": "img/perfumes/PARAGON decant premium 10 ml.png" } },
+    65: { main: "img/perfumes/REHAB.png", sizes: { "20": "img/perfumes/REHAB 20ml.png", "5_premium": "img/perfumes/REHAB decant premium 5ml.png", "10_premium": "img/perfumes/REHAB decant premium 10 ml.png" } },
+    66: { main: "img/perfumes/WILD RUSH.png", sizes: { "20": "img/perfumes/WILD RUSH 20ml.png", "5_premium": "img/perfumes/WILD RUSH decant premium 5ml.png", "10_premium": "img/perfumes/WILD RUSH decant premium 10 ml.png" } },
+    67: { main: "img/perfumes/dolce melodia.png", sizes: { "20": "img/perfumes/dolce melodia 20ml.png", "5_premium": "img/perfumes/dolce melodia decant premium 5ml.png", "10_premium": "img/perfumes/dolce melodia decant premium 10 ml.png" } },
+    73: { main: "img/perfumes/PASSION ISLAND.png", sizes: { "20": "img/perfumes/PASSION ISLAND 20ml.png", "5_premium": "img/perfumes/PASSION ISLAND decant premium 5ml.png", "10_premium": "img/perfumes/PASSION ISLAND decant premium 10 ml.png" } },
+    75: { main: "img/perfumes/OUT OF REACH.png", sizes: { "20": "img/perfumes/OUT OF REACH 20ml.png", "5_premium": "img/perfumes/OUT OF REACH decant premium 5ml.png", "10_premium": "img/perfumes/OUT OF REACH decant premium 10 ml.png" } },
+    76: { main: "img/perfumes/MANGONIFISCENT.png", sizes: { "20": "img/perfumes/MANGONIFISCENT 20ml.png", "5_premium": "img/perfumes/MANGONIFISCENT decant premium 5ml.png", "10_premium": "img/perfumes/MANGONIFISCENT decant premium 10 ml.png" } },
+    77: { main: "img/perfumes/LIONORA.png", sizes: { "20": "img/perfumes/LIONORA 20ml.png", "5_premium": "img/perfumes/LIONORA decant premium 5ml.png", "10_premium": "img/perfumes/LIONORA decant premium 10 ml.png" } },
   };
   Object.entries(w.FO_PRODUCT_IMAGES).forEach(([id, imgs]) => {
     const p = w.FO_PRODUCTS.find((x) => x.id === Number(id));
