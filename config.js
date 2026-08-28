@@ -40,8 +40,8 @@ window.FO_CONFIG = {
     "Envíos a todo el Perú",
     "WhatsApp: +51 994 467 586",
     "Despacho en 1-2 días hábiles",
-    "5% OFF en 2-5 decants",
-    "10% OFF desde 6 decants",
+    "5% OFF en 2-5 decants (1-10ml)",
+    "10% OFF en 6-9 decants · 15% OFF desde 10",
     "10% OFF en 3 decants de la misma marca",
     "Vial de regalo en pedidos desde S/ 199",
   ],
@@ -79,11 +79,15 @@ window.FO_CONFIG = {
   DESCUENTOS: {
     ACTIVOS: true, // false desactiva TODOS los descuentos de abajo
 
-    /* Descuento por cantidad de decants (excluyente entre sí):
-       · 2 a 5 decants  → min2 %
-       · 6 o más        → min6 %
-       Se aplica sobre el subtotal de los decants. */
-    POR_CANTIDAD: { activo: true, min2: 5, min6: 10 },
+    /* Descuento por cantidad de decants (excluyente entre sí), SOLO para
+       presentaciones de 1ml a tamMaxMl (20ml/30ml no cuentan ni reciben
+       este descuento):
+       · 2 a 5 decants   → min2 %
+       · 6 a 9 decants   → min6 %
+       · 10 o más        → min10 %
+       Se aplica sobre el subtotal de esos decants elegibles. Combina
+       nicho y diseñador (no distingue categoría). */
+    POR_CANTIDAD: { activo: true, min2: 5, min6: 10, min10: 15, tamMaxMl: 10 },
 
     /* Descuento por marca repetida:
        3+ unidades de la misma marca → porcentaje % sobre esa marca. */

@@ -2049,7 +2049,12 @@
   .hero { background: #140E08; }
   .hero h1 em { color: rgba(255,255,255,.78); font-style: italic; }
   .hero-eyebrow { color: rgba(255,255,255,.55); }
-  .hero-line { background: rgba(255,255,255,.25); }
+  /* Máscara del reveal de línea del título (GSAP anima .hero-line-inner con
+     yPercent 100→0); overflow:hidden recorta el deslizamiento, sin fondo
+     visible detrás del texto (antes tenía un rgba blanco que parecía texto
+     seleccionado). */
+  .hero-line { display: block; overflow: hidden; }
+  .hero-line-inner { display: inline-block; }
 
   /* â”€â”€ 6. PAGE HERO (catÃ¡logo/promos) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   /* Especificidad: .page-hero .selector tiene (0,2,0) > .section-* (0,1,0) */

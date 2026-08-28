@@ -89,5 +89,41 @@ function r2(n) { return Math.round(n * 100) / 100; }
   check("pack_umbral", d.subtotalOriginal === 404 && d.subtotalFinal === 404, "final=" + d.subtotalFinal);
 }
 
+/* ── Caso 6: 10 decants (1-10ml) → 15% (tramo nuevo) ── */
+{
+  const items = [
+    { type: "decant", brand: "MarcaW", size: "5_premium", price: 50, qty: 10 },
+  ];
+  const d = calcular(items);
+  check("diez_cantDecants", d.cantDecants === 10, "cant=" + d.cantDecants);
+  check("diez_pct15", d.detalleCantidad && d.detalleCantidad.pct === 15, JSON.stringify(d.detalleCantidad));
+  check("diez_dtoCant", d.descuentoCantidad === r2(500 * 0.15), "dto=" + d.descuentoCantidad);
+}
+
+/* ── Caso 7: 6-9 decants (1-10ml) → 10% (tramo nuevo, distinto de 2-5) ── */
+{
+  const items = [
+    { type: "decant", brand: "MarcaV", size: "5_premium", price: 50, qty: 7 },
+  ];
+  const d = calcular(items);
+  check("siete_pct10", d.detalleCantidad && d.detalleCantidad.pct === 10, JSON.stringify(d.detalleCantidad));
+}
+
+/* ── Caso 8: decants de 20ml/30ml NO cuentan ni reciben el descuento
+   por cantidad (solo 1ml-10ml); el subtotal original sí los incluye ── */
+{
+  // qty:2 en AMBAS marcas para que ninguna cruce el umbral de "3+ misma
+  // marca" (si no, ese descuento por marca gana y opaca la prueba).
+  const items = [
+    { type: "decant", brand: "MarcaU", size: "5_premium", price: 100, qty: 2 }, // elegible
+    { type: "decant", brand: "MarcaT", size: "20", price: 300, qty: 2 },        // NO elegible (marca distinta)
+  ];
+  const d = calcular(items);
+  check("tam_cantDecants_total", d.cantDecants === 4, "cant=" + d.cantDecants);
+  check("tam_soloElegibles", d.detalleCantidad && d.detalleCantidad.cant === 2, JSON.stringify(d.detalleCantidad));
+  check("tam_baseSoloElegibles", d.detalleCantidad && d.detalleCantidad.base === 200, JSON.stringify(d.detalleCantidad));
+  check("tam_subtotalOriginalIncluyeTodo", d.subtotalOriginal === 200 + 600, "subtotal=" + d.subtotalOriginal);
+}
+
 console.log("RESULTADO: " + passed + " PASS | " + failed + " FAIL");
 process.exit(failed ? 1 : 0);
