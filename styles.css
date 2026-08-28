@@ -1023,7 +1023,7 @@
     font-weight: 600; font-size: .82rem; z-index: 5000;
     transition: transform var(--t-spring), opacity var(--t-base);
     opacity: 0; pointer-events: none; box-shadow: 0 16px 38px rgba(10,10,10,.28);
-    border: 1px solid rgba(212,169,106,.18); border-left-width: 4px; letter-spacing: .02em;
+    border: 1px solid rgba(212,169,106,.18); letter-spacing: .02em;
     max-width: calc(100vw - 2rem); text-align: left;
     display: inline-flex; align-items: center; gap: .7rem;
   }
@@ -1034,11 +1034,11 @@
     font-size: .72rem; font-weight: 800; color: #fff; line-height: 1;
   }
   .toast-msg { line-height: 1.35; }
-  .toast-success { border-left-color: var(--success, #3a9c6e); }
+  .toast-success { border-color: rgba(58,156,110,.35); }
   .toast-success .toast-icon { background: var(--success, #3a9c6e); }
-  .toast-error { border-left-color: #d24b4b; }
+  .toast-error { border-color: rgba(210,75,75,.35); }
   .toast-error .toast-icon { background: #d24b4b; }
-  .toast-info { border-left-color: var(--gold); }
+  .toast-info { border-color: rgba(212,169,106,.35); }
   .toast-info .toast-icon { background: var(--gold); color: #1A120B; }
   /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     FOOTER

@@ -4,3 +4,14 @@ node_modules/
 *.log
 .DS_Store
 Thumbs.db
+
+# Fotos originales sin comprimir (~330MB). El sitio sirve las versiones
+# optimizadas de img/perfumes_optimized/ (ver tools/optimize-images.js).
+# Los originales quedan solo en disco como fuente para re-optimizar en el
+# futuro; no hace falta versionarlos en git.
+img/perfumes/
+img/perfumes_backup/
+
+# Artefactos generados por Playwright (screenshots/traces de corridas)
+test-results/
+playwright-report/

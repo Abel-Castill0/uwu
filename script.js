@@ -161,23 +161,10 @@
     });
   }
 
-  /* Optimización de imágenes:
-     Pon esto en `true` SOLO después de ejecutar `node tools/optimize-images.js`,
-     que genera las versiones de 400px en img/perfumes_optimized/.
-     Mientras esté en `false`, se usa el original de siempre (sin romper nada). */
-  const IMG_OPTIMIZED = true;
-  const OPTIMIZED_DIR = "img/perfumes_optimized/";
-  const IMG_SIZES = "(max-width: 640px) 160px, (max-width: 1024px) 200px, 260px";
-
-  // Devuelve los atributos srcset/sizes para una imagen de producto.
-  // Si IMG_OPTIMIZED está desactivado o el nombre tiene espacios, devuelve cadena vacía (solo se usa src).
-  function imgSrcsetAttrs(src) {
-    if (!IMG_OPTIMIZED || !src) return "";
-    const file = src.split("/").pop();
-    if (/[\s()]/.test(file)) return "";
-    const small = OPTIMIZED_DIR + file.replace(/\.(png|jpe?g)$/i, ".webp");
-    return ` srcset="${esc(small)} 400w, ${esc(src)} 2048w" sizes="${IMG_SIZES}"`;
-  }
+  /* Imágenes de producto: productos.js ya apunta directamente a
+     img/perfumes_optimized/*.webp (generadas con `node tools/optimize-images.js`,
+     1000px · q82). No hace falta srcset: una sola capa optimizada sirve
+     tanto el grid como el modal sin peso extra. */
 
   /* ══════════════════════════════════════════════════════════════
      STATE
@@ -1304,7 +1291,7 @@
           ${soon ? `<span class="product-badge soon">Próximamente</span>` : ""}
           ${bestsellerHTML}
           ${presentationHTML}
-          <img src="${esc(product.cardImage || cardImg(product))}"${imgSrcsetAttrs(product.cardImage)} alt="${esc(product.name)} - ${esc(product.brand)}" decoding="async" onload="this.classList.add('img-loaded'); this.closest('.img-wrapper').classList.add('skeleton-done');" onerror="if(this.src!=='${PLACEHOLDER_IMG}'){this.src='${PLACEHOLDER_IMG}';}else{this.style.display='none'; this.closest('.img-wrapper').classList.add('skeleton-done');}" />
+          <img src="${esc(product.cardImage || cardImg(product))}" alt="${esc(product.name)} - ${esc(product.brand)}" loading="lazy" decoding="async" onload="this.classList.add('img-loaded'); this.closest('.img-wrapper').classList.add('skeleton-done');" onerror="if(this.src!=='${PLACEHOLDER_IMG}'){this.src='${PLACEHOLDER_IMG}';}else{this.style.display='none'; this.closest('.img-wrapper').classList.add('skeleton-done');}" />
         </div>
         <div class="product-info">
           <div class="product-category">${catLabel} · ${esc(product.gender)}</div>
@@ -1602,7 +1589,7 @@
           ? `${promo.quantity} decants`
           : "Pack";
         const imgHtml = imageUrl
-          ? `<img src="${esc(imageUrl)}"${imgSrcsetAttrs(imageUrl)} alt="${esc(promo.name)}" class="promo-img" loading="lazy" decoding="async" onload="this.classList.add('img-loaded')" onerror="this.remove()" />`
+          ? `<img src="${esc(imageUrl)}" alt="${esc(promo.name)}" class="promo-img" loading="lazy" decoding="async" onload="this.classList.add('img-loaded')" onerror="this.remove()" />`
           : "";
 
         return `

@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-  <meta http-equiv="X-Frame-Options" content="DENY" />
-  <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+  <!-- X-Content-Type-Options / X-Frame-Options / X-XSS-Protection / Permissions-Policy
+       SOLO son válidos como cabecera HTTP real, nunca como <meta>: los navegadores
+       los ignoran (y X-Frame-Options directamente tira error en consola). GitHub
+       Pages no permite configurar cabeceras propias — si se necesita esta protección
+       real, hay que servir el sitio detrás de Cloudflare Pages/Netlify/Vercel
+       (ver DEPLOY.md § Cabeceras de seguridad). -->
   <meta name="referrer" content="strict-origin-when-cross-origin" />
-  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
   <meta name="theme-color" content="#1A120B" />
   <meta name="description"
     content="Fragrance Obsession · Decants premium de perfumes árabes, de diseñador y nicho en Lima, Perú. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el país." />
@@ -93,7 +95,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 
   <!-- Favicon (reutiliza el logo, evita 404 de favicon.ico) -->
   <link rel="icon" type="image/webp" href="logo.webp" />
@@ -1008,8 +1009,7 @@
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
 
-  <!-- Animation libraries (orden importa: Lenis → GSAP → ScrollTrigger → app → animations) -->
-  <script src="https://unpkg.com/lenis@1.3.26/dist/lenis.min.js" defer></script>
+  <!-- Animation libraries (orden importa: GSAP → ScrollTrigger → app → animations) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
   <script src="config.js" defer></script>
@@ -1028,7 +1028,7 @@
   </script>
   <script src="descuentos.js" defer></script>
   <script src="productos.js" defer></script>
-  <script src="script.js" defer></script>
   <script src="animations.js" defer></script>
+  <script src="script.js" defer></script>
   </body>
 </html>

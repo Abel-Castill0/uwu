@@ -1,14 +1,16 @@
-/* animations.js — Fragrance Obsession v2
+/* animations.js — Fragrance Obsession v3
    Expone window.FraganceAnimations = { refresh, destroy }
    para que script.js llame refresh() después de cada render.
-   Vanilla JS, sin build step, sin dependencias externas propias.
+   Vanilla JS, sin build step.
+   Stack: GSAP 3 + ScrollTrigger únicamente (reveals de sección y
+   contadores). Los hovers/microinteracciones viven en CSS puro
+   (transiciones), no dependen de JS ni de ninguna librería extra.
 */
 (function () {
   "use strict";
 
   /* ─── Estado interno ──────────────────────────────────────── */
   var _observers = [];   /* MutationObservers activos */
-  var _gsapCtx  = null;  /* contexto GSAP para cleanup limpio */
 
   var EASE_OUT = "power3.out";
   var EASE_SPRING = "back.out(1.2)";
@@ -17,27 +19,6 @@
   var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var isMobile = window.matchMedia("(max-width: 768px)").matches;
 
-  /* ─── Lenis Smooth Scroll ─────────────────────────────────── */
-  function initLenis() {
-    if (prefersReduced || typeof Lenis === "undefined") return;
-    /* Disable Lenis on mobile — native scroll is smoother on touch */
-    if (window.matchMedia("(max-width: 768px)").matches) return;
-    try {
-      var lenis = new Lenis({
-        autoRaf: true,
-        duration: 1.2,
-        easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
-        touchMultiplier: 2,
-      });
-      /* Connect Lenis to GSAP ScrollTrigger */
-      lenis.on("scroll", ScrollTrigger.update);
-      gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
-      gsap.ticker.lagSmoothing(0);
-      window._lenis = lenis;
-    } catch (e) { /* Lenis not loaded, skip */ }
-  }
-
-  /* ─── Helpers ─────────────────────────────────────────────── */
   function ready(fn) {
     if (document.readyState !== "loading") fn();
     else document.addEventListener("DOMContentLoaded", fn);
@@ -46,13 +27,64 @@
   function hasGsap() { return typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined"; }
 
   /* ══════════════════════════════════════════════════════════
+     1. HERO — Entrada cinematográfica (letra a letra para
+        título, fade mascaráro para contenido de hero)
+  ══════════════════════════════════════════════════════════ */
+  function initHeroEntrance() {
+    if (!hasGsap() || prefersReduced) return;
+    var heroContent = document.querySelector(".hero-content");
+    if (!heroContent) return;
+
+    gsap.set(heroContent, { autoAlpha: 1 });
+
+    /* Badge de hero */
+    var badge = heroContent.querySelector(".hero-badge");
+    if (badge) {
+      gsap.from(badge, {
+        y: 14, opacity: 0, scale: .92, duration: .65, ease: "back.out(2)",
+        scrollTrigger: { trigger: ".hero", start: "top 90%", toggleActions: "play none none none" }
+      });
+    }
+
+    /* Title — cada línea con máscara de clip + stagger */
+    var title = heroContent.querySelector("h1");
+    if (title) {
+      var lines = title.innerHTML.split("<br>");
+      title.innerHTML = lines.map(function(line){
+        return '<span class="hero-line"><span class="hero-line-inner">' + line + '</span></span>';
+      }).join("");
+      gsap.from(".hero-line-inner", {
+        yPercent: 100, duration: 1, ease: "power4.out",
+        stagger: .12,
+        scrollTrigger: { trigger: ".hero", start: "top 88%", toggleActions: "play none none none" }
+      });
+    }
+
+    /* Subtitle, CTAs, stats — cascade */
+    var cascade = [".hero-content p", ".hero-cta-group", ".hero-stats"];
+    gsap.from(cascade, {
+      y: 22, opacity: 0, duration: .75, ease: EASE_OUT,
+      stagger: .08,
+      scrollTrigger: { trigger: ".hero", start: "top 80%", toggleActions: "play none none none" }
+    });
+
+    /* Scroll indicator pulse */
+    var line = document.querySelector(".hero-scroll-line");
+    if (line) {
+      gsap.to(line, {
+        scaleY: 1, duration: 1.6, repeat: -1, yoyo: true, ease: "sine.inOut",
+        transformOrigin: "top"
+      });
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════════
      2. SCROLL REVEALS — Secciones estáticas
   ══════════════════════════════════════════════════════════ */
   function initScrollReveals() {
     if (!hasGsap() || prefersReduced) return;
     gsap.registerPlugin(ScrollTrigger);
 
-    /* On mobile, use simpler reveals — less stagger, shorter duration */
     var dur = isMobile ? 0.5 : 0.85;
     var stag = isMobile ? 0.04 : 0.12;
 
@@ -126,19 +158,23 @@
         y: isMobile ? 14 : 26, opacity: 0, duration: isMobile ? 0.4 : 0.65, stagger: stag, ease: EASE_OUT,
       });
     }
+
+    /* Page hero (catálogo / promos) */
+    gsap.utils.toArray(".page-hero").forEach(function(el){
+      gsap.from(el.querySelector(".page-hero-content") || el, {
+        scrollTrigger: { trigger: el, start: "top 85%", toggleActions: "play none none none" },
+        y: 20, opacity: 0, duration: .7, ease: EASE_OUT,
+      });
+    });
   }
 
   /* ══════════════════════════════════════════════════════════
      3. CATEGORY SHOWCASE — animaciones de entrada
-     Se llama UNA VEZ al cargar y de nuevo si se regeneran
-     las tiles (actualmente no ocurre, pero por futuro).
   ══════════════════════════════════════════════════════════ */
   function initCategoryShowcaseAnimations() {
     if (!hasGsap() || prefersReduced) return;
-
     var tiles = document.querySelectorAll(".cat-tile");
     if (!tiles.length) return;
-
     gsap.fromTo(tiles,
       { opacity: 0, y: 28, scale: 0.97 },
       {
@@ -152,26 +188,22 @@
 
   /* ══════════════════════════════════════════════════════════
      4. HOVER TILT — efecto parallax sutil en cat-tile
-     Sólo en pointer: fine (desktop), no interfiere con touch.
+        (solo puntero fino / desktop; nunca en móvil)
   ══════════════════════════════════════════════════════════ */
   function initHoverTilt() {
     if (!window.matchMedia("(pointer: fine)").matches || prefersReduced || isMobile) return;
-
     document.querySelectorAll(".cat-tile").forEach(function (tile) {
       var img = tile.querySelector(".cat-tile__img img");
       var body = tile.querySelector(".cat-tile__body");
-
       tile.addEventListener("mousemove", function (e) {
         var r = tile.getBoundingClientRect();
-        var xPct = (e.clientX - r.left) / r.width  - 0.5;   /* -0.5 .. 0.5 */
+        var xPct = (e.clientX - r.left) / r.width  - 0.5;
         var yPct = (e.clientY - r.top)  / r.height - 0.5;
-
         if (hasGsap()) {
           gsap.to(img,  { rotateY: xPct * 5, rotateX: -yPct * 4, scale: 1.07, duration: 0.4, ease: "none" });
           gsap.to(body, { x: xPct * 8, y: yPct * 4, duration: 0.35, ease: "none" });
         }
       });
-
       tile.addEventListener("mouseleave", function () {
         if (hasGsap()) {
           gsap.to(img,  { rotateY: 0, rotateX: 0, scale: 1.06, duration: 0.55, ease: EASE_SPRING });
@@ -182,16 +214,16 @@
   }
 
   /* ══════════════════════════════════════════════════════════
-     5. PRODUCT GRID ANIMATIONS — stagger tras renderizado
+     5. PRODUCT GRID — stagger + sentinel reveal.
+     Anima SOLO las primeras N tarjetas (fix rendimiento) y
+     añade una animación de entrada al hacer scroll.
+     El hover de cada tarjeta (zoom de imagen, elevación) vive
+     en CSS puro (.product-card:hover) — no requiere JS.
   ══════════════════════════════════════════════════════════ */
   function animateGrid(container, selector) {
     if (!hasGsap() || prefersReduced || !container) return;
     var items = container.querySelectorAll(selector);
     if (!items.length) return;
-    /* Rendimiento (P19.6): animar como máximo las primeras 24 tarjetas; el
-       resto aparece al instante. Con 135 cards se creaban ~135 tweens en cada
-       render (churn de ~1.3 MB/navegación); con el tope se conserva el
-       stagger visual con ~1/6 del costo. */
     var toAnimate = Array.prototype.slice.call(items, 0, isMobile ? 12 : 24);
 
     gsap.fromTo(toAnimate,
@@ -200,25 +232,24 @@
     );
   }
 
-  function initProductGridAnimations() {
-    var grid = document.getElementById("catalogGrid");
-    if (grid && grid.children.length) animateGrid(grid, ".product-card");
-
-    _observers.push(observeGrid("catalogGrid",  ".product-card"));
-    _observers.push(observeGrid("featuredGrid", ".product-card"));
-    _observers.push(observeGrid("promoGrid",    ".promo-card"));
-  }
-
-  function observeGrid(id, sel) {
+  function watchGrid(id, sel) {
     var el = document.getElementById(id);
     if (!el) return null;
-
     var observer = new MutationObserver(function (mutations) {
-      var hasAdded = mutations.some(function (m) { return m.addedNodes.length > 0; });
-      if (hasAdded) animateGrid(el, sel);
+      if (mutations.some(function (m) { return m.addedNodes.length > 0; })) {
+        animateGrid(el, sel);
+      }
     });
     observer.observe(el, { childList: true });
     return observer;
+  }
+
+  function initProductGridAnimations() {
+    var grid = document.getElementById("catalogGrid");
+    if (grid && grid.children.length) animateGrid(grid, ".product-card");
+    _observers.push(watchGrid("catalogGrid",  ".product-card"));
+    _observers.push(watchGrid("featuredGrid", ".product-card"));
+    _observers.push(watchGrid("promoGrid",    ".promo-card"));
   }
 
   /* ══════════════════════════════════════════════════════════
@@ -226,12 +257,10 @@
   ══════════════════════════════════════════════════════════ */
   function initCounters() {
     if (!hasGsap() || prefersReduced) return;
-
     document.querySelectorAll(".stat-number").forEach(function (el) {
       var original = el.textContent.trim();
       var match = original.match(/^([^0-9]*)([0-9,]+(?:\.[0-9]+)?)(.*)$/);
       if (!match) return;
-
       var prefix  = match[1];
       var numStr  = match[2].replace(/,/g, "");
       var suffix  = match[3];
@@ -239,7 +268,6 @@
       var isFloat = numStr.indexOf(".") !== -1;
       var dec     = isFloat ? numStr.split(".")[1].length : 0;
       var obj     = { val: 0 };
-
       gsap.to(obj, {
         scrollTrigger: { trigger: el, start: "top 90%", toggleActions: "play none none none", once: true },
         val: target, duration: 2.1, ease: "power2.out",
@@ -256,15 +284,15 @@
   }
 
   /* ══════════════════════════════════════════════════════════
-     7. MAGNETIC BUTTONS — btn-gold
+     7. MAGNETIC BUTTONS — bot. gold
+        (CSS transition + estilo inline puntual, sin librería;
+        solo puntero fino / desktop)
   ══════════════════════════════════════════════════════════ */
   function initMagneticButtons() {
     if (!window.matchMedia("(pointer: fine)").matches || prefersReduced || isMobile) return;
-
     var STRENGTH = 0.22;
     document.querySelectorAll(".btn-gold").forEach(function (btn) {
       var rect;
-
       btn.addEventListener("mouseenter", function () {
         rect = btn.getBoundingClientRect();
         btn.style.transition = "transform 0.08s linear";
@@ -284,15 +312,10 @@
   }
 
   /* ══════════════════════════════════════════════════════════
-     9. PUBLIC API — window.FraganceAnimations
-     refresh()  → llamar después de cada renderizado dinámico
-     destroy()  → limpiar todo (observers, ScrollTrigger)
+     8. PUBLIC API — window.FraganceAnimations
   ══════════════════════════════════════════════════════════ */
   function refresh() {
-    /* Refresca ScrollTrigger cuando el DOM cambia */
-    if (hasGsap()) {
-      ScrollTrigger.refresh(true);
-    }
+    if (hasGsap()) { ScrollTrigger.refresh(true); }
   }
 
   function destroy() {
@@ -306,7 +329,7 @@
   /* ── Boot ─────────────────────────────────────────────── */
   ready(function () {
     if (hasGsap()) gsap.registerPlugin(ScrollTrigger);
-    initLenis();
+    initHeroEntrance();
     initScrollReveals();
     initCategoryShowcaseAnimations();
     initHoverTilt();

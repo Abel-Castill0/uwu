@@ -16,14 +16,29 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Responsive (`cdp-responsive-check.js`, 320-1440px) | **5/5 OK** (columnas 1/1/3/5/5, modal 92dvh, sin overflow horizontal) |
 | Contraste AA (`cdp-contrast-check.js`, reparado) | Todo ≥4.5:1 en ambos temas (body 15.6-16.1, producto 16-18.5, muted 5.2-5.4, link footer 4.97-4.99) |
 | Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
-| SW | `fo-v45-ghpages` |
+| SW | `fo-v47-ghpages` |
 | Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
 | TikTok videos | Galería estática: tarjetas `<a target="_blank">` a TikTok, cero iframes/scripts/requests (ver Prompt 27) |
 | Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
 | Modal 30ml (id:6 Angels Share / id:7 Apple Brandy) | Corregido: `FO_PRODUCT_IMAGES[6\|7].sizes` no tenía clave `"30"` (ver Prompt 24) |
 | Modal 10ml premium (id:5 Angels Share on the Rocks) | Corregido: `"10_premium"` apuntaba por error a la imagen de 30ml; eliminada la clave, cae al fallback correcto (ver Prompt 24) |
-| srcset | Corregido: filenames con espacios omiten srcset (sin errores de consola) |
+| srcset | Eliminado (Prompt 28): una sola capa `img/perfumes_optimized/*.webp` sirve todo, sin lógica de srcset ni bug de espacios en nombres |
 | SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 28 — Auditoría integral: rendimiento, imágenes, animaciones, bugs (cerrado)
+
+Petición del cliente: "analiza todo, mejora, revisa errores/bugs, optimiza — profesional, elegante, lujoso". Se auditó el código real (no solo el reporte previo) y se ejecutaron las correcciones de mayor impacto real medido:
+
+- **Imágenes (el hallazgo más grave)**: `img/perfumes/` pesaba **343MB en 739 PNG sin comprimir** (varios ~1MB) servidos directamente — `img/perfumes_optimized/` existía pero solo tenía 69/739 archivos y casi ninguna imagen del sitio la usaba realmente. Se regeneraron las 739 a WebP 1000px q82 (`node tools/optimize-images.js`, tier único en vez de 400px): **343MB → 13MB (-96%)**. `productos.js` (`FO_PRODUCT_IMAGES`, 290 rutas) repuntado a `img/perfumes_optimized/*.webp`; verificado con Node que las 279 rutas resueltas en runtime existen en disco. `img/perfumes/` (fuente original) e `img/perfumes_backup/` (18MB de duplicados "(2)" sin usar) pasan a `.gitignore` — quedan en disco, salen del repo.
+- **Bug real de bajo nivel encontrado y corregido**: la imagen del `.product-card` en el grid del catálogo (la de mayor volumen de todo el sitio) **no tenía `loading="lazy"`** — se descargaban todas las fotos del catálogo de una vez en cada render, visible o no.
+- **3D y animaciones — decisión del cliente (aprobada explícitamente vía pregunta)**: `hero-3d.js` (Three.js) + Lenis + Anime.js **eliminados por completo**. Los tres se cargaban vía CDN en `index.html` en TODOS los dispositivos (móvil incluido) aunque `hero-3d.js` se auto-desactivaba en móvil — el móvil pagaba la descarga sin usar nada. Queda solo GSAP + ScrollTrigger (`animations.js` v3). Al auditar Anime.js se encontró que sus 2 usos reales (`hover` de `.product-card`, rotación de ícono FAQ) **ya estaban duplicados en CSS puro** (`.product-card:hover`, `.faq-item.open .faq-trigger i`) — Anime.js competía con esas transiciones vía `style.transform` inline en vez de sumarse. El glow infinito en botones (`initCtaGlow`, loop perpetuo sin fin) también se retiró.
+- **`package.json`**: `three`, `animejs`, `swiper` eliminados de `dependencies` — ninguno se `require()`aba nunca (los que se usaban eran CDN puro, desacoplados de npm; `swiper` no se usaba en absoluto). Solo queda `sharp` (real, usado por `tools/`).
+- **Meta tags de seguridad rotos**: `X-Frame-Options`, `X-XSS-Protection` y `Permissions-Policy` estaban como `<meta http-equiv>` — inválido por spec (solo funcionan como cabecera HTTP real). `X-Frame-Options` tiraba error de consola en cada carga; los otros dos simplemente no hacían nada (falsa sensación de seguridad). Se retiraron y se documentó en el propio HTML que GitHub Pages no permite cabeceras custom (hace falta Cloudflare Pages/Netlify/Vercel delante si se quiere protección real).
+- **`.toast`**: `border-left-width: 4px` de acento de color (anti-patrón "side-stripe border") → borde completo sutil por estado; el círculo de ícono ya llevaba el color, así que no se pierde información.
+- **Verificación**: `npm test` → **104 PASS \| 0 FAIL** (3 corridas × 3 modos, igual que antes del cambio). `npm run smoke` → **14/14**. Navegador real (CDP): 0 errores de consola, `THREE`/`Lenis`/`anime` = `undefined`, `gsap`/`ScrollTrigger` cargan bien, imágenes del catálogo resuelven a `img/perfumes_optimized/*.webp` con 200 OK.
+- **SW**: bump `fo-v46-ghpages` → `fo-v47-ghpages` (cambios en `index.html`, `animations.js`, `script.js`, `productos.js`).
+- **No se tocó**: el historial de git (los PNG viejos siguen en commits anteriores; solo se dejaron de versionar hacia adelante — reescribir historial no se hizo por ser destructivo e irreversible sin pedirlo explícitamente). El grid responsive del catálogo (`repeat(auto-fill, minmax(...))`) no se reescribió a columnas fijas: el sistema existente ya es equivalente o mejor que un esquema de breakpoints rígidos.
+- **Commit**: local únicamente, sin `git push` (decisión del cliente — revisar antes de publicar a producción).
 
 ## Prompt 27 — TikTok: de modal con iframe a galería 100% estática (cerrado)
 
