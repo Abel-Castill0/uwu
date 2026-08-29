@@ -4892,6 +4892,12 @@ background: #E8DCCC;
   .theme-toggle { width: 44px; height: 44px; }
   .back-to-top { width: 48px; height: 48px; }
   .wa-fab { width: 54px; height: 54px; }
+  .hamburger { width: 44px; height: 44px; }
+  .hero-cta-group .btn-gold, .hero-cta-group .btn-ghost,
+  #tabFull, #tabDecant, .tiktok-follow .btn-gold,
+  .btn-add, .btn-empty-action {
+    min-height: 44px;
+  }
 }
 @media (pointer: coarse) and (max-width: 767px) {
   .filter-btn, .cat-pill, .pack-size-chip, .packs-sort__button, .btn-filters-mobile {

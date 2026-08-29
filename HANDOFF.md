@@ -16,7 +16,7 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Responsive (`cdp-responsive-check.js`, 320-1440px) | **5/5 OK** (columnas 1/1/3/5/5, modal 92dvh, sin overflow horizontal) |
 | Contraste AA (`cdp-contrast-check.js`, reparado) | Todo ≥4.5:1 en ambos temas (body 15.6-16.1, producto 16-18.5, muted 5.2-5.4, link footer 4.97-4.99) |
 | Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
-| SW | `fo-v47-ghpages` |
+| SW | `fo-v49-ghpages` |
 | Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
 | TikTok videos | Galería estática: tarjetas `<a target="_blank">` a TikTok, cero iframes/scripts/requests (ver Prompt 27) |
 | Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
@@ -24,6 +24,19 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Modal 10ml premium (id:5 Angels Share on the Rocks) | Corregido: `"10_premium"` apuntaba por error a la imagen de 30ml; eliminada la clave, cae al fallback correcto (ver Prompt 24) |
 | srcset | Eliminado (Prompt 28): una sola capa `img/perfumes_optimized/*.webp` sirve todo, sin lógica de srcset ni bug de espacios en nombres |
 | SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 31 — Verificación de reglas de negocio + accesibilidad táctil móvil (cerrado)
+
+El cliente pidió re-verificar que descuentos/productos/próximamente quedaran exactamente como en su catálogo y sus mensajes de WhatsApp. Todo eso **ya estaba correcto** desde el Prompt 30 (verificado con Node contra `config.js`/`productos.js`: `POR_CANTIDAD` 5/10/15% con `tamMaxMl:10`, `POR_MARCA` y `UMBRAL` intactos, `PROXIMAMENTE:[137,138,140]`, Sedley sin duplicar, diseñador 100% en tallas [2,3,5]) — no hizo falta tocar nada de eso. El trabajo real de esta ronda fue una **auditoría de accesibilidad táctil y responsive** (pedida en la Fase 3-4 del prompt) que no se había hecho a fondo:
+
+- **Bug de marcado real**: el enlace "Síguenos en TikTok" tenía `class="btn-gold"` sin la clase base `.btn` — por eso no heredaba `display:inline-flex` ni el padding del resto de botones y se renderizaba como texto con gradiente de 22px de alto (ni visualmente ni táctilmente era un botón real). Corregido a `class="btn btn-gold"` en `index.html`; era el único caso en todo el sitio con este patrón (verificado con grep).
+- **Objetivos táctiles <44px reales** (medidos con `getBoundingClientRect()` en un viewport 375×812 con `pointer:coarse` emulado, no solo CSS teórico): el botón hamburguesa (37×29), los 2 CTA del hero "Explorar Catálogo"/"Ver Packs" (39px/41px de alto), las pestañas del modal "Frasco Completo"/"Decant" (32px) y los botones `.btn-add`/`.btn-empty-action` (40-43px) quedaban por debajo del mínimo de accesibilidad táctil (WCAG 2.5.5, 44×44px). Se extendió el bloque `@media (pointer: coarse)` que ya existía en `styles.css` (de una ronda anterior, cubría `.modal-close`/`.cart-close`/`.theme-toggle`/etc.) para incluir estos elementos — solo afecta a dispositivos táctiles, cero cambio visual en desktop con mouse.
+- **Verificado sin overflow horizontal** en 375px, 768px y 1280px (`document.documentElement.scrollWidth` vs `innerWidth`, sin diferencia en ninguno) — carrito, checkout, modal de producto y footer con logos de pago incluidos.
+- **Verificado el flujo "Próximamente"** (Fierezza) de punta a punta: card deshabilitada con badge, botón del modal deshabilitado, aviso "¿Quieres reservarlo? Escríbenos por WhatsApp" — ya funcionaba correctamente desde el Prompt 30, sin cambios.
+- **Auditoría de CSS muerto**: se buscaron selectores repetidos 4+ veces como señal de redundancia; la única redundancia real encontrada era `.modal-close` (3 capas de tamaño de una evolución del componente a través de varias rondas) — es inofensiva porque la capa táctil (la última en cascada) siempre gana en pantallas táctiles, y el tamaño de escritorio (38px) es una decisión de diseño válida para mouse. No se encontró código muerto adicional; una refactorización más profunda del CSS (4700+ líneas) requeriría una herramienta como PurgeCSS/stylelint, fuera del alcance de esta ronda.
+- **Emojis en UI**: revisados — los únicos que quedan están en toasts y mensajes de WhatsApp (contenido, no iconos de interfaz), que es la convención ya establecida en el proyecto; no se encontró ningún emoji usado como ícono de UI real.
+- **SW**: `fo-v48-ghpages` → `fo-v49-ghpages`.
+- **Verificación**: `npm run smoke` 14/14, `node test-descuentos.js` 25/25, `npm test` — ver resultado en la respuesta al usuario.
 
 ## Prompt 30 — Completar imágenes, corregir nombres "premium 20/30ml" y limpieza profunda (cerrado)
 
