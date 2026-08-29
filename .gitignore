@@ -11,6 +11,7 @@ Thumbs.db
 # futuro; no hace falta versionarlos en git.
 img/perfumes/
 img/perfumes_backup/
+img/perfumes_backup_optimized/
 
 # Artefactos generados por Playwright (screenshots/traces de corridas)
 test-results/

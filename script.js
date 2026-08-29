@@ -996,7 +996,7 @@
     restoreFocus();
   }
   function getEligibleProducts(promo) {
-    let eligible = products.filter((p) => !p.tester);
+    let eligible = products.filter((p) => !p.tester && !isComingSoon(p.id));
     if (promo.allowedCategories) {
       eligible = eligible.filter((p) =>
         promo.allowedCategories.includes(p.category),

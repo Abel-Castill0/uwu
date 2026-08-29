@@ -101,7 +101,7 @@ step(function () {
     ok(!document.getElementById("modalOverlay").classList.contains("active"), "escClosesModal", "modalOverlay sigue activo");
   }, 200);
 
-  /* 5. cambio de categoria: disenador â†’ 23, vuelta a nicho â†’ 115 */
+  /* 5. cambio de categoria: disenador â†’ 24, vuelta a nicho â†’ 115 */
   step(function () {
     var tile = document.querySelector('[data-cat="disenador"]');
     ok(!!tile, "catalogTileDisenador", "sin tile disenador");
@@ -109,7 +109,7 @@ step(function () {
   }, 300);
 
   step(function () {
-    ok(gridCount() === 23, "catalogDisenador23", "grid=" + gridCount());
+    ok(gridCount() === 24, "catalogDisenador24", "grid=" + gridCount());
     var tile = document.querySelector('[data-cat="nicho"]');
     if (tile) { tile.click(); }
   }, 300);

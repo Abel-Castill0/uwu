@@ -136,7 +136,7 @@ window.FO_CONFIG = {
      a la venta: se mostrarán con el badge "Próximamente", botón
      deshabilitado y aviso de reserva en el modal.
      Ejemplo: PROXIMAMENTE: [42, 73] */
-  PROXIMAMENTE: [],
+  PROXIMAMENTE: [140], // Fierezza: la foto de producto trae el sello "PRÓXIMAMENTE" del proveedor
 
   /* ── CONTENIDO: VIDEOS DE TIKTOK (galería estática, cero iframes) ──
      Cada tarjeta muestra "thumbnail" con un botón de play decorativo y
