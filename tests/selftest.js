@@ -71,7 +71,7 @@ step(function () {
         setTimeout(clickLoadMore, 300);
       } else {
         window.__chains -= 1;
-        // nicho (115 productos): el render incremental añade chunks de 24; al
+        // nicho (116 productos): el render incremental añade chunks de 24; al
         // desbordar el último chunk, el grid queda en 120 tarjetas (sin botón).
         ok(gridCount() === 120, "catalogNichoFiltered", "grid=" + gridCount());
       }
@@ -101,7 +101,7 @@ step(function () {
     ok(!document.getElementById("modalOverlay").classList.contains("active"), "escClosesModal", "modalOverlay sigue activo");
   }, 200);
 
-  /* 5. cambio de categoria: disenador â†’ 24, vuelta a nicho â†’ 115 */
+  /* 5. cambio de categoria: disenador â†’ 24, vuelta a nicho â†’ 116 */
   step(function () {
     var tile = document.querySelector('[data-cat="disenador"]');
     ok(!!tile, "catalogTileDisenador", "sin tile disenador");
@@ -172,7 +172,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(document.querySelectorAll("#promoGrid .promo-card").length === 3, "promosDisenador3", "promoGrid=" + document.querySelectorAll("#promoGrid .promo-card").length);
   }, 500);
 
-  /* 9. pack nicho-5: abrir, tamano 3ml, precio 48, 115 items, seleccion, confirmar */
+  /* 9. pack nicho-5: abrir, tamano 3ml, precio 48, 113 items (excluye "Próximamente"), seleccion, confirmar */
   step(function () {
     var tile = document.querySelector('[data-promo-filter="nicho"]');
     if (tile) { tile.click(); }
@@ -189,7 +189,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
   step(function () {
     var price = document.getElementById("packGroupPrice");
     ok(price && price.textContent.indexOf("S/ 48.00") >= 0, "packPrice48", "price=" + (price ? price.textContent.trim() : "sin price"));
-    ok(document.querySelectorAll("#packProductGrid .pack-product-item").length === 115, "packItems115", "items=" + document.querySelectorAll("#packProductGrid .pack-product-item").length);
+    ok(document.querySelectorAll("#packProductGrid .pack-product-item").length === 113, "packItems113", "items=" + document.querySelectorAll("#packProductGrid .pack-product-item").length);
     var first = document.querySelector("#packProductGrid .pack-product-item");
     if (first) { first.click(); }
   }, 400);
