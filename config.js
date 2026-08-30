@@ -136,7 +136,7 @@ window.FO_CONFIG = {
      a la venta: se mostrarán con el badge "Próximamente", botón
      deshabilitado y aviso de reserva en el modal.
      Ejemplo: PROXIMAMENTE: [42, 73] */
-  PROXIMAMENTE: [137, 138, 140], // Toucan, Loverbird y Fierezza: la foto de producto trae el sello "PRÓXIMAMENTE" del proveedor
+  PROXIMAMENTE: [9, 10, 19, 37, 40, 41, 51, 60, 62, 63, 64, 72, 79, 81, 83, 90, 95, 100, 101, 103, 137, 138, 140], // Ichigo Ichie, Last Birthday Cake, Mango Kiss, Que Chimba, Speachless, Evil Angel, Birth of Venus, Tropikalys Karma, Narcotic Delight, Musk Therapy, Paragon, Mezzo, Grand Soir, Gris Charnel EDP, Pas Ce Soir Extrait, Ani, Wulong Cha X, Castley, Sedley, Malibú Party, Toucan, Loverbird, Fierezza
 
   /* ── CONTENIDO: VIDEOS DE TIKTOK (galería estática, cero iframes) ──
      Cada tarjeta muestra "thumbnail" con un botón de play decorativo y
