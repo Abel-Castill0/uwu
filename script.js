@@ -210,21 +210,21 @@
     cart = [];
   }
   /* Carrito persistido + catálogo que cambia con el tiempo (ej. un producto
-     pasa a "Próximamente" o se retira del catálogo) pueden desincronizarse:
-     un pedido con un decant ya no disponible no debe poder confirmarse por
-     WhatsApp. Se limpia al cargar (no se toca isPack: los packs ya validan
-     su propia elegibilidad al seleccionarse). El aviso se muestra en init(),
-     una vez que la UI (toasts) está lista. */
+     pasa a "Próximamente", se retira del catálogo, cambia de precio, o el
+     tamaño guardado ya no existe) pueden desincronizarse: un pedido con un
+     ítem inválido no debe poder confirmarse por WhatsApp/Mercado Pago.
+     Única fuente de verdad (sanitizeCartAvailability, definida más abajo,
+     disponible aquí por hoisting): se usa tanto al cargar el carrito como
+     justo antes de generar el pedido en confirmarCompra() — así un producto
+     que cambia de estado SIN que el usuario recargue la página también
+     queda bloqueado. Los packs (isPack) no se tocan: validan su propia
+     elegibilidad al seleccionarse (getEligibleProducts). */
   let removedFromCartCount = 0;
-  if (cart.length) {
-    const cleaned = cart.filter((it) => {
-      if (it.isPack) return true;
-      const prod = getProductById(it.id);
-      return !!prod && !isComingSoon(it.id);
-    });
-    if (cleaned.length !== cart.length) {
-      removedFromCartCount = cart.length - cleaned.length;
-      cart = cleaned;
+  {
+    const result = sanitizeCartAvailability(cart);
+    if (result.removed > 0) {
+      cart = result.items;
+      removedFromCartCount = result.removed;
       try { localStorage.setItem("fo_cart_v4", JSON.stringify(cart)); } catch (e) { /* noop */ }
     }
   }
@@ -274,6 +274,54 @@
   }
   function getProductById(id) {
     return products.find((p) => p.id === id);
+  }
+  /* ── Contrato de negocio ──────────────────────────────────────────
+     El carrito es una representación TEMPORAL del catálogo. El catálogo
+     actual (products + FO_CONFIG.PROXIMAMENTE) siempre tiene autoridad
+     sobre disponibilidad, presentación y precio — nunca un valor viejo
+     persistido en localStorage. sanitizeCartAvailability() es la única
+     fuente de verdad que aplica ese contrato; se llama al cargar el
+     carrito y otra vez justo antes de confirmarCompra() (un producto
+     puede cambiar de estado mientras la pestaña sigue abierta, sin
+     recarga de por medio). Coordina helpers pequeños en vez de hacerlo
+     todo ella misma. Los packs (isPack) no se tocan: validan su propia
+     elegibilidad en getEligibleProducts(). */
+  function isProductStillAvailable(id) {
+    const prod = getProductById(id);
+    return prod && !isComingSoon(id) ? prod : null;
+  }
+  // Precio vigente para (producto, tipo, talla) según el catálogo actual,
+  // o undefined si esa talla ya no existe (ítem inválido).
+  function resolveCurrentPrice(prod, type, size) {
+    const sizes = type === "full" ? prod.fullSizes : prod.decantSizes;
+    const basePrice = sizes ? sizes[baseSizeOf(size)] : undefined;
+    if (typeof basePrice !== "number") return undefined;
+    return isPremiumSize(size) ? basePrice + getPremiumUplift(basePrice) : basePrice;
+  }
+  // Cantidad válida = entero finito ≥ 1 (localStorage manipulado a mano
+  // puede traer 0, negativos, NaN, Infinity o strings). No inventa un
+  // tope máximo: no hay política comercial existente de límite por ítem.
+  function normalizeQty(qty) {
+    const n = Math.floor(Number(qty));
+    return Number.isFinite(n) && n >= 1 ? n : null;
+  }
+  function sanitizeCartAvailability(items) {
+    const cleaned = [];
+    let removed = 0;
+    (Array.isArray(items) ? items : []).forEach((it) => {
+      if (!it || typeof it !== "object") { removed++; return; }
+      if (it.isPack) { cleaned.push(it); return; }
+      const prod = isProductStillAvailable(it.productId);
+      if (!prod) { removed++; return; }
+      const price = resolveCurrentPrice(prod, it.type, it.size);
+      if (price === undefined) { removed++; return; }
+      const qty = normalizeQty(it.qty);
+      if (qty === null) { removed++; return; }
+      it.price = price;
+      it.qty = qty;
+      cleaned.push(it);
+    });
+    return { items: cleaned, removed };
   }
   function formatPrice(p) {
     return "S/ " + p.toFixed(2);
@@ -2201,6 +2249,23 @@
       return;
     }
 
+    // Segunda defensa (la primera es al cargar la página): si un producto
+    // pasó a "Próximamente" o cambió de precio MIENTRAS la pestaña seguía
+    // abierta (sin recarga de por medio), no debe poder confirmarse el
+    // pedido con ese ítem. Misma fuente de verdad que al cargar el carrito.
+    const sanitized = sanitizeCartAvailability(cart);
+    if (sanitized.removed > 0) {
+      cart = sanitized.items;
+      saveCart();
+      updateCartUI();
+      showToast(
+        sanitized.removed === 1
+          ? "⚠️ Un producto de tu pedido ya no está disponible y fue retirado. Revisa tu carrito."
+          : `⚠️ ${sanitized.removed} productos de tu pedido ya no están disponibles y fueron retirados. Revisa tu carrito.`,
+      );
+      return;
+    }
+
     const mensaje = buildOrderMessage();
     const dni = $("chDNI")?.value.trim() ?? "";
     const referencia = $("chReferencia")?.value.trim() ?? "";
@@ -2431,6 +2496,7 @@
   window.__FO_TEST = {
     addToCart: addToCart,
     clearCart: function () { cart = []; saveCart(); updateCartUI(); },
+    sanitizeCartAvailability: sanitizeCartAvailability,
   };
 
   /* ══════════════════════════════════════════════════════════════

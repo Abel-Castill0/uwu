@@ -16,7 +16,7 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Responsive (`cdp-responsive-check.js`, 320-1440px) | **5/5 OK** (columnas 1/1/3/5/5, modal 92dvh, sin overflow horizontal) |
 | Contraste AA (`cdp-contrast-check.js`, reparado) | Todo ≥4.5:1 en ambos temas (body 15.6-16.1, producto 16-18.5, muted 5.2-5.4, link footer 4.97-4.99) |
 | Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
-| SW | `fo-v51-ghpages` |
+| SW | `fo-v52-ghpages` |
 | Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
 | TikTok videos | Galería estática: tarjetas `<a target="_blank">` a TikTok, cero iframes/scripts/requests (ver Prompt 27) |
 | Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
@@ -24,6 +24,18 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Modal 10ml premium (id:5 Angels Share on the Rocks) | Corregido: `"10_premium"` apuntaba por error a la imagen de 30ml; eliminada la clave, cae al fallback correcto (ver Prompt 24) |
 | srcset | Eliminado (Prompt 28): una sola capa `img/perfumes_optimized/*.webp` sirve todo, sin lógica de srcset ni bug de espacios en nombres |
 | SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 33 — Hardening: la corrección del carrito del Prompt 32 tenía un bug propio (cerrado)
+
+Auditoría disciplinada (identidad de estado primero, sin sincronizar ramas de más; hipótesis→reproducción→fix→prueba dirigida→UNA regresión global, sin repetir verificaciones). El objetivo era blindar el fix de carrito del Prompt 32. Al revisar esa misma corrección con lupa:
+
+- **Bug real, introducido en el Prompt 32 (corregido)**: `sanitizeCartAvailability` (entonces inline) filtraba por `it.id`, pero el campo real de cada ítem del carrito es `it.productId` (confirmado leyendo `addToCart()`). Resultado: `getProductById(undefined)` siempre fallaba → **el filtro borraba TODO ítem válido del carrito en cada recarga de página**, con el toast "ya no está disponible" mostrado incorrectamente. Reproducido en navegador real (agregar producto → recargar → carrito vacío) antes de tocar nada. Este bug ya estaba en producción (`fo-v51-ghpages`).
+- **Corrección + refactor pedido**: se extrajo `sanitizeCartAvailability(items)` como única fuente de verdad (antes vivía inline solo en la carga del carrito) y se usa en dos puntos: (1) al cargar el carrito, (2) **justo antes de generar el mensaje/pedido en `confirmarCompra()`** — la segunda defensa que faltaba: si un producto pasa a "Próximamente" mientras la pestaña sigue abierta, sin que el usuario recargue, el pedido queda bloqueado igual (antes solo se revalidaba al cargar). Los packs (`isPack`) no se tocan.
+- **Bonus incluido en la misma función**: el precio del ítem se re-sincroniza contra `decantSizes`/`fullSizes` actuales del catálogo (nunca se confía en un precio viejo persistido en `localStorage`), y un tamaño que ya no existe en el catálogo también invalida el ítem.
+- **Verificado en navegador real** (no solo leído): (1) producto válido sobrevive una recarga normal — antes de este fix, NO sobrevivía; (2) producto "Próximamente" sembrado en `localStorage` se limpia al cargar con aviso; (3) producto que pasa a "Próximamente" en caliente (sin recarga) → `confirmarCompra()` lo bloquea, limpia el carrito, avisa, y el pedido NO se envía.
+- **Identidad de estado antes de tocar nada**: branch `master` en `469a10c`, working tree limpio, `origin/main`/`origin/master` = `469a10c` (sin cambios de terceros desde la ronda anterior) — verificado con un solo `git fetch`, sin sincronizar ramas de más.
+- **Test automatizado permanente añadido** (ronda de blindaje, mismo día): `sanitizeCartAvailability` se decompuso en helpers pequeños (`isProductStillAvailable`, `resolveCurrentPrice`, `normalizeQty`) y se sumó normalización de cantidad (rechaza 0, negativos, NaN, Infinity, strings no numéricos) e ítems sin `productId`. Se expuso vía el hook existente `window.__FO_TEST` (ya usado por la suite) y se agregaron 2 pasos nuevos a `tests/selftest.js`: (1) `cartSanitize*` — llama a la función real con objetos con la forma exacta que deja `addToCart()` (campo `productId`, nunca `id`) cubriendo en una sola llamada ítem válido, precio viejo, "Próximamente", talla inexistente y las 4 cantidades corruptas; si la regresión `it.id` reapareciera, la función trataría todo como inválido y la aserción de conteo fallaría — es un contrato de comportamiento, no un grep de código; (2) `proximamenteBlocksOrder`/`proximamenteClearsCart` — reproduce el caso mid-sesión (producto pasa a Próximamente sin recarga) y confirma que `confirmarCompra()` bloquea el pedido (no abre `wa.me`) y limpia el carrito. Total suite: **104 → 111 aserciones**, todas verdes.
+- **Verificación**: `npm run smoke` 14/14, `node test-descuentos.js` 25/25, `node --check`, **una sola** corrida de `npm test` → **111/111 PASS** en las 3 corridas (warm-up/normal/reduced-motion).
 
 ## Prompt 32 — Auditoría integral: bug crítico en producción encontrado y corregido (cerrado)
 

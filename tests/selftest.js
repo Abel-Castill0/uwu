@@ -590,7 +590,78 @@ step(function () {
     ok(!document.querySelector(".pay-method--mp, .mp-option, #mpCard, [data-pay='mp']"), "mpOculto", "controles MP presentes");
   }, 450);
 
-  /* 14. resumen */
+  /* 14. Hardening de carrito: sanitizeCartAvailability() como fuente única de
+     verdad. Los objetos de prueba se construyen con la forma REAL que deja
+     addToCart() en localStorage (campo productId, nunca "id"): si la función
+     volviera a comprobar it.id, aquí getProductById(undefined) fallaría y
+     TODO se filtraría como inválido — contrato de comportamiento, no un
+     grep de nombre de campo. Un solo array cubre en una sola llamada: item
+     válido, precio viejo (el catálogo manda), Próximamente, talla
+     inexistente, cantidades corruptas (0, negativo, NaN, string) y objeto
+     sin productId — evita repetir 8 pasos casi idénticos. */
+  step(function () {
+    var prods = (window.FO_PRODUCTS || []).filter(function (x) { return x.decantSizes && x.decantSizes["5"]; });
+    var pValid = prods[2], pStale = prods[3], pProx = prods[4], pNoSize = prods[5];
+    ok(!!pValid && !!pStale && !!pProx && !!pNoSize && !!window.__FO_TEST.sanitizeCartAvailability,
+      "cartSanitizeSetup", "faltan productos de prueba o hook sanitizeCartAvailability");
+    if (!pValid || !pStale || !pProx || !pNoSize) return;
+    var items = [
+      { productId: pValid.id, type: "decant", name: pValid.name, brand: pValid.brand, size: "5", price: pValid.decantSizes["5"], qty: 2 },
+      { productId: pStale.id, type: "decant", name: pStale.name, brand: pStale.brand, size: "5", price: 0.01, qty: 1 },
+      { productId: pProx.id, type: "decant", name: pProx.name, brand: pProx.brand, size: "5", price: pProx.decantSizes["5"], qty: 1 },
+      { productId: pNoSize.id, type: "decant", name: pNoSize.name, brand: pNoSize.brand, size: "999", price: 10, qty: 1 },
+      { productId: pValid.id, type: "decant", name: pValid.name, brand: pValid.brand, size: "5", price: pValid.decantSizes["5"], qty: 0 },
+      { productId: pValid.id, type: "decant", name: pValid.name, brand: pValid.brand, size: "5", price: pValid.decantSizes["5"], qty: -3 },
+      { productId: pValid.id, type: "decant", name: pValid.name, brand: pValid.brand, size: "5", price: pValid.decantSizes["5"], qty: NaN },
+      { productId: pValid.id, type: "decant", name: pValid.name, brand: pValid.brand, size: "5", price: pValid.decantSizes["5"], qty: "abc" },
+      { type: "decant", size: "5", price: 10, qty: 1 },
+    ];
+    var origLen = window.FO_CONFIG.PROXIMAMENTE.length;
+    window.FO_CONFIG.PROXIMAMENTE.push(pProx.id);
+    var result = window.__FO_TEST.sanitizeCartAvailability(items);
+    window.FO_CONFIG.PROXIMAMENTE.length = origLen;
+
+    ok(result.removed === 7 && result.items.length === 2, "cartSanitizeCounts", "removed=" + result.removed + " kept=" + result.items.length);
+    var v = result.items[0], s = result.items[1];
+    ok(!!v && v.productId === pValid.id && v.qty === 2, "cartSanitizeKeepsValidItem", JSON.stringify(v));
+    ok(!!s && s.productId === pStale.id && s.price === pStale.decantSizes["5"] && s.price !== 0.01,
+      "cartSanitizePriceFromCatalog", "price=" + (s && s.price) + " esperado=" + pStale.decantSizes["5"]);
+  }, 150);
+
+  /* 15. Próximamente a mitad de sesión (sin recarga): confirmarCompra() debe
+     bloquear el pedido — NO abrir wa.me — vaciar el ítem inválido del
+     carrito y avisar. Reproduce el segundo punto de defensa exigido por el
+     usuario, separado de la carga inicial (paso 14). */
+  step(function () {
+    var prods = (window.FO_PRODUCTS || []).filter(function (x) { return x.decantSizes && x.decantSizes["5"]; });
+    var p = prods[6] || prods[0];
+    ok(!!p, "proxBlockSetup", "sin producto de prueba");
+    if (!p) return;
+    window.__FO_TEST.clearCart();
+    window.__FO_TEST.addToCart(p.id, "decant", "5");
+    window.__proxTestId = p.id;
+    window.__proxWasIn = window.FO_CONFIG.PROXIMAMENTE.indexOf(p.id) !== -1;
+    if (!window.__proxWasIn) window.FO_CONFIG.PROXIMAMENTE.push(p.id);
+    window.__opened = null;
+    window.navigateTo("checkout");
+  }, 400);
+
+  step(function () {
+    ["chNombre", "chApellido", "chTelefono", "chDireccion", "chDistrito"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) { el.value = id === "chTelefono" ? "999888777" : "Test"; }
+    });
+    var confirm = document.getElementById("payConfirmBtn");
+    if (confirm) { confirm.click(); }
+    ok(window.__opened === null, "proximamenteBlocksOrder", "window.open=" + window.__opened);
+    ok(document.querySelectorAll("#cartItems .cart-item").length === 0, "proximamenteClearsCart", "items restantes=" + document.querySelectorAll("#cartItems .cart-item").length);
+    if (!window.__proxWasIn) {
+      var idx = window.FO_CONFIG.PROXIMAMENTE.indexOf(window.__proxTestId);
+      if (idx !== -1) window.FO_CONFIG.PROXIMAMENTE.splice(idx, 1);
+    }
+  }, 350);
+
+  /* 16. resumen */
   step(function () {
     ok(errors.length === 0, "noConsoleErrors", errors.join(" | ") || "vacío");
     // Algunas aserciones usan timers anidados (load-more, pollCart, E2E) que
