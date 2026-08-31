@@ -543,9 +543,14 @@
   .page-hero { position: relative; min-height: 56vh; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; overflow: clip; background: #0d0a06; }
   .page-hero-img {
     position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-    filter: brightness(.4) saturate(.85); z-index: 0; transition: filter .6s ease, transform 10s ease; transform: scale(1.05);
+    /* brightness(.4) dejaba la foto casi negra bajo el overlay (ver AUTOCRÃTICA
+       v1 mÃ¡s abajo, que oscureciÃ³ el overlay por separado); .65 deja ver la
+       fotografÃ­a de producto real (vitrina de perfumes / flat-lay de packs)
+       sin sacrificar la legibilidad del texto, que sigue sobre la franja mÃ¡s
+       oscura del overlay. */
+    filter: brightness(.65) saturate(.95); z-index: 0; transition: filter .6s ease, transform 10s ease; transform: scale(1.05);
   }
-  .page-hero:hover .page-hero-img { filter: brightness(.44); transform: scale(1); }
+  .page-hero:hover .page-hero-img { filter: brightness(.7) saturate(.95); transform: scale(1); }
   .page-hero-overlay {
     position: absolute; inset: 0; z-index: 1;
     background: linear-gradient(180deg, rgba(5,5,5,.12) 0%, rgba(5,5,5,.7) 80%, rgba(5,5,5,.9) 100%);
@@ -3039,7 +3044,11 @@
   .cat-tile--nicho     .cat-tile__img img { object-position: center 15%; }
 
   /* â”€â”€ Q. ANTI-OVERFLOW HORIZONTAL â€” salvaguarda global â”€â”€â”€â”€â”€â”€â”€â”€ */
-  html, body { overflow-x: hidden; max-width: 100vw; }
+  /* Solo body (ya lo tenia desde la regla base, arriba): agregar overflow-x
+     en html ademas de body rompe position:sticky en TODO el sitio (el
+     header deja de pegarse arriba y desaparece al hacer scroll) — bug
+     real detectado en auditoria, corregido sin perder la salvaguarda. */
+  body { overflow-x: hidden; max-width: 100vw; }
   .cat-tile, .product-card, .promo-card { max-width: 100%; }
 
   /* â”€â”€ S. BUG REAL â€” menÃº hamburguesa mÃ³vil con texto blanco
