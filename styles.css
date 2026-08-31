@@ -3084,7 +3084,12 @@
   .discount-ladder__row { display: flex; align-items: flex-end; justify-content: center; gap: 1rem; flex-wrap: wrap; }
   .discount-ladder__step { display: flex; flex-direction: column; align-items: center; gap: .2rem; }
   .discount-ladder__count { font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+  /* Progresion en 3 pasos reales (tamano + color), no "2 iguales + 1 salto":
+     el ojo debe leer 5% -> 10% -> 15% como una escalera continua ("cuanto
+     mas pruebo, mas conviene"), no como dos cifras neutras y una "oferta"
+     destacada aparte. */
   .discount-ladder__pct { font-family: var(--font-display); font-size: 1.6rem; font-weight: 500; color: var(--text-primary); line-height: 1; }
+  .discount-ladder__step--mid .discount-ladder__pct { color: var(--gold); font-size: 1.85rem; }
   .discount-ladder__step--top .discount-ladder__pct { color: var(--gold-deep); font-size: 2.1rem; font-weight: 600; }
   [data-theme="dark"] .discount-ladder__step--top .discount-ladder__pct { color: var(--gold-light); }
   .discount-ladder__arrow { color: var(--border); font-size: 1.1rem; margin-bottom: .55rem; }
@@ -3092,6 +3097,7 @@
   @media (max-width: 480px) {
     .discount-ladder__row { gap: .55rem; }
     .discount-ladder__pct { font-size: 1.25rem; }
+    .discount-ladder__step--mid .discount-ladder__pct { font-size: 1.42rem; }
     .discount-ladder__step--top .discount-ladder__pct { font-size: 1.6rem; }
     .discount-ladder__arrow { font-size: .85rem; margin-bottom: .4rem; }
   }

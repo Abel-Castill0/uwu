@@ -27,7 +27,16 @@ if (!edge) throw new Error("Microsoft Edge no está disponible. Define EDGE_PATH
   try {
     let tabs;
     for (let i = 0; i < 40; i += 1) {
-      try { tabs = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json(); break; } catch (_) { await delay(250); }
+      // AbortController por intento: sin esto, un solo fetch que se queda
+      // esperando (puerto abierto pero sin respuesta) rompe el limite de
+      // ~10s que este bucle deberia tener como peor caso.
+      try {
+        const ac = new AbortController();
+        const t = setTimeout(() => ac.abort(), 1000);
+        tabs = await (await fetch(`http://127.0.0.1:${port}/json/list`, { signal: ac.signal })).json();
+        clearTimeout(t);
+        break;
+      } catch (_) { await delay(250); }
     }
     if (!tabs) throw new Error("CDP no estuvo disponible a tiempo.");
     const tab = tabs.find((item) => item.type === "page");
@@ -55,7 +64,14 @@ if (!edge) throw new Error("Microsoft Edge no está disponible. Define EDGE_PATH
       if (message.id && pending.has(message.id)) { pending.get(message.id)(message.result); pending.delete(message.id); }
       if (message.method === "Runtime.exceptionThrown") errors.push(message.params.exceptionDetails.text);
     };
-    await new Promise((resolve) => { ws.onopen = resolve; });
+    // Igual que send(): sin timeout ni onerror, un socket que nunca abre (o
+    // que falla al conectar) dejaba este await colgado para siempre -- el
+    // segundo punto de espera indefinida del runner, junto a send().
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error("CDP timeout: el WebSocket no abrió en 10s")), 10000);
+      ws.onopen = () => { clearTimeout(timer); resolve(); };
+      ws.onerror = (err) => { clearTimeout(timer); reject(new Error(`CDP WebSocket error: ${err && err.message ? err.message : err}`)); };
+    });
     await send("Page.enable"); await send("Runtime.enable");
     // Viewport determinista: sin esto, la primera navegación puede medir
     // columnas del CSS como si fuera una ventana angosta y falsear
