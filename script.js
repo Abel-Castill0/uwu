@@ -209,6 +209,25 @@
   } catch (e) {
     cart = [];
   }
+  /* Carrito persistido + catálogo que cambia con el tiempo (ej. un producto
+     pasa a "Próximamente" o se retira del catálogo) pueden desincronizarse:
+     un pedido con un decant ya no disponible no debe poder confirmarse por
+     WhatsApp. Se limpia al cargar (no se toca isPack: los packs ya validan
+     su propia elegibilidad al seleccionarse). El aviso se muestra en init(),
+     una vez que la UI (toasts) está lista. */
+  let removedFromCartCount = 0;
+  if (cart.length) {
+    const cleaned = cart.filter((it) => {
+      if (it.isPack) return true;
+      const prod = getProductById(it.id);
+      return !!prod && !isComingSoon(it.id);
+    });
+    if (cleaned.length !== cart.length) {
+      removedFromCartCount = cart.length - cleaned.length;
+      cart = cleaned;
+      try { localStorage.setItem("fo_cart_v4", JSON.stringify(cart)); } catch (e) { /* noop */ }
+    }
+  }
 
   /* ══════════════════════════════════════════════════════════════
      UTILITIES
@@ -3124,6 +3143,13 @@
     setupHeroMobile();
     renderFeatured();
     updateCartUI();
+    if (removedFromCartCount > 0) {
+      showToast(
+        removedFromCartCount === 1
+          ? "⚠️ Quitamos 1 producto de tu carrito: ya no está disponible."
+          : `⚠️ Quitamos ${removedFromCartCount} productos de tu carrito: ya no están disponibles.`,
+      );
+    }
     setupBackToTop();
     setupCheckoutValidation();
     setupHeroParallax();

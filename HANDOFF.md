@@ -16,7 +16,7 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Responsive (`cdp-responsive-check.js`, 320-1440px) | **5/5 OK** (columnas 1/1/3/5/5, modal 92dvh, sin overflow horizontal) |
 | Contraste AA (`cdp-contrast-check.js`, reparado) | Todo ≥4.5:1 en ambos temas (body 15.6-16.1, producto 16-18.5, muted 5.2-5.4, link footer 4.97-4.99) |
 | Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
-| SW | `fo-v49-ghpages` |
+| SW | `fo-v51-ghpages` |
 | Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
 | TikTok videos | Galería estática: tarjetas `<a target="_blank">` a TikTok, cero iframes/scripts/requests (ver Prompt 27) |
 | Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
@@ -24,6 +24,18 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Modal 10ml premium (id:5 Angels Share on the Rocks) | Corregido: `"10_premium"` apuntaba por error a la imagen de 30ml; eliminada la clave, cae al fallback correcto (ver Prompt 24) |
 | srcset | Eliminado (Prompt 28): una sola capa `img/perfumes_optimized/*.webp` sirve todo, sin lógica de srcset ni bug de espacios en nombres |
 | SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 32 — Auditoría integral: bug crítico en producción encontrado y corregido (cerrado)
+
+El cliente pidió una auditoría exhaustiva (arquitectura, UX, responsive, performance, a11y, SEO, lógica de negocio, PWA) antes de tocar nada. Al arrancar la auditoría (`git log`) apareció un **commit ajeno a estas sesiones** (`5147e79`, "corrige keys sizeImages 20/30ml y agrega 20 productos Proximamente, SW fo-v50") ya en `main`/`master` — sin entrada en este HANDOFF, hecho por otra vía. Se investigó a fondo antes de asumir nada:
+
+- **"20 productos marcados Próximamente" — investigado, NO es un bug**: se abrieron 7 de las 20 fotos de producto una por una (Musk Therapy, Sedley, Ichigo Ichie, Last Birthday Cake, Paragon, Grand Soir, Que Chimba — marcas distintas: Toskovat, Marly, Initio, MFK, Lorenzo Pazzaglia) y las 7 traían el sello rojo "PRÓXIMAMENTE/COMING SOON" del proveedor **en la propia foto**. El cliente actualizó el stock de esos 20 perfumes (varios eran bestsellers) y el commit ajeno reflejó eso correctamente.
+- **Bug real #1 (confirmado y corregido)**: ese mismo commit renombró la *key* de `sizeImages` de "20"→"30" (o viceversa) en 18 productos para que coincidiera con `decantSizes`, pero **no actualizó el archivo** al que apunta — la key decía "30" pero el archivo seguía siendo la foto vieja de 20ml (ej. Gold Juice, Paragon, Narcissus Obsession, Jupiter's Lightning, Birth of Venus, y 10 más). Es decir, el modal mostraba la foto del tamaño equivocado. Se verificó cada caso con un script (no a ciegas): en 15 de 18 existía en `img/perfumes/` la foto real de 30ml (una con "premium" en el nombre — Gold Juice — se renombró igual que en el Prompt 30); en los 3 restantes (Blue Talisman EDP, Toucan, Loverbird) no existe una foto específica del tamaño grande, así que se dejó la única disponible como aproximación (no es un bug, es la mejor opción con los assets que hay).
+- **Bug real #2 (confirmado y corregido)**: el mensaje de ese commit decía "SW fo-v50" pero **`sw.js` nunca se tocó** (seguía en `fo-v49-ghpages`) — un service worker con caché vieja podía seguir sirviendo las imágenes mal mapeadas. Corregido: `fo-v51-ghpages` (se salta v50 para no generar ambigüedad con la versión "fantasma" que el commit decía usar y nunca aplicó).
+- **Bug real #3, encontrado por esta auditoría (no relacionado al commit ajeno)**: el carrito persiste en `localStorage` (`fo_cart_v4`) sin revalidar contra el catálogo actual. Reproducido: se sembró manualmente un carrito con un decant que hoy está "Próximamente" (Musk Therapy) y **el checkout dejaba confirmar el pedido por WhatsApp con normalidad**, sin aviso — un cliente que agregó algo al carrito antes de que se agotara podía terminar pidiendo algo que ya no hay. Corregido en `script.js`: al cargar el carrito se filtran (y se re-guardan) los ítems cuyo producto ya no existe o pasó a "Próximamente" (los packs no se tocan, tienen su propia validación), y se avisa con un toast una vez que la UI está lista. Verificado en navegador real: carrito sembrado con Musk Therapy → tras recargar, `localStorage` queda `[]`, contador en 0, toast "Quitamos 1 producto de tu carrito: ya no está disponible."
+- **Resto de la auditoría** (arquitectura, focus trap, aria, SEO): el focus trap de modales (`trapTabFocus`, ya cubre modal/pack modal/carrito/info modal) y los `aria-modal`/`role="dialog"` **ya estaban bien implementados** — no hacía falta nada. SEO: meta tags, Open Graph, JSON-LD (Store + BreadcrumbList + FAQPage) y `robots.txt`/`sitemap.xml` están completos; limitación real encontrada (no corregida, cambio de arquitectura): al ser SPA con rutas por hash, ningún producto tiene URL propia indexable — ninguno de los 140 perfumes puede rankear individualmente en Google. `sitemap.xml` tenía `lastmod` desactualizado (2026-08-26) — corregido a la fecha real.
+- **Verificación**: `npm run smoke` 14/14, `node test-descuentos.js` 25/25, `node --check` en JS tocado, 549/549 rutas de imagen resueltas, regresión manual de flujo normal (catálogo→carrito) sin cambios.
+- **SW**: `fo-v49-ghpages` → `fo-v51-ghpages`.
 
 ## Prompt 31 — Verificación de reglas de negocio + accesibilidad táctil móvil (cerrado)
 
