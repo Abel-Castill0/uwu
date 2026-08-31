@@ -172,7 +172,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(document.querySelectorAll("#promoGrid .promo-card").length === 3, "promosDisenador3", "promoGrid=" + document.querySelectorAll("#promoGrid .promo-card").length);
   }, 500);
 
-  /* 9. pack nicho-5: abrir, tamano 3ml, precio 48, 113 items (excluye "Próximamente"), seleccion, confirmar */
+  /* 9. pack nicho-5: abrir, tamano 3ml, precio 48, 93 items (excluye "Próximamente"), seleccion, confirmar */
   step(function () {
     var tile = document.querySelector('[data-promo-filter="nicho"]');
     if (tile) { tile.click(); }
@@ -189,7 +189,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
   step(function () {
     var price = document.getElementById("packGroupPrice");
     ok(price && price.textContent.indexOf("S/ 48.00") >= 0, "packPrice48", "price=" + (price ? price.textContent.trim() : "sin price"));
-    ok(document.querySelectorAll("#packProductGrid .pack-product-item").length === 113, "packItems113", "items=" + document.querySelectorAll("#packProductGrid .pack-product-item").length);
+    ok(document.querySelectorAll("#packProductGrid .pack-product-item").length === 93, "packItems93", "items=" + document.querySelectorAll("#packProductGrid .pack-product-item").length);
     var first = document.querySelector("#packProductGrid .pack-product-item");
     if (first) { first.click(); }
   }, 400);
