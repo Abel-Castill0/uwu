@@ -33,8 +33,22 @@ if (!edge) throw new Error("Microsoft Edge no está disponible. Define EDGE_PATH
     const tab = tabs.find((item) => item.type === "page");
     const ws = new WebSocket(tab.webSocketDebuggerUrl);
     const pending = new Map(); let id = 0; const errors = [];
-    const send = (method, params = {}) => new Promise((resolve) => {
-      const requestId = ++id; pending.set(requestId, resolve); ws.send(JSON.stringify({ id: requestId, method, params }));
+    // Sin timeout, una respuesta CDP perdida (crash del navegador, socket que
+    // se cae a medias) dejaba este await colgado para siempre: el try/finally
+    // nunca se alcanzaba, browser.kill() nunca corría, y el proceso quedaba
+    // vivo indefinidamente sin avanzar ni fallar. 25s es generoso frente a lo
+    // que tarda un comando CDP normal (ms) pero acota el peor caso: ahora
+    // revienta con un error real, el catch de abajo marca exitCode=1 y
+    // run-suite.js reintenta una vez -- no cambia el criterio de PASS/FAIL,
+    // solo evita el cuelgue indefinido.
+    const send = (method, params = {}) => new Promise((resolve, reject) => {
+      const requestId = ++id;
+      const timer = setTimeout(() => {
+        pending.delete(requestId);
+        reject(new Error(`CDP timeout: ${method} sin respuesta en 25s`));
+      }, 25000);
+      pending.set(requestId, (result) => { clearTimeout(timer); resolve(result); });
+      ws.send(JSON.stringify({ id: requestId, method, params }));
     });
     ws.onmessage = ({ data }) => {
       const message = JSON.parse(data);

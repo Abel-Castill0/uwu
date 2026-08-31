@@ -3077,6 +3077,25 @@
     PACKS DE DECANTS â€” secciÃ³n renovada (arquitectura nueva)
     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
+  /* -- A0. ESCALERA DE DESCUENTO -- 3 pasos, sin tabla ni bordes pesados;
+     la jerarquia tipografica (tamano + color) comunica "mas = mejor" sin
+     necesitar iconos ni cards adicionales. */
+  .discount-ladder { max-width: var(--max-w); margin: 0 auto; padding: 2.4rem 1.5rem 0; text-align: center; }
+  .discount-ladder__row { display: flex; align-items: flex-end; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+  .discount-ladder__step { display: flex; flex-direction: column; align-items: center; gap: .2rem; }
+  .discount-ladder__count { font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+  .discount-ladder__pct { font-family: var(--font-display); font-size: 1.6rem; font-weight: 500; color: var(--text-primary); line-height: 1; }
+  .discount-ladder__step--top .discount-ladder__pct { color: var(--gold-deep); font-size: 2.1rem; font-weight: 600; }
+  [data-theme="dark"] .discount-ladder__step--top .discount-ladder__pct { color: var(--gold-light); }
+  .discount-ladder__arrow { color: var(--border); font-size: 1.1rem; margin-bottom: .55rem; }
+  .discount-ladder__note { margin-top: 1rem; font-size: .78rem; color: var(--text-muted); }
+  @media (max-width: 480px) {
+    .discount-ladder__row { gap: .55rem; }
+    .discount-ladder__pct { font-size: 1.25rem; }
+    .discount-ladder__step--top .discount-ladder__pct { font-size: 1.6rem; }
+    .discount-ladder__arrow { font-size: .85rem; margin-bottom: .4rem; }
+  }
+
   /* â”€â”€ A. BENEFICIOS â€” franja bajo el hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .packs-benefits {
     display: grid;

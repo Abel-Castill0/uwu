@@ -568,6 +568,31 @@
       </div>
     </section>
 
+    <!-- Escalera de descuento: mismo mensaje que "ahorra hasta 30%" del hero,
+         pero mostrando CÓMO se llega ahí en una sola mirada. Regla real
+         (calcularDescuentos en descuentos.js): 2-5 decants 5%, 6-9 10%,
+         10+ 15%. No es una tabla nueva de precios, solo la misma cifra ya
+         desglosada. -->
+    <section class="discount-ladder" aria-label="Descuento por cantidad de decants">
+      <div class="discount-ladder__row">
+        <div class="discount-ladder__step">
+          <span class="discount-ladder__count">2-5</span>
+          <span class="discount-ladder__pct">5%</span>
+        </div>
+        <span class="discount-ladder__arrow" aria-hidden="true">→</span>
+        <div class="discount-ladder__step">
+          <span class="discount-ladder__count">6-9</span>
+          <span class="discount-ladder__pct">10%</span>
+        </div>
+        <span class="discount-ladder__arrow" aria-hidden="true">→</span>
+        <div class="discount-ladder__step discount-ladder__step--top">
+          <span class="discount-ladder__count">10+</span>
+          <span class="discount-ladder__pct">15%</span>
+        </div>
+      </div>
+      <p class="discount-ladder__note">Válido en decants · combina nicho y diseñador libremente</p>
+    </section>
+
     <!-- Beneficios -->
     <section class="packs-benefits" aria-label="Beneficios de los packs">
       <div class="packs-benefit">
