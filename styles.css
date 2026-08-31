@@ -475,7 +475,12 @@
   }
   .product-card:hover { transform: translateY(-8px) scale(1.01); border-color: rgba(212,169,106,.3); box-shadow: 0 20px 60px rgba(0,0,0,.12), 0 0 0 1px rgba(212,169,106,.15); }
   .img-wrapper {
-    position: relative; aspect-ratio: 1;
+    /* 4/5 (vertical) en vez de 1 (cuadrado): la foto pasa de ~40% a ~48%
+       de la altura de la card -- la fotografia del perfume gana presencia
+       frente al bloque de texto, y encaja mejor con la forma vertical
+       natural de un frasco. Cambio medido en catalogo desktop/mobile antes
+       de aplicarlo (auditoria UX/UI). */
+    position: relative; aspect-ratio: 4 / 5;
     background: radial-gradient(circle at 50% 38%, #fff, var(--cream-0));
     overflow: hidden; display: flex; align-items: center; justify-content: center;
   }
