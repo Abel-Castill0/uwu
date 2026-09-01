@@ -109,7 +109,9 @@ step(function () {
   }, 300);
 
   step(function () {
-    ok(gridCount() === 24, "catalogDisenador24", "grid=" + gridCount());
+    /* 23, no 24: "SWY Amber" (id 115, diseñador) se elimino del catalogo
+       -- ver Prompt 35. Recalculado contra el catalogo real, no supuesto. */
+    ok(gridCount() === 23, "catalogDisenador23", "grid=" + gridCount());
     var tile = document.querySelector('[data-cat="nicho"]');
     if (tile) { tile.click(); }
   }, 300);
@@ -160,62 +162,77 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(img && img.complete && img.naturalWidth > 0, "logoOk", "naturalWidth=" + (img ? img.naturalWidth : "sin img"));
   }, 500);
 
-  /* 8. Pack builder: navigate, verify grid renders */
+  /* 8. Combo builder: navigate, verify list renders (perfumes elegibles
+     con 3/5/10ml; "SWY Amber" ya no esta en el catalogo -- ver Prompt 35).
+     No se fija el numero exacto: cambia si el catalogo cambia y no es lo
+     que este test protege (solo que la lista realmente pinte algo). */
   step(function () {
     window.navigateTo("promos");
-    var grid = document.getElementById("packProductGrid");
-    ok(!!grid, "packGridExists", "sin packProductGrid");
-    var items = document.querySelectorAll("#packProductGrid .pack-product-item");
-    ok(items.length > 0, "packItemsRendered", "items=" + items.length);
+    var list = document.getElementById("comboList");
+    ok(!!list, "comboListExists", "sin comboList");
+    var items = document.querySelectorAll("#comboList .combo-item");
+    ok(items.length > 0, "comboItemsRendered", "items=" + items.length);
   }, 500);
 
-  /* packToggleProduct() re-renderiza TODO el grid (innerHTML) en cada click
-     -- correcto para un click real (el usuario siempre apunta a lo que ve
-     en pantalla), pero una NodeList capturada antes del primer click ya
-     apunta a nodos desconectados para el segundo. Re-consultar el DOM
-     vivo entre clicks imita el uso real. */
-  function firstUnselectedPackItem() {
-    var items = document.querySelectorAll("#packProductGrid .pack-product-item:not(.selected)");
-    return items[0];
+  /* comboToggleProduct() re-renderiza toda la lista (innerHTML) en cada
+     cambio -- correcto para un click real (el usuario siempre apunta a lo
+     que ve en pantalla), pero un checkbox capturado antes ya apunta a un
+     nodo desconectado despues del primer cambio. Re-consultar el DOM vivo
+     entre selecciones imita el uso real (mismo motivo que en el pack
+     builder anterior). */
+  function firstUncheckedCombo() {
+    return document.querySelector('#comboList input[type="checkbox"]:not(:checked):not(:disabled)');
+  }
+  function checkCombo(input) {
+    input.checked = true;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
-  /* 9. Pack builder: select 2 items (marcas distintas), verify 5% discount.
-     El auto-filtro de marca al primer click se quito (bloqueaba mezclar
-     marcas sin avisar) -- por eso el segundo item sigue visible y
-     seleccionable aunque sea de otra marca. */
+  /* 9. Combo builder: seleccionar el minimo (3) activa el combo. No se
+     fija un % exacto (5% cantidad vs 10% marca depende de que marcas
+     traigan los primeros 3 productos elegibles del catalogo real, no es
+     una regla a inventar aqui) -- lo que se verifica es el limite real:
+     por debajo de 3 el combo esta invalido, en 3 ya es valido. */
   step(function () {
-    var a = firstUnselectedPackItem(); if (a) a.click();
-    var b = firstUnselectedPackItem(); if (b) b.click();
-    var count = document.getElementById("packSummaryCount");
-    ok(count && count.textContent.indexOf("2") >= 0, "packCount2", "count=" + (count ? count.textContent.trim() : ""));
-    var discount = document.getElementById("packSummaryDiscount");
-    ok(discount && discount.textContent.indexOf("5") >= 0, "packDiscount5", "discount=" + (discount ? discount.textContent.trim() : ""));
+    for (var i = 0; i < 3; i++) { var b = firstUncheckedCombo(); if (b) checkCombo(b); }
+    var count = document.getElementById("comboSummaryCount");
+    ok(count && count.textContent.indexOf("3/6") === 0, "comboCount3", "count=" + (count ? count.textContent.trim() : ""));
+    var totalWrap = document.getElementById("comboSummaryTotal");
+    ok(totalWrap && totalWrap.style.display !== "none", "comboValidAt3", "display=" + (totalWrap ? totalWrap.style.display : "sin panel"));
   }, 400);
 
-  /* 10. Pack builder: select 6 total → 10% */
+  /* 10. Combo builder: completar hasta el tope (6) bloquea seleccionar mas */
   step(function () {
-    for (var i = 0; i < 4; i++) { var el = firstUnselectedPackItem(); if (el) el.click(); }
-    var discount = document.getElementById("packSummaryDiscount");
-    ok(discount && discount.textContent.indexOf("10") >= 0, "packNow10", "discount=" + (discount ? discount.textContent.trim() : ""));
+    for (var i = 0; i < 3; i++) { var b = firstUncheckedCombo(); if (b) checkCombo(b); }
+    var count = document.getElementById("comboSummaryCount");
+    ok(count && count.textContent.indexOf("6/6") === 0, "comboCount6", "count=" + (count ? count.textContent.trim() : ""));
+    var selectable = document.querySelectorAll("#comboList .combo-item:not(.selected):not(.disabled)").length;
+    ok(selectable === 0, "comboMaxCapsSelection", "seleccionables restantes=" + selectable);
   }, 400);
 
-  /* 11. Pack builder: confirm adds to cart */
+  /* 11. Combo builder: boton de WhatsApp habilitado y abre wa.me con el pedido
+     (no pasa por el carrito -- es un envio directo, a proposito). */
   step(function () {
-    var before = cartTotal();
-    var confirm = document.getElementById("packConfirmBtn");
-    ok(confirm && !confirm.disabled, "packConfirmEnabled", "disabled=" + (confirm ? confirm.disabled : "sin btn"));
-    if (confirm) { confirm.click(); }
-    ok(cartTotal() === before + 1, "packAddsOne", before + " -> " + cartTotal());
-  }, 600);
+    var waBtn = document.getElementById("comboWhatsappBtn");
+    ok(waBtn && !waBtn.disabled, "comboWhatsappEnabled", "disabled=" + (waBtn ? waBtn.disabled : "sin boton"));
+    window.__opened = null;
+    if (waBtn) { waBtn.click(); }
+    ok(!!window.__opened && window.__opened.indexOf("https://wa.me/") === 0, "comboWhatsappOpens", "window.open=" + window.__opened);
+  }, 300);
 
-  /* 11. carrito lateral */
+  /* 12. carrito lateral. El combo (paso 11) se manda directo por WhatsApp,
+     no pasa por el carrito -- por eso solo hay 1 item (el agregado en el
+     paso "addToCart" inicial), no 2. cartPackClases (.cart-pack-strip)
+     se retiro: nada en la UI actual crea un item type:"pack" en el
+     carrito para poder probarlo; el render de ese caso se deja intacto
+     en el codigo por compatibilidad con localStorage de clientes
+     anteriores, solo no hay forma de ejercitarlo desde la UI de hoy. */
   step(function () {
     var open = document.getElementById("btnCart") || document.querySelector("[onclick*='openCart'], .cart-toggle");
     ok(!!open, "cartOpenControl", "sin control de apertura");
     if (open) { open.click(); }
     ok(document.getElementById("cartSidebar").classList.contains("active"), "cartOpens", "sidebar no activo");
-    ok(document.querySelectorAll("#cartItems .cart-item").length === 2, "cartItems2", "items=" + document.querySelectorAll("#cartItems .cart-item").length);
-    ok(!!document.querySelector(".cart-pack-strip, .cart-pack-thumb, .cart-pack-name"), "cartPackClases", "sin clases de pack en carrito");
+    ok(document.querySelectorAll("#cartItems .cart-item").length === 1, "cartItems1", "items=" + document.querySelectorAll("#cartItems .cart-item").length);
   }, 400);
 
   /* 12. qty + total */

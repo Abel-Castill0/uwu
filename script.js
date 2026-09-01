@@ -190,10 +190,11 @@
   let currentPage = "home";
   let catalogVisibleCount = 24;
   /* ── Pack Builder state ── */
-  let packSelectedIds = [];
-  let packBrandFilter = null;
-  let packSizeFilter = null;
-  let packSearchQuery = "";
+  let comboSize = "3";
+  let comboSelectedIds = [];
+  let comboSearchQuery = "";
+  const COMBO_MAX = 6;
+  const COMBO_MIN = 3;
   /* currentSearchTerm eliminado — búsqueda removida */
 
   try {
@@ -991,220 +992,183 @@
   }
 
   /* ══════════════════════════════════════════════════════════════
-     PACK BUILDER — inline on packs page
-     Reglas reales: calcularDescuentos() en descuentos.js (2-5→5%,
-     6-9→10%, 10+→15%, solo 1-10ml; 3+ misma marca→10%; gana la mayor).
-     getPackDiscountInfo() delega ahi -- ver nota en esa funcion.
+     ARMA TU COMBO — constructor de dos paneles en la pagina de packs.
+     Combo propio, NO reutiliza calcularDescuentos(): tramos y tope
+     distintos, pedidos explicitamente para esta funcionalidad --
+     3-5 decants -> 5%, 6 decants -> 10% (tope del combo); 3+ misma
+     marca -> FO_CONFIG.DESCUENTOS.POR_MARCA (mismo valor que el resto
+     del sitio, no hardcodeado aparte); gana el mayor, no se acumulan.
+     El pedido se manda directo por WhatsApp -- no pasa por el
+     carrito/checkout normal (a proposito, ver spec).
   ══════════════════════════════════════════════════════════════ */
-  function getPackEligibleProducts() {
+  function getComboEligibleProducts() {
     return products.filter((p) =>
-      !p.tester && !isComingSoon(p.id) &&
-      p.decantSizes && Object.keys(p.decantSizes).length > 0
+      !p.tester && !isComingSoon(p.id) && p.decantSizes &&
+      (p.decantSizes["3"] !== undefined || p.decantSizes["5"] !== undefined || p.decantSizes["10"] !== undefined)
     );
   }
-  function getPackBrands() {
-    const eligible = getPackEligibleProducts();
-    const brandMap = new Map();
-    eligible.forEach((p) => {
-      brandMap.set(p.brand, (brandMap.get(p.brand) || 0) + 1);
-    });
-    return Array.from(brandMap.entries()).sort((a, b) => b[1] - a[1]).map(([brand, count]) => ({ brand, count }));
+  function comboProductHasSize(prod, size) {
+    return !!(prod && prod.decantSizes && prod.decantSizes[size] !== undefined);
   }
-  /* Tamano de menor precio disponible para un producto (mismo criterio que
-     ya usaba el grid para el "Desde X" mostrado) -- devuelve [sizeKey,
-     price] o null. Se necesita la KEY (no solo el precio) para que
-     calcularDescuentos() pueda aplicar correctamente el filtro de 1-10ml. */
-  function packMinSizeEntry(prod) {
-    if (!prod || !prod.decantSizes) return null;
-    const entries = Object.entries(prod.decantSizes);
-    if (!entries.length) return null;
-    return entries.reduce((min, e) => (e[1] < min[1] ? e : min), entries[0]);
-  }
-  /* Unica fuente de verdad: delega en calcularDescuentos() (descuentos.js)
-     en vez de reimplementar los tramos aqui. Antes esta funcion tenia su
-     propia regla hardcodeada (2-5->5%, 6+->10%, sin tramo de 15% ni
-     exclusion de 20/30ml) que quedo desalineada de la regla real del
-     negocio -- bug real detectado en auditoria, corregido reusando la
-     misma funcion que ya usan carrito y checkout. */
-  function getPackDiscountInfo() {
-    if (packSelectedIds.length === 0) return null;
-    const count = packSelectedIds.length;
-    const items = packSelectedIds.map((pid) => {
+  function getComboDiscountInfo() {
+    const count = comboSelectedIds.length;
+    const items = comboSelectedIds.map((pid) => {
       const prod = getProductById(pid);
-      const entry = prod && packMinSizeEntry(prod);
-      if (!prod || !entry) return null;
-      return { type: "decant", brand: prod.brand, size: entry[0], price: entry[1], qty: 1 };
+      if (!comboProductHasSize(prod, comboSize)) return null;
+      return { brand: prod.brand, price: prod.decantSizes[comboSize] };
     }).filter(Boolean);
-    const d = calcularDescuentos(items);
-    const subtotal = d.subtotalOriginal;
-    const discountAmount = d.descuentoTotal;
-    const total = d.subtotalFinal;
-    const isValid = count >= 2;
-    const discountPct = subtotal > 0 ? Math.round((discountAmount / subtotal) * 100) : 0;
-    let ruleLabel = "";
-    if (d.descuentoMarca > 0 && d.detalleMarcas.length) {
-      ruleLabel = d.detalleMarcas[0].pct + "% en " + d.detalleMarcas[0].marca;
-    } else if (d.descuentoCantidad > 0 && d.detalleCantidad) {
-      ruleLabel = d.detalleCantidad.cant >= 10 ? "10+ decants" : d.detalleCantidad.cant >= 6 ? "6-9 decants" : "2-5 decants";
-    }
+    const subtotal = items.reduce((s, it) => s + it.price, 0);
+    const qtyPct = count >= COMBO_MAX ? 10 : count >= COMBO_MIN ? 5 : 0;
+    const brandCounts = {};
+    items.forEach((it) => { brandCounts[it.brand] = (brandCounts[it.brand] || 0) + 1; });
+    const marcaCfg = (FO.DESCUENTOS && FO.DESCUENTOS.POR_MARCA) || { minItems: 3, porcentaje: 10 };
+    let brandPct = 0, brandName = "";
+    Object.keys(brandCounts).forEach((b) => {
+      if (brandCounts[b] >= marcaCfg.minItems && marcaCfg.porcentaje > brandPct) { brandPct = marcaCfg.porcentaje; brandName = b; }
+    });
+    const discountPct = Math.max(qtyPct, brandPct);
+    const isValid = count >= COMBO_MIN;
+    const discountAmount = isValid ? Math.round(subtotal * discountPct) / 100 : 0;
+    const total = Math.round((subtotal - discountAmount) * 100) / 100;
+    const ruleLabel = brandPct >= qtyPct && brandPct > 0 ? `${brandPct}% en ${brandName}` : (qtyPct > 0 ? `${qtyPct}% por cantidad` : "");
     return { count, discountPct, subtotal, discountAmount, total, isValid, ruleLabel };
   }
-  function packToggleProduct(productId) {
-    const idx = packSelectedIds.indexOf(productId);
+  function comboToggleProduct(productId) {
+    const idx = comboSelectedIds.indexOf(productId);
     if (idx > -1) {
-      packSelectedIds.splice(idx, 1);
+      comboSelectedIds.splice(idx, 1);
     } else {
-      packSelectedIds.push(productId);
-      /* El auto-filtro de marca al elegir el primer producto se quito:
-         bloqueaba en la practica mezclar marcas (justo lo que la regla de
-         "2-5 -> 5%" permite y anima a hacer) -- confirmado real con un
-         test que selecciona 2 productos de marcas distintas y esperaba
-         verlos ambos. El filtro por marca sigue disponible, pero solo si
-         el usuario lo elige a mano en el select (packBrandSelect). */
+      if (comboSelectedIds.length >= COMBO_MAX) {
+        showToast(`⚠️ Tu combo admite máximo ${COMBO_MAX} fragancias`);
+        return;
+      }
+      const prod = getProductById(productId);
+      if (!comboProductHasSize(prod, comboSize)) return;
+      comboSelectedIds.push(productId);
     }
-    renderPackBuilderGrid();
-    renderPackSummary();
+    renderComboList();
+    renderComboSummary();
   }
-  window.packToggleProduct = packToggleProduct;
-  function renderPackBuilderGrid() {
-    const grid = $("packProductGrid");
-    if (!grid) return;
-    let eligible = getPackEligibleProducts();
-    /* Apply brand filter */
-    if (packBrandFilter) {
-      eligible = eligible.filter((p) => p.brand === packBrandFilter);
+  window.comboToggleProduct = comboToggleProduct;
+  function comboSetSize(size) {
+    if (comboSize === size) return;
+    comboSize = size;
+    /* Cambiar el tamano global re-evalua elegibilidad: un producto sin
+       esa talla sale del combo (con aviso); el resto recalcula precio a
+       la nueva talla automaticamente en getComboDiscountInfo(). */
+    const before = comboSelectedIds.length;
+    comboSelectedIds = comboSelectedIds.filter((pid) => comboProductHasSize(getProductById(pid), comboSize));
+    if (comboSelectedIds.length < before) {
+      showToast(`⚠️ Algunas fragancias no tienen presentación de ${comboSize}ml y se quitaron del combo`);
     }
-    /* Apply size filter */
-    if (packSizeFilter) {
-      eligible = eligible.filter((p) => p.decantSizes && p.decantSizes[packSizeFilter] !== undefined);
+    document.querySelectorAll(".combo-size-btn").forEach((btn) => {
+      const active = btn.dataset.size === comboSize;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-pressed", String(active));
+    });
+    renderComboList();
+    renderComboSummary();
+  }
+  window.comboSetSize = comboSetSize;
+  function renderComboList() {
+    const list = $("comboList");
+    if (!list) return;
+    let eligible = getComboEligibleProducts();
+    if (comboSearchQuery) {
+      const q = comboSearchQuery.toLowerCase();
+      eligible = eligible.filter((p) => p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q));
     }
-    /* Apply search */
-    if (packSearchQuery) {
-      const q = packSearchQuery.toLowerCase();
-      eligible = eligible.filter((p) =>
-        p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q)
-      );
-    }
-    const countEl = $("packResults");
+    const countEl = $("comboResults");
     if (countEl) countEl.textContent = `${eligible.length} perfumes disponibles`;
     if (eligible.length === 0) {
-      grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;padding:2rem;">No hay perfumes que coincidan con los filtros.</p>';
+      list.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:2rem 1rem;">No hay perfumes que coincidan con la búsqueda.</p>';
       return;
     }
-    grid.innerHTML = eligible.map((prod) => {
-      const isSelected = packSelectedIds.includes(prod.id);
-      const imgSrc = prod.cardImage || cardImg(prod);
-      const minPrice = prod.decantSizes ? Math.min(...Object.values(prod.decantSizes)) : 0;
-      return `
-      <div class="pack-product-item ${isSelected ? "selected" : ""}"
-           data-product-id="${prod.id}" role="button" tabindex="0" aria-pressed="${isSelected}">
-        <img src="${esc(imgSrc)}" alt="${esc(prod.name)}" loading="lazy" decoding="async"
-             onerror="this.src='${PLACEHOLDER_IMG}';" />
-        <span class="pack-product-name">${esc(prod.name)}</span>
-        <span class="pack-product-brand">${esc(prod.brand)}</span>
-        <span class="pack-product-price">Desde ${formatPrice(minPrice)}</span>
-      </div>`;
+    list.innerHTML = eligible.map((prod) => {
+      const isSelected = comboSelectedIds.includes(prod.id);
+      const hasSize = comboProductHasSize(prod, comboSize);
+      const disabled = !hasSize || (!isSelected && comboSelectedIds.length >= COMBO_MAX);
+      const price = hasSize ? formatPrice(prod.decantSizes[comboSize]) : `Sin ${comboSize}ml`;
+      return `<label class="combo-item${isSelected ? " selected" : ""}${disabled ? " disabled" : ""}">
+        <input type="checkbox" data-product-id="${prod.id}"${isSelected ? " checked" : ""}${disabled ? " disabled" : ""} />
+        <span class="combo-item__check" aria-hidden="true"></span>
+        <span class="combo-item__text">
+          <span class="combo-item__brand">${esc(prod.brand)}</span>
+          <span class="combo-item__name">${esc(prod.name)}</span>
+        </span>
+        <span class="combo-item__price">${price}</span>
+      </label>`;
     }).join("");
   }
-  function renderPackSummary() {
-    const chipsEl = $("packSummaryChips");
-    const countEl = $("packSummaryCount");
-    const discountEl = $("packSummaryDiscount");
-    const totalEl = $("packSummaryTotal");
-    const barEl = $("packSummaryBar");
-    const confirmBtn = $("packConfirmBtn");
-    if (!chipsEl || !countEl) return;
-    /* Chips */
-    chipsEl.innerHTML = packSelectedIds.map((pid) => {
+  function renderComboSummary() {
+    const countEl = $("comboSummaryCount");
+    const chipsEl = $("comboSummaryChips");
+    const hintEl = $("comboSummaryHint");
+    const totalWrap = $("comboSummaryTotal");
+    const discountLabelEl = $("comboDiscountLabel");
+    const totalAmountEl = $("comboTotalAmount");
+    const waBtn = $("comboWhatsappBtn");
+    if (!countEl) return;
+    countEl.textContent = `${comboSelectedIds.length}/${COMBO_MAX} fragancias`;
+    chipsEl.innerHTML = comboSelectedIds.map((pid) => {
       const prod = getProductById(pid);
       if (!prod) return "";
-      return `<span class="pack-chip">${esc(prod.name)} <button class="pack-chip-x" onclick="packToggleProduct(${pid})" aria-label="Quitar ${esc(prod.name)}">&times;</button></span>`;
+      return `<span class="combo-chip">${esc(prod.name)} <button type="button" class="combo-chip-x" onclick="comboToggleProduct(${pid})" aria-label="Quitar ${esc(prod.name)}">&times;</button></span>`;
     }).join("");
-    /* Show/hide bar */
-    if (barEl) barEl.classList.toggle("active", packSelectedIds.length > 0);
-    /* Count */
-    countEl.textContent = `${packSelectedIds.length} seleccionados`;
-    /* Discount info */
-    const info = getPackDiscountInfo();
-    if (info && info.isValid) {
-      discountEl.textContent = `${info.discountPct}% dto (${info.ruleLabel})`;
-      discountEl.style.display = "inline";
-      totalEl.textContent = `${formatPrice(info.subtotal)} → ${formatPrice(info.total)}`;
-      totalEl.style.display = "inline";
-      if (confirmBtn) confirmBtn.disabled = false;
-    } else if (info) {
-      discountEl.textContent = info.count === 1 ? "Falta 1 más para dto" : `${info.count}/2 mín.`;
-      discountEl.style.display = "inline";
-      totalEl.textContent = `Subtotal: ${formatPrice(info.subtotal)}`;
-      totalEl.style.display = "inline";
-      if (confirmBtn) confirmBtn.disabled = true;
+    const info = getComboDiscountInfo();
+    if (info.isValid) {
+      hintEl.style.display = "none";
+      totalWrap.style.display = "flex";
+      discountLabelEl.textContent = info.discountPct > 0 ? `${info.discountPct}% dto (${info.ruleLabel})` : "Sin descuento aún";
+      totalAmountEl.textContent = info.discountPct > 0 ? `${formatPrice(info.subtotal)} → ${formatPrice(info.total)}` : formatPrice(info.subtotal);
+      waBtn.disabled = false;
     } else {
-      discountEl.textContent = "";
-      discountEl.style.display = "none";
-      totalEl.textContent = "Selecciona al menos 2 decants";
-      totalEl.style.display = "inline";
-      if (confirmBtn) confirmBtn.disabled = true;
+      totalWrap.style.display = "none";
+      hintEl.style.display = "block";
+      const falta = COMBO_MIN - info.count;
+      hintEl.textContent = info.count === 0 ? `Elige al menos ${COMBO_MIN} fragancias` : `Te falta${falta === 1 ? "" : "n"} ${falta} más para armar tu combo`;
+      waBtn.disabled = true;
     }
   }
-  function renderPackBrandSelect() {
-    const wrap = $("packBrandFilterWrap");
-    const sel = $("packBrandSelect");
-    if (!wrap || !sel) return;
-    const brands = getPackBrands();
-    if (brands.length <= 1) { wrap.style.display = "none"; return; }
-    wrap.style.display = "";
-    sel.innerHTML = '<option value="">Todas las marcas</option>' +
-      brands.map((b) => `<option value="${esc(b.brand)}"${packBrandFilter === b.brand ? " selected" : ""}>${esc(b.brand)} (${b.count})</option>`).join("");
+  function initComboBuilder() {
+    comboSize = "3";
+    comboSelectedIds = [];
+    comboSearchQuery = "";
+    const searchEl = $("comboSearchInput");
+    if (searchEl) searchEl.value = "";
+    document.querySelectorAll(".combo-size-btn").forEach((btn) => {
+      const active = btn.dataset.size === "3";
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-pressed", String(active));
+    });
+    renderComboList();
+    renderComboSummary();
   }
-  function initPackBuilder() {
-    packSelectedIds = [];
-    packBrandFilter = null;
-    packSizeFilter = null;
-    packSearchQuery = "";
-    renderPackBrandSelect();
-    renderPackBuilderGrid();
-    renderPackSummary();
-  }
-  function confirmPack() {
-    const info = getPackDiscountInfo();
-    if (!info || !info.isValid) {
-      showToast("⚠️ Selecciona al menos 2 decants");
+  /* Mensaje directo a WhatsApp -- mismo patron que openWhatsAppQuote()
+     (frasco completo): window.open con fallback a location.href, track()
+     y toast de confirmacion. No pasa por cart/confirmarCompra a proposito. */
+  function sendComboWhatsApp() {
+    const info = getComboDiscountInfo();
+    if (!info.isValid) {
+      showToast(`⚠️ Elige al menos ${COMBO_MIN} fragancias para tu combo`);
       return;
     }
-    const mainProduct = getProductById(packSelectedIds[0]);
-    const mainImage = mainProduct ? mainProduct.cardImage : "";
-    const includedProducts = packSelectedIds.map((pid) => {
+    const lines = comboSelectedIds.map((pid) => {
       const prod = getProductById(pid);
-      return prod ? { id: pid, name: prod.name, image: prod.cardImage, brand: prod.brand } : null;
+      return prod ? `• ${prod.name} (${prod.brand}) — ${comboSize}ml` : null;
     }).filter(Boolean);
-    const packItem = {
-      productId: "pack-builder-" + Date.now(),
-      type: "pack",
-      name: "Pack Personalizado",
-      brand: "Pack ARMA TU PACK",
-      image: mainImage,
-      size: `${info.count} decants`,
-      price: info.total,
-      qty: 1,
-      isPack: true,
-      discountPct: info.discountPct,
-      subtotalOriginal: info.subtotal,
-      includedProductIds: [...packSelectedIds],
-      includedProducts: includedProducts,
-    };
-    const confirmBtn = $("packConfirmBtn");
-    if (mainImage && confirmBtn) flyToCart(mainImage, confirmBtn);
-    cart.push(packItem);
-    saveCart();
-    updateCartUI();
-    showToast(`✅ Pack agregado · ${info.discountPct}% dto → ${formatPrice(info.total)}`);
-    pulseCartCount();
-    /* Reset */
-    packSelectedIds = [];
-    renderPackBuilderGrid();
-    renderPackSummary();
+    const msg = `Hola! Quiero pedir este combo de ${info.count} decants de ${comboSize}ml:\n\n${lines.join("\n")}` +
+      `\n\nSubtotal: ${formatPrice(info.subtotal)}` +
+      (info.discountPct > 0 ? `\nDescuento: ${info.discountPct}% (${info.ruleLabel})` : "") +
+      `\nTotal: ${formatPrice(info.total)}` +
+      `\n\n¿Podemos coordinar el pedido?`;
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+    const win = window.open(url, "_blank");
+    if (!win) location.href = url;
+    track("combo_whatsapp_order", { value: info.total, items: info.count, discount_pct: info.discountPct });
+    showToast("📲 Abriendo WhatsApp con tu combo...");
   }
-  window.confirmPack = confirmPack;
+  window.sendComboWhatsApp = sendComboWhatsApp;
 
   /* ══════════════════════════════════════════════════════════════
      NAVIGATION
@@ -1229,7 +1193,7 @@
       renderCatalog();
     }
     if (page === "promos") {
-      initPackBuilder();
+      initComboBuilder();
     }
     if (page === "checkout") renderCheckoutPage();
     if (page === "home") renderFeatured();
@@ -1462,58 +1426,34 @@
   /* ══════════════════════════════════════════════════════════════
      PACK BUILDER — event handlers
   ══════════════════════════════════════════════════════════════ */
-  function renderPromos() {
-    renderPackBuilderGrid();
-    renderPackSummary();
-  }
+  /* Selector de tamano del combo (3/5/10ml, global para todo el combo) */
+  document.querySelectorAll(".combo-size-btn").forEach((btn) => {
+    btn.addEventListener("click", function () { comboSetSize(this.dataset.size); });
+  });
 
-  /* Brand filter */
-  const packBrandSelect = $("packBrandSelect");
-  if (packBrandSelect) {
-    packBrandSelect.addEventListener("change", function () {
-      packBrandFilter = this.value || null;
-      renderPackBuilderGrid();
-    });
-  }
-
-  /* Size filter */
-  const packSizeSelect = $("packSizeSelect");
-  if (packSizeSelect) {
-    packSizeSelect.addEventListener("change", function () {
-      packSizeFilter = this.value || null;
-      renderPackBuilderGrid();
-    });
-  }
-
-  /* Search filter */
-  const packSearchInput = $("packSearchInput");
-  if (packSearchInput) {
-    let packSearchTimeout;
-    packSearchInput.addEventListener("input", function () {
-      clearTimeout(packSearchTimeout);
-      packSearchTimeout = setTimeout(() => {
-        packSearchQuery = this.value.trim();
-        renderPackBuilderGrid();
+  /* Busqueda */
+  const comboSearchInputEl = $("comboSearchInput");
+  if (comboSearchInputEl) {
+    let comboSearchTimeout;
+    comboSearchInputEl.addEventListener("input", function () {
+      clearTimeout(comboSearchTimeout);
+      const val = this.value;
+      comboSearchTimeout = setTimeout(() => {
+        comboSearchQuery = val.trim();
+        renderComboList();
       }, 200);
     });
   }
 
-  /* Pack product grid click/keydown */
-  const packProductGridEl = $("packProductGrid");
-  if (packProductGridEl) {
-    packProductGridEl.addEventListener("click", function (e) {
-      const item = e.target.closest(".pack-product-item");
-      if (!item) return;
-      const id = parseInt(item.dataset.productId, 10);
-      if (id) packToggleProduct(id);
-    });
-    packProductGridEl.addEventListener("keydown", function (e) {
-      if (e.key !== "Enter" && e.key !== " ") return;
-      const item = e.target.closest(".pack-product-item");
-      if (!item) return;
-      e.preventDefault();
-      const id = parseInt(item.dataset.productId, 10);
-      if (id) packToggleProduct(id);
+  /* Lista de productos: checkboxes nativos (label+input), delegado al
+     contenedor estable -- accesible por teclado/click sin markup extra. */
+  const comboListEl = $("comboList");
+  if (comboListEl) {
+    comboListEl.addEventListener("change", function (e) {
+      const input = e.target.closest('input[type="checkbox"][data-product-id]');
+      if (!input) return;
+      const id = parseInt(input.dataset.productId, 10);
+      if (id) comboToggleProduct(id);
     });
   }
 

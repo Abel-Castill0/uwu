@@ -72,7 +72,7 @@
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://fraganceobsession.pe/" },
       { "@type": "ListItem", "position": 2, "name": "Catálogo", "item": "https://fraganceobsession.pe/#catalogo" },
-      { "@type": "ListItem", "position": 3, "name": "Promociones", "item": "https://fraganceobsession.pe/#promos" }
+      { "@type": "ListItem", "position": 3, "name": "Combos", "item": "https://fraganceobsession.pe/#promos" }
     ]
   }
   </script>
@@ -188,7 +188,7 @@
       <nav class="nav" id="nav" aria-label="Navegación principal">
         <a onclick="navigateTo('home')" class="active" data-page="home">Inicio</a>
         <a onclick="navigateTo('catalogo')" data-page="catalogo">Catálogo</a>
-        <a onclick="navigateTo('promos')" data-page="promos">Packs</a>
+        <a onclick="navigateTo('promos')" data-page="promos">Combos</a>
       </nav>
       <div class="header-actions">
         <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema" aria-pressed="false"
@@ -236,7 +236,7 @@
             <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
           </button>
           <button class="btn btn-ghost" onclick="navigateTo('promos')">
-            <span>Ver Packs</span>
+            <span>Ver Combos</span>
           </button>
         </div>
         <div class="hero-stats">
@@ -557,85 +557,50 @@
     </section>
   </div>
 
-  <!-- ============ ARMA TU PACK ============ -->
+  <!-- ============ ARMA TU COMBO ============ -->
   <div class="page" id="page-promos">
     <section class="page-hero promo-hero">
-      <img src="fondo_promos.webp" alt="Arma tu Pack FRAGRANCE OBSESSION" class="page-hero-img" loading="lazy"
+      <img src="fondo_promos.webp" alt="Arma tu Combo FRAGRANCE OBSESSION" class="page-hero-img" loading="lazy"
         decoding="async" />
       <div class="page-hero-overlay"></div>
       <div class="page-hero-content">
         <div class="section-eyebrow page-hero-eyebrow">Descuento Automático</div>
-        <h2 class="section-title page-hero-title">Arma tu Pack</h2>
-        <p class="section-subtitle page-hero-subtitle">Selecciona tus decants favoritos y obtén descuento al instante. Nicho y diseñador juntos.</p>
+        <h2 class="section-title page-hero-title">Arma tu Combo</h2>
+        <p class="section-subtitle page-hero-subtitle">Elige entre 3 y 6 fragancias del mismo tamaño y pide tu combo directo por WhatsApp.</p>
       </div>
     </section>
 
-    <!-- Reglas de descuento -->
-    <section class="discount-ladder" aria-label="Reglas de descuento">
-      <div class="discount-ladder__row">
-        <div class="discount-ladder__step">
-          <span class="discount-ladder__count">2-5</span>
-          <span class="discount-ladder__pct">5%</span>
+    <!-- Constructor: panel de catálogo (izquierda) + resumen sticky (derecha/abajo en móvil) -->
+    <section class="combo-builder" id="comboBuilder" aria-label="Constructor de combo">
+      <div class="combo-panel combo-panel--catalog">
+        <div class="combo-size-select" role="group" aria-label="Tamaño del combo">
+          <button type="button" class="combo-size-btn active" data-size="3" aria-pressed="true">3 ml</button>
+          <button type="button" class="combo-size-btn" data-size="5" aria-pressed="false">5 ml</button>
+          <button type="button" class="combo-size-btn" data-size="10" aria-pressed="false">10 ml</button>
         </div>
-        <span class="discount-ladder__arrow" aria-hidden="true">→</span>
-        <div class="discount-ladder__step discount-ladder__step--mid">
-          <span class="discount-ladder__count">6+</span>
-          <span class="discount-ladder__pct">10%</span>
+        <div class="combo-search-wrap">
+          <i class="fa-solid fa-magnifying-glass combo-search-icon" aria-hidden="true"></i>
+          <input type="search" id="comboSearchInput" class="combo-search-input" placeholder="Buscar por nombre o marca..." autocomplete="off" />
         </div>
-        <span class="discount-ladder__arrow" aria-hidden="true">→</span>
-        <div class="discount-ladder__step discount-ladder__step--top">
-          <span class="discount-ladder__count">3+ marca</span>
-          <span class="discount-ladder__pct">10%</span>
-        </div>
+        <p class="combo-results" id="comboResults"></p>
+        <div class="combo-list" id="comboList" aria-label="Fragancias disponibles"></div>
       </div>
-      <p class="discount-ladder__note">El mejor descuento se aplica automáticamente · Combina libremente</p>
-    </section>
 
-    <!-- Filtros: búsqueda + marca + tamaño -->
-    <section class="pack-builder-tools" id="packTools">
-      <div class="pack-search-row">
-        <div class="pack-search-wrap">
-          <i class="fa-solid fa-magnifying-glass pack-search-icon" aria-hidden="true"></i>
-          <input type="search" id="packSearchInput" class="pack-search-input" placeholder="Buscar por nombre o marca..." autocomplete="off" />
+      <aside class="combo-panel combo-panel--summary" id="comboSummary" aria-label="Tu combo">
+        <h3 class="combo-summary-title">Tu combo</h3>
+        <p class="combo-summary-count" id="comboSummaryCount">0/6 fragancias</p>
+        <div class="combo-summary-chips" id="comboSummaryChips"></div>
+        <p class="combo-summary-hint" id="comboSummaryHint">Elige al menos 3 fragancias</p>
+        <div class="combo-summary-total" id="comboSummaryTotal" style="display:none;">
+          <span class="combo-summary-total__label" id="comboDiscountLabel"></span>
+          <span class="combo-summary-total__amount" id="comboTotalAmount"></span>
         </div>
-        <div class="pack-brand-filter" id="packBrandFilterWrap" style="display:none;">
-          <select id="packBrandSelect" aria-label="Filtrar por marca">
-            <option value="">Todas las marcas</option>
-          </select>
-        </div>
-        <div class="pack-size-filter">
-          <select id="packSizeSelect" aria-label="Filtrar por tamaño">
-            <option value="">Todos los tamaños</option>
-            <option value="2">2 ml</option>
-            <option value="3">3 ml</option>
-            <option value="5">5 ml</option>
-            <option value="10">10 ml</option>
-          </select>
-        </div>
-      </div>
-      <p class="pack-results" id="packResults"></p>
-    </section>
-
-    <!-- Grid de productos para seleccionar -->
-    <section class="cat-section">
-      <div class="product-grid" id="packProductGrid"></div>
-    </section>
-
-    <!-- Barra sticky: resumen del pack -->
-    <div class="pack-summary-bar" id="packSummaryBar">
-      <div class="pack-summary-inner">
-        <div class="pack-summary-chips" id="packSummaryChips"></div>
-        <div class="pack-summary-info">
-          <span class="pack-summary-count" id="packSummaryCount">0 seleccionados</span>
-          <span class="pack-summary-discount" id="packSummaryDiscount"></span>
-          <span class="pack-summary-total" id="packSummaryTotal"></span>
-        </div>
-        <button class="btn-add-large pack-confirm-btn" id="packConfirmBtn" onclick="confirmPack()">
-          <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
-          <span>Agregar al Carrito</span>
+        <button type="button" class="btn-add-large btn-add-wa combo-whatsapp-btn" id="comboWhatsappBtn" disabled onclick="sendComboWhatsApp()">
+          <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+          <span>Pedir mi combo por WhatsApp</span>
         </button>
-      </div>
-    </div>
+      </aside>
+    </section>
   </div>
   <!-- ============ CHECKOUT ============ -->
   <div class="page" id="page-checkout">
@@ -881,7 +846,7 @@
         <h4>Navegar</h4>
         <a role="button" tabindex="0" onclick="navigateTo('home')">Inicio</a>
         <a role="button" tabindex="0" onclick="navigateTo('catalogo')">Catálogo</a>
-        <a role="button" tabindex="0" onclick="navigateTo('promos')">Packs</a>
+        <a role="button" tabindex="0" onclick="navigateTo('promos')">Combos</a>
       </div>
       <div class="footer-col">
         <h4>Información</h4>

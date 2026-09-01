@@ -3092,30 +3092,6 @@
     PACKS DE DECANTS â€” secciÃ³n renovada (arquitectura nueva)
     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-  /* -- A0. ESCALERA DE DESCUENTO -- 3 pasos, sin tabla ni bordes pesados;
-     la jerarquia tipografica (tamano + color) comunica "mas = mejor" sin
-     necesitar iconos ni cards adicionales. */
-  .discount-ladder { max-width: var(--max-w); margin: 0 auto; padding: 2.4rem 1.5rem 0; text-align: center; }
-  .discount-ladder__row { display: flex; align-items: flex-end; justify-content: center; gap: 1rem; flex-wrap: wrap; }
-  .discount-ladder__step { display: flex; flex-direction: column; align-items: center; gap: .2rem; }
-  .discount-ladder__count { font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
-  /* Progresion en 3 pasos reales (tamano + color), no "2 iguales + 1 salto":
-     el ojo debe leer 5% -> 10% -> 15% como una escalera continua ("cuanto
-     mas pruebo, mas conviene"), no como dos cifras neutras y una "oferta"
-     destacada aparte. */
-  .discount-ladder__pct { font-family: var(--font-display); font-size: 1.6rem; font-weight: 500; color: var(--text-primary); line-height: 1; }
-  .discount-ladder__step--mid .discount-ladder__pct { color: var(--gold); font-size: 1.85rem; }
-  .discount-ladder__step--top .discount-ladder__pct { color: var(--gold-deep); font-size: 2.1rem; font-weight: 600; }
-  [data-theme="dark"] .discount-ladder__step--top .discount-ladder__pct { color: var(--gold-light); }
-  .discount-ladder__arrow { color: var(--border); font-size: 1.1rem; margin-bottom: .55rem; }
-  .discount-ladder__note { margin-top: 1rem; font-size: .78rem; color: var(--text-muted); }
-  @media (max-width: 480px) {
-    .discount-ladder__row { gap: .55rem; }
-    .discount-ladder__pct { font-size: 1.25rem; }
-    .discount-ladder__step--mid .discount-ladder__pct { font-size: 1.42rem; }
-    .discount-ladder__step--top .discount-ladder__pct { font-size: 1.6rem; }
-    .discount-ladder__arrow { font-size: .85rem; margin-bottom: .4rem; }
-  }
 
   /* â”€â”€ A. BENEFICIOS â€” franja bajo el hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .packs-benefits {
@@ -5062,146 +5038,91 @@ background: #E8DCCC;
 }
 @media (min-width: 768px) { .mobile-cta { display: none !important; } }
 
-/* ── Pack Builder ── */
-.pack-builder-tools {
-  max-width: 1200px; margin: 0 auto;
-  padding: 0 1.5rem 1rem;
+
+/* -- Arma tu Combo: constructor de dos paneles --------------------------
+   Izquierda: catalogo elegible (tamano global + busqueda + lista con
+   checkbox). Derecha: resumen del combo, sticky en desktop (sidebar
+   normal, top offset), fijo al fondo del viewport en movil (mismo patron
+   ya probado en #stickyCart -- position:fixed dentro de .page funciona
+   una vez la animacion pageIn deja de aplicar transform/filter, ver fix
+   de la ronda anterior; se oculta solo al navegar porque .page:not(.active)
+   ya es display:none, sin JS extra). */
+.combo-builder {
+  max-width: var(--max-w); margin: 0 auto; padding: 2.4rem 1.5rem 4rem;
+  display: grid; grid-template-columns: 1fr 340px; gap: 1.6rem; align-items: start;
 }
-.pack-search-row {
-  display: flex; gap: .6rem; flex-wrap: wrap; align-items: stretch;
+.combo-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.3rem; }
+.combo-panel--summary { position: sticky; top: 6.5rem; }
+
+/* Selector de tamano (global para todo el combo) */
+.combo-size-select { display: flex; gap: .5rem; margin-bottom: 1rem; }
+.combo-size-btn {
+  flex: 1; padding: .6rem .8rem; min-height: 44px;
+  border: 1.5px solid var(--border); border-radius: var(--r-pill);
+  background: transparent; color: var(--text-secondary);
+  font-family: var(--font-body); font-size: .85rem; font-weight: 600; cursor: pointer;
+  transition: all var(--t-base);
 }
-.pack-search-wrap {
-  flex: 1 1 260px; position: relative;
-}
-.pack-search-icon {
-  position: absolute; left: .85rem; top: 50%; transform: translateY(-50%);
-  color: var(--text-muted); font-size: .85rem; pointer-events: none;
-}
-.pack-search-input {
-  width: 100%; padding: .65rem .8rem .65rem 2.2rem;
+.combo-size-btn:hover { border-color: var(--gold-light); }
+.combo-size-btn.active { background: var(--gold); border-color: var(--gold); color: #fff; }
+[data-theme="dark"] .combo-size-btn.active { color: #1A120B; }
+
+/* Busqueda */
+.combo-search-wrap { position: relative; margin-bottom: .6rem; }
+.combo-search-icon { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .85rem; pointer-events: none; }
+.combo-search-input {
+  width: 100%; padding: .65rem .8rem .65rem 2.2rem; min-height: 44px;
   border: 1.5px solid var(--border); border-radius: var(--r-md);
-  background: var(--surface); color: var(--text-primary);
+  background: var(--surface-warm, var(--surface)); color: var(--text-primary);
   font-family: var(--font-body); font-size: .85rem;
-  transition: border-color .2s, box-shadow .2s;
 }
-.pack-search-input:focus {
-  border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,155,95,.14);
-  outline: none;
-}
-.pack-brand-filter, .pack-size-filter {
-  flex: 0 0 auto;
-}
-.pack-brand-filter select, .pack-size-filter select {
-  height: 100%; padding: .65rem .8rem;
-  border: 1.5px solid var(--border); border-radius: var(--r-md);
-  background: var(--surface); color: var(--text-primary);
-  font-family: var(--font-body); font-size: .85rem; cursor: pointer;
-  min-width: 150px;
-}
-.pack-brand-filter select:focus, .pack-size-filter select:focus {
-  border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,155,95,.14);
-  outline: none;
-}
-.pack-results {
-  font-size: .8rem; color: var(--text-muted); margin: .5rem 0 0;
-}
+.combo-search-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,155,95,.14); outline: none; }
+.combo-results { font-size: .74rem; color: var(--text-muted); margin-bottom: .6rem; }
 
-/* Pack product grid item */
-.pack-product-item {
-  display: flex; flex-direction: column; align-items: center;
-  padding: .6rem; border-radius: var(--r-md);
-  border: 2px solid transparent; cursor: pointer;
-  transition: border-color .2s, background .2s, transform .15s;
-  background: var(--surface); text-align: center;
-  position: relative;
+/* Lista de perfumes: filas compactas con checkbox nativo */
+.combo-list { max-height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: .35rem; }
+.combo-item {
+  display: flex; align-items: center; gap: .7rem; padding: .65rem .8rem; min-height: 44px;
+  border: 1.5px solid var(--border); border-radius: var(--r-md); cursor: pointer;
+  transition: border-color var(--t-base), background var(--t-base);
 }
-.pack-product-item:hover { border-color: var(--border); transform: translateY(-2px); }
-.pack-product-item.selected {
-  border-color: var(--gold) !important;
-  background: rgba(201,155,95,.08);
-}
-.pack-product-item.selected::after {
-  content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900;
-  position: absolute; top: .4rem; right: .4rem;
-  width: 20px; height: 20px; border-radius: 50%;
-  background: var(--gold); color: #fff; font-size: .6rem;
-  display: flex; align-items: center; justify-content: center;
-}
-.pack-product-item img {
-  width: 100%; aspect-ratio: 3/4; object-fit: cover;
-  border-radius: var(--r-sm); margin-bottom: .4rem;
-}
-.pack-product-name {
-  font-size: .72rem; font-weight: 600; color: var(--text-primary);
-  line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical; overflow: hidden;
-}
-.pack-product-brand {
-  font-size: .62rem; color: var(--text-muted); margin-top: .1rem;
-}
-.pack-product-price {
-  font-size: .68rem; font-weight: 700; color: var(--gold-deep); margin-top: .15rem;
-}
-[data-theme="dark"] .pack-product-price { color: var(--gold-light); }
+.combo-item:hover { border-color: var(--gold-light); }
+.combo-item.selected { border-color: var(--gold); background: var(--gold-pale); }
+.combo-item.disabled { opacity: .45; cursor: not-allowed; }
+.combo-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--gold-deep); flex-shrink: 0; cursor: inherit; }
+.combo-item__check { display: none; } /* el checkbox nativo ya es visible; reservado por si se quiere reemplazar por un icono a medida */
+.combo-item__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.combo-item__brand { font-size: .68rem; color: var(--text-muted); }
+.combo-item__name { font-size: .85rem; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.combo-item__price { font-size: .82rem; font-weight: 700; color: var(--gold-deep); flex-shrink: 0; }
+[data-theme="dark"] .combo-item__price { color: var(--gold-light); }
 
-/* Sticky summary bar */
-.pack-summary-bar {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: var(--surface-elevated, var(--surface));
-  border-top: 1.5px solid var(--border);
-  box-shadow: 0 -4px 20px rgba(0,0,0,.12);
-  z-index: 900; padding: .6rem 1.2rem;
-  transform: translateY(100%); transition: transform .3s cubic-bezier(.16,1,.3,1);
+/* Panel derecho: resumen */
+.combo-summary-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 500; margin-bottom: .3rem; }
+.combo-summary-count { font-size: .8rem; color: var(--text-muted); margin-bottom: .8rem; }
+.combo-summary-chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .8rem; max-height: 140px; overflow-y: auto; }
+.combo-chip {
+  display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .55rem;
+  background: var(--gold-pale); border-radius: var(--r-pill); font-size: .72rem; color: var(--text-primary);
 }
-.pack-summary-bar.active { transform: translateY(0); }
-.pack-summary-inner {
-  max-width: 1200px; margin: 0 auto;
-  display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
-}
-.pack-summary-chips {
-  display: flex; gap: .35rem; flex-wrap: wrap; flex: 1 1 200px;
-  max-height: 42px; overflow: hidden;
-}
-.pack-chip {
-  display: inline-flex; align-items: center; gap: .25rem;
-  padding: .2rem .5rem; border-radius: var(--r-pill);
-  background: rgba(201,155,95,.12); color: var(--text-primary);
-  font-size: .65rem; font-weight: 600; white-space: nowrap;
-}
-.pack-chip-x {
-  background: none; border: none; color: var(--text-muted);
-  font-size: .75rem; cursor: pointer; padding: 0 .1rem;
-  line-height: 1; font-weight: 700;
-}
-.pack-chip-x:hover { color: var(--danger, #e74c3c); }
-.pack-summary-info {
-  display: flex; align-items: center; gap: .6rem; flex-shrink: 0;
-}
-.pack-summary-count {
-  font-size: .8rem; font-weight: 600; color: var(--text-primary);
-}
-.pack-summary-discount {
-  font-size: .75rem; font-weight: 700; color: var(--success);
-  background: rgba(39,174,96,.1); padding: .15rem .5rem;
-  border-radius: var(--r-pill);
-}
-.pack-summary-total {
-  font-size: .85rem; font-weight: 700; color: var(--gold-deep);
-}
-[data-theme="dark"] .pack-summary-total { color: var(--gold-light); }
-.pack-confirm-btn {
-  flex-shrink: 0;
-}
-.pack-confirm-btn:disabled {
-  opacity: .45; cursor: not-allowed; pointer-events: none;
-}
+.combo-chip-x { background: none; border: none; color: var(--text-muted); font-size: 1rem; line-height: 1; cursor: pointer; padding: 0; }
+.combo-chip-x:hover { color: var(--danger, #e74c3c); }
+.combo-summary-hint { font-size: .78rem; color: var(--text-muted); margin-bottom: 1rem; }
+.combo-summary-total { display: flex; flex-direction: column; gap: .1rem; margin-bottom: 1rem; }
+.combo-summary-total__label { font-size: .74rem; color: var(--gold-deep); font-weight: 600; }
+[data-theme="dark"] .combo-summary-total__label { color: var(--gold-light); }
+.combo-summary-total__amount { font-family: var(--font-display); font-size: 1.35rem; font-weight: 500; color: var(--text-primary); }
+.combo-whatsapp-btn { width: 100%; }
+.combo-whatsapp-btn:disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
 
-/* Mobile adjustments */
-@media (max-width: 640px) {
-  .pack-search-row { flex-direction: column; }
-  .pack-brand-filter select, .pack-size-filter select { min-width: 100%; }
-  .pack-summary-inner { flex-direction: column; align-items: stretch; gap: .4rem; }
-  .pack-summary-chips { max-height: 36px; }
-  .pack-summary-info { justify-content: center; }
-  .pack-confirm-btn { width: 100%; }
+/* Responsive: un panel en movil, resumen fijo al fondo del viewport */
+@media (max-width: 767px) {
+  .combo-builder { grid-template-columns: 1fr; padding: 1.6rem 1rem 1rem; gap: 1rem; }
+  .combo-panel--catalog { padding-bottom: 12rem; } /* espacio para no quedar tapado por el resumen fijo */
+  .combo-list { max-height: none; }
+  .combo-panel--summary {
+    position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 900;
+    border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,.12);
+    max-height: 60vh; overflow-y: auto;
+  }
 }

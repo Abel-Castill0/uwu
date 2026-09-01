@@ -16,7 +16,7 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Responsive (`cdp-responsive-check.js`, 320-1440px) | **5/5 OK** (columnas 1/1/3/5/5, modal 92dvh, sin overflow horizontal) |
 | Contraste AA (`cdp-contrast-check.js`, reparado) | Todo ≥4.5:1 en ambos temas (body 15.6-16.1, producto 16-18.5, muted 5.2-5.4, link footer 4.97-4.99) |
 | Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
-| SW | `fo-v62-ghpages` |
+| SW | `fo-v63-ghpages` |
 | Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
 | TikTok videos | Galería estática: tarjetas `<a target="_blank">` a TikTok, cero iframes/scripts/requests (ver Prompt 27) |
 | Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
@@ -24,6 +24,24 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Modal 10ml premium (id:5 Angels Share on the Rocks) | Corregido: `"10_premium"` apuntaba por error a la imagen de 30ml; eliminada la clave, cae al fallback correcto (ver Prompt 24) |
 | srcset | Eliminado (Prompt 28): una sola capa `img/perfumes_optimized/*.webp` sirve todo, sin lógica de srcset ni bug de espacios en nombres |
 | SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 35 — Eliminación de "SWY Amber" + nuevo constructor "Arma tu Combo" (cerrado)
+
+Dos partes pedidas explícitamente: (1) eliminar un producto de todo el sistema, (2) reemplazar el constructor de packs (Prompt 34) por uno nuevo de dos paneles, con reglas de descuento propias y envío directo por WhatsApp (sin pasar por el carrito).
+
+**Parte 1 — Eliminación de producto**: "SWY Amber" (id 115, Emporio Armani, nombre completo en archivos "Stronger With You Amber") eliminado de `productos.js` (`FO_PRODUCTS` y `FO_PRODUCT_IMAGES`). Las 8 imágenes asociadas (4 en `img/perfumes/`, 4 en `img/perfumes_optimized/`) se movieron a `img/perfumes_backup/` (no se borraron). Verificado sin rutas rotas ni referencias sueltas (`grep` de "SWY Amber"/"id: 115" en todo el proyecto → 0 resultados). Catálogo: 148→147 productos, diseñador 24→23 (recalculado y corregido `catalogDisenador24`→`catalogDisenador23` en `tests/selftest.js`, confirmado con el grid real, no solo el número reportado por el test).
+
+**Parte 2 — Arma tu Combo** (reemplaza por completo el constructor grid+barra-sticky de Prompt 34, id `page-promos` se mantiene, solo cambia el contenido):
+
+- **Layout de dos paneles**: izquierda = catálogo (selector de tamaño 3/5/10ml global, búsqueda, lista con checkbox nativo `<label><input type="checkbox">`, más accesible por teclado que los `div role="button"` anteriores); derecha = resumen sticky (chips, contador `X/6`, total, botón WhatsApp). En móvil (<768px) un solo panel, resumen fijo al fondo del viewport (mismo patrón `position:fixed` ya verificado funcionando tras el fix de `.page.active` del Prompt 34).
+- **Reglas propias, explícitamente distintas de `calcularDescuentos()`**: 3-5 decants → 5%, 6 (tope) → 10%; 3+ misma marca → `FO_CONFIG.DESCUENTOS.POR_MARCA` (mismo valor que el resto del sitio, no hardcodeado aparte); gana el mayor. Mínimo 3, máximo 6 — al llegar al tope, el resto de la lista se deshabilita visualmente. Cambiar el tamaño global recalcula precios y saca del combo cualquier producto sin esa talla (con aviso).
+- **Envío directo por WhatsApp**: `sendComboWhatsApp()` arma el mensaje (productos, tamaño, subtotal, descuento, total) y abre `wa.me` — mismo patrón que `openWhatsAppQuote()` (cotización de frasco completo). A propósito NO pasa por el carrito/checkout normal, tal como se pidió.
+- **Verificado en vivo**: selección de 3→ combo válido; hasta 6 → tope bloquea seleccionar más (110 ítems restantes quedan `disabled`); cambio de tamaño conserva selección compatible; mensaje de WhatsApp con productos/precios/descuento/total correctos.
+- **Limpieza**: CSS muerto del constructor anterior (`.pack-builder-tools`, `.pack-product-item` nuevo, `.pack-summary-bar`, `.discount-ladder`, ~180 líneas) retirado — confirmado 0 referencias en el HTML actual antes de borrar. El `.pack-modal`/`.pack-product-grid` más antiguo (de una iteración previa a Prompt 34) se dejó intacto: no forma parte de este cambio y sigue teniendo referencias en `script.js`, aunque sin uso desde el HTML actual — no se investigó a fondo, fuera de alcance de esta ronda.
+- **Nomenclatura**: nav, hero CTA, footer y `BreadcrumbList` cambiados de "Packs"/"Promociones" a "Combos" para que coincida con el título real de la página ("Arma tu Combo").
+- **Test actualizado**: los pasos de `tests/selftest.js` que probaban el constructor anterior (`packGridExists`, `packCount2`, `packDiscount5`, `packNow10`, `packConfirmEnabled`, `packAddsOne`) se reescribieron para el flujo nuevo (`comboListExists`, `comboCount3`, `comboValidAt3`, `comboCount6`, `comboMaxCapsSelection`, `comboWhatsappEnabled`, `comboWhatsappOpens`). El test del carrito lateral que esperaba 2 ítems (1 normal + 1 pack) ahora espera 1: el combo ya no agrega nada al carrito, a propósito.
+
+**Verificación**: `npm run smoke` 14/14, `node test-descuentos.js` 25/25, `node --check` en todos los JS tocados. `npm test` (exit code real, sin pipe): **103/103 PASS en las 9 corridas** (3 targets × 3 modos), exit code 0. Nota de proceso: la primera corrida completa (con el archivo de tests aún sin actualizar) encontró el `catalogDisenador24` desactualizado de forma reproducible en sus 3 modos — se corrigió y se repitió la suite una sola vez más, limpia, tras el fix (no antes/después de cada cambio pequeño).
 
 ## Prompt 34 — "Arma tu Pack": 4 bugs reales en el rediseño externo (cerrado)
 
