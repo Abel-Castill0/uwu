@@ -1712,6 +1712,15 @@
   const btnFiltersMobile = $("btnFiltersMobile");
   const filtersOffcanvas = $("filtersOffcanvas");
   const filtersBackdrop = $("filtersBackdrop");
+  /* Reubicar a <body> igual que el nav drawer (ver openNav): al vivir
+     dentro de #page-catalogo, un ancestro con transform/filter (la
+     animacion de transicion entre paginas, .page.active) crea un nuevo
+     containing block para este position:fixed -- deja de posicionarse
+     contra el viewport y pasa a contar como overflow real del documento
+     mientras esa animacion esta en curso (bug real de overflow
+     horizontal, mismo motivo por el que el drawer ya se saco de ahi). */
+  if (filtersOffcanvas && filtersOffcanvas.parentElement !== document.body) document.body.appendChild(filtersOffcanvas);
+  if (filtersBackdrop && filtersBackdrop.parentElement !== document.body) document.body.appendChild(filtersBackdrop);
   function openFiltersPanel() {
     if (!filtersOffcanvas) return;
     filtersOffcanvas.classList.add("open");

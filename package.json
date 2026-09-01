@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "test": "node tests/run-suite.js",
-    "smoke": "node tests/run-smoke.js"
+    "smoke": "node tests/run-smoke.js",
+    "audit:images": "node tools/audit-images.js"
   },
   "dependencies": {
     "sharp": "^0.35.1"

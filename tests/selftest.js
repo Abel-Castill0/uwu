@@ -656,6 +656,21 @@ step(function () {
     ok(wa.indexOf("630") !== -1, "waIncludesPrice", "url=" + wa);
   }, 300);
 
+  /* 15c. --max-w nunca estuvo definida en :root (bug real, no un valor a
+     proposito): 14 reglas la usaban ("max-width: var(--max-w)") y sin
+     definicion eso es invalido -> max-width:none, la seccion queda a lo
+     ancho total del viewport. Con elementos de offset absoluto negativo
+     dentro (.rev-next{right:-16px}) eso producia overflow horizontal
+     real en desktop. Guarda de regresion: la variable debe existir y
+     nada debe desbordar el documento en la pagina actual. */
+  step(function () {
+    var maxW = getComputedStyle(document.documentElement).getPropertyValue("--max-w").trim();
+    ok(!!maxW, "maxWDefined", "valor=" + JSON.stringify(maxW));
+    var cw = document.documentElement.clientWidth;
+    var sw = document.documentElement.scrollWidth;
+    ok(sw <= cw + 2, "noHorizontalOverflow", "clientWidth=" + cw + " scrollWidth=" + sw);
+  }, 200);
+
   /* 16. resumen */
   step(function () {
     ok(errors.length === 0, "noConsoleErrors", errors.join(" | ") || "vacío");

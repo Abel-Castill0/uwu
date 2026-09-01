@@ -47,6 +47,19 @@
     --r-xs:  6px;  --r-sm: 10px; --r-md: 16px;
     --r-lg:  22px; --r-xl: 32px; --r-pill: 9999px;
 
+    /* Ancho de contenido: nunca estuvo definida (bug real, no un valor a
+       proposito) -- 14 reglas la referencian (header, hero, secciones,
+       footer, reviews, combo, promo-strip) y sin ella "max-width:
+       var(--max-w)" es invalido -> el navegador usa max-width:none, la
+       seccion queda a lo ancho total del viewport. En la mayoria pasaba
+       desapercibido (el contenido igual se ve centrado con su propio
+       padding), pero elementos con offset absoluto NEGATIVO respecto a
+       ese contenedor (.rev-next { right:-20px }, pensado para "flotar"
+       en el margen que deberia existir fuera del contenido) terminaban
+       empujados mas alla del borde real del viewport en pantallas anchas
+       -- el overflow horizontal real de escritorio (1440px: 20px). */
+    --max-w: 1320px;
+
     /* Tipografía */
     --font-body: 'Manrope', 'Segoe UI', Helvetica, sans-serif;
     --font-display: 'Cormorant Garamond', Georgia, serif;
@@ -1678,8 +1691,14 @@
   [data-theme="dark"] .rev-arrow { background: var(--surface); }
   .rev-arrow:hover { background: var(--gold); color: #fff; opacity: 1; box-shadow: 0 4px 14px rgba(201,155,95,.3); }
   .rev-arrow[hidden] { display: none; }
-  .rev-prev { left: -20px; }
-  .rev-next { right: -20px; }
+  /* -16px (no -20px): a 1366px con --max-w:1320px el margen disponible a
+     cada lado es de solo 23px -- -20px dejaba apenas 3px de aire real,
+     suficiente para desbordar 1-2px por redondeo de subpixel en algunos
+     navegadores. -16px da margen real en todos los anchos de escritorio
+     probados (1366/1440/1920) sin perder el efecto de "flotar" fuera de
+     la tarjeta. */
+  .rev-prev { left: -16px; }
+  .rev-next { right: -16px; }
   @media (max-width: 768px) {
     .reviews-carousel { padding-bottom: 3.4rem; }
     .rev-arrow { top: auto; bottom: 0; transform: none; }
