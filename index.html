@@ -271,7 +271,7 @@
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
-          <span class="stat-number">200+</span>
+          <span class="stat-number">+135</span>
           <span class="stat-label">Fragancias Disponibles</span>
         </div>
         <div class="stat-divider"></div>
@@ -587,18 +587,28 @@
       </div>
 
       <aside class="combo-panel combo-panel--summary" id="comboSummary" aria-label="Tu combo">
-        <h3 class="combo-summary-title">Tu combo</h3>
-        <p class="combo-summary-count" id="comboSummaryCount">0/6 fragancias</p>
-        <div class="combo-summary-chips" id="comboSummaryChips"></div>
-        <p class="combo-summary-hint" id="comboSummaryHint">Elige al menos 3 fragancias</p>
-        <div class="combo-summary-total" id="comboSummaryTotal" style="display:none;">
-          <span class="combo-summary-total__label" id="comboDiscountLabel"></span>
-          <span class="combo-summary-total__amount" id="comboTotalAmount"></span>
-        </div>
-        <button type="button" class="btn-add-large btn-add-wa combo-whatsapp-btn" id="comboWhatsappBtn" disabled onclick="sendComboWhatsApp()">
-          <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
-          <span>Pedir mi combo por WhatsApp</span>
+        <!-- Solo visible en movil: dock compacto que abre/cierra el bottom
+             sheet de abajo. En desktop es sidebar sticky siempre expandido,
+             este boton queda oculto (ver CSS). -->
+        <button type="button" class="combo-dock-trigger" id="comboDockTrigger" aria-expanded="false" aria-controls="comboSheetBody" onclick="comboToggleSheet()">
+          <span class="combo-dock-trigger__text" id="comboDockText">0 fragancias</span>
+          <span class="combo-dock-trigger__amount" id="comboDockAmount"></span>
+          <i class="fa-solid fa-chevron-up combo-dock-trigger__icon" aria-hidden="true"></i>
         </button>
+        <div class="combo-sheet-body" id="comboSheetBody">
+          <h3 class="combo-summary-title">Tu combo</h3>
+          <p class="combo-summary-count" id="comboSummaryCount">0/6 fragancias</p>
+          <div class="combo-summary-chips" id="comboSummaryChips"></div>
+          <p class="combo-summary-hint" id="comboSummaryHint">Elige al menos 3 fragancias</p>
+          <div class="combo-summary-total" id="comboSummaryTotal" style="display:none;">
+            <span class="combo-summary-total__label" id="comboDiscountLabel"></span>
+            <span class="combo-summary-total__amount" id="comboTotalAmount"></span>
+          </div>
+          <button type="button" class="btn-add-large btn-add-wa combo-whatsapp-btn" id="comboWhatsappBtn" disabled onclick="sendComboWhatsApp()">
+            <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+            <span>Pedir mi combo por WhatsApp</span>
+          </button>
+        </div>
       </aside>
     </section>
   </div>

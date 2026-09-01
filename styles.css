@@ -3646,7 +3646,8 @@ backdrop-filter: blur(6px);
   .sticky-cart__btn:active { transform: scale(.96); }
   /* El sticky bar no tapa contenido: los botones flotantes compiten con Ã©l */
   @media (max-width: 768px) {
-    body:has(#stickyCart.visible) .back-to-top { display: none; }
+    body:has(#stickyCart.visible) .back-to-top,
+    body:has(#comboSummary.visible) .back-to-top { display: none; }
   }
   @media (min-width: 769px) {
     .sticky-cart { display: none; }
@@ -4055,8 +4056,15 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
     /* Filtros: pills scrollables horizontalmente en móvil */
     .btn-filters-mobile { display: none; }
     .cat-filter-bar { margin: 1rem 0 .8rem; }
-    .cat-filter-bar__row { flex-wrap: nowrap; gap: .5rem; }
+    /* Bug real: flex-wrap:nowrap obligaba a las pills a compartir la fila
+       con el texto de resultados (#catalogResultsCount, que ya pedia
+       width:100% mas abajo pero no podia tomarlo por el nowrap), asi que
+       las pills quedaban comprimidas a ~170px y "Diseñador"/"Completos"
+       se veian cortadas sin scroll visible. Con wrap, las pills ocupan su
+       propia fila completa y el conteo cae a la fila siguiente. */
+    .cat-filter-bar__row { flex-wrap: wrap; gap: .5rem; }
     .cat-filter-pills {
+      flex: 1 1 100%; width: 100%;
       flex-wrap: nowrap; gap: .4rem;
       overflow-x: auto; -webkit-overflow-scrolling: touch;
       padding: .3rem 0; scrollbar-width: none;
@@ -4073,11 +4081,16 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
     .cat-filter-gender { display: none; }
     #catalogResultsCount { margin-left: 0; width: 100%; font-size: .78rem; }
   }
+  @media (max-width: 767px) {
+    /* Header mobile: el topbar (beneficio rotativo) + el marquee (cinta de
+       promos) leen el mismo array TOPBAR_BENEFITS y muestran lo mismo dos
+       veces seguidas -- redundante. Los iconos de WhatsApp/TikTok del topbar
+       tambien se repiten en el FAB, el CTA inferior y el footer. En mobile
+       se quita todo eso y queda solo: 1 linea de beneficio + logo/nav/acciones. */
+    .promo-marquee { display: none; }
+    .topbar-inner { padding: .3rem 1rem; gap: 0; justify-content: center; }
+  }
   @media (max-width: 640px) {
-    .topbar-inner { padding: .35rem 1rem; }
-    .topbar-contact--right { gap: .6rem; }
-    .topbar-social { gap: .45rem; }
-    .promo-marquee { font-size: .72rem; }
     .packs-toolbar { top: 108px; padding: .6rem .7rem; border-radius: 14px; }
     .pack-size-bar, .gender-bar__chips { scroll-snap-type: x proximity; }
     .fab-group { right: 14px; bottom: calc(5.7rem + 10px); }
@@ -4133,13 +4146,18 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
   .promo-strip strong { font-size: .8rem; letter-spacing: .01em; }
   .promo-strip .packs-benefit span:last-child { font-size: .7rem; }
   @media (max-width: 640px) {
+    /* Escalera de descuentos: antes 4 tarjetas verticales (icono arriba,
+       texto abajo) al 75% del ancho -- cada una ocupaba casi media pantalla
+       de alto y habia que hacer swipe 3 veces para ver las 4. Se compacta a
+       fila icono+texto en horizontal (mitad de alto) y tarjetas mas
+       angostas para que se alcancen a ver ~2 a la vez. */
     .promo-strip {
       grid-template-columns: none;
       grid-auto-flow: column;
-      grid-auto-columns: 75%;
+      grid-auto-columns: 58%;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
-      margin: 0 -.9rem 1rem;
+      margin: 0 -.9rem .8rem;
       padding: 0 .4rem;
       border-radius: 0;
       border-left: none; border-right: none;
@@ -4148,17 +4166,18 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
     }
     .promo-strip::-webkit-scrollbar { display: none; }
     .promo-strip .packs-benefit {
+      flex-direction: row; text-align: left; align-items: center;
       scroll-snap-align: start;
       border-left: none !important;
       border: 1px solid var(--border-light);
       border-radius: var(--r-sm);
-      margin: .5rem .2rem;
-      padding: .7rem .6rem;
-      gap: .3rem;
+      margin: .4rem .2rem;
+      padding: .55rem .6rem;
+      gap: .5rem;
     }
-    .promo-strip .packs-benefit__icon { width: 30px; height: 30px; font-size: .9rem; }
-    .promo-strip strong { font-size: .72rem; }
-    .promo-strip .packs-benefit span:last-child { font-size: .62rem; }
+    .promo-strip .packs-benefit__icon { width: 26px; height: 26px; font-size: .8rem; flex-shrink: 0; }
+    .promo-strip strong { font-size: .68rem; line-height: 1.2; }
+    .promo-strip .packs-benefit span:last-child { display: none; }
     }
   .promo-strip .packs-benefit + .packs-benefit { border-left: 1px solid var(--border-light); }
 
@@ -4288,6 +4307,13 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
 
   /* ---- Topbar: rotador de un beneficio a la vez ---- */
   .topbar-contact--right { margin-left: auto; display: flex; align-items: center; gap: 1.3rem; }
+  @media (max-width: 767px) {
+    /* Iconos WhatsApp/TikTok del topbar: redundantes en mobile (ya estan en
+       el FAB, el CTA inferior y el footer) -- se ocultan para dejar el
+       topbar en una sola linea. Regla despues de la anterior a proposito:
+       misma especificidad, gana por orden de aparicion. */
+    .topbar-contact--right { display: none; }
+  }
   .topbar-rotator { display: inline-flex; align-items: center; gap: .45rem; min-height: 1.2em; }
   .topbar-rotator--fade { animation: topbarFade .6s ease; }
   @keyframes topbarFade {
@@ -5054,10 +5080,19 @@ background: #E8DCCC;
 }
 @media (max-width: 767px) {
   .mobile-cta { display: block; }
-  .wa-fab { bottom: calc(5.7rem + 70px + 14px); }
-  .back-to-top { bottom: calc(5.7rem + 70px + 56px + 8px); }
+  /* Regla "una sola capa fija inferior" en movil: antes el FAB de
+     WhatsApp se reposicionaba para no chocar con el mini-carrito, pero
+     coexistian igual (2 elementos flotantes a la vez). Se retira el FAB
+     por completo en movil -- WhatsApp sigue disponible en el menu, el
+     carrito/checkout y el footer, sin perder la funcion. */
+  .wa-fab { display: none; }
 }
 @media (min-width: 768px) { .mobile-cta { display: none !important; } }
+/* Desktop: el FAB se conserva, pero cede paso si hay un dock de
+   carrito/combo activo (mismo criterio :has() ya usado para
+   back-to-top). */
+body:has(#stickyCart.visible) .wa-fab,
+body:has(#comboSummary.visible) .wa-fab { display: none; }
 
 
 /* -- Arma tu Combo: constructor de dos paneles --------------------------
@@ -5146,21 +5181,44 @@ background: #E8DCCC;
    footer ni nada mas cuando el combo esta vacio (bug real reportado:
    antes quedaba position:fixed SIEMPRE visible, incluso sin selección,
    ocultando el pie de pagina permanentemente). */
+/* El trigger del dock solo existe para movil (ver media query abajo);
+   en desktop el sidebar ya esta siempre expandido, sin dock. */
+.combo-dock-trigger { display: none; }
+
 @media (max-width: 767px) {
   .combo-builder { grid-template-columns: 1fr; padding: 1.6rem 1rem 1rem; gap: 1rem; }
   .combo-list { max-height: none; }
+  /* Dock compacto (~64px) por defecto; "bottom sheet" solo al tocarlo
+     (.expanded) -- antes el panel completo (chips+total+boton) quedaba
+     siempre desplegado en movil, ocupando hasta 55vh incluso con la
+     seleccion ya hecha. Ahora el usuario decide cuando ver el detalle. */
   .combo-panel--summary {
     position: fixed; left: .75rem; right: .75rem; bottom: .75rem; top: auto; z-index: 900;
-    border-radius: var(--r-lg); box-shadow: 0 18px 50px rgba(0,0,0,.35);
-    max-height: 55vh; overflow-y: auto;
+    padding: 0; border-radius: var(--r-lg); box-shadow: 0 18px 50px rgba(0,0,0,.35);
+    max-height: 64px; overflow: hidden;
     background: var(--surface-elevated, var(--surface));
     -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
     transform: translateY(calc(100% + 1.5rem)); opacity: 0; pointer-events: none;
-    transition: transform .45s cubic-bezier(.22,.7,.3,1), opacity .3s ease;
+    transition: transform .45s cubic-bezier(.22,.7,.3,1), opacity .3s ease, max-height .3s ease;
   }
   .combo-panel--summary.visible { transform: translateY(0); opacity: 1; pointer-events: all; }
+  .combo-panel--summary.expanded { max-height: 65vh; overflow-y: auto; }
+  .combo-dock-trigger {
+    display: flex; align-items: center; gap: .6rem; width: 100%; min-height: 64px;
+    padding: 0 1.1rem; background: none; border: none; cursor: pointer; text-align: left;
+    font-family: var(--font-body); color: var(--text-primary);
+  }
+  .combo-dock-trigger__text { font-size: .85rem; font-weight: 600; }
+  .combo-dock-trigger__amount {
+    margin-left: auto; font-family: var(--font-display); font-size: 1.05rem;
+    font-weight: 600; color: var(--gold-deep);
+  }
+  [data-theme="dark"] .combo-dock-trigger__amount { color: var(--gold-light); }
+  .combo-dock-trigger__icon { font-size: .75rem; color: var(--text-muted); transition: transform .3s ease; }
+  .combo-panel--summary.expanded .combo-dock-trigger__icon { transform: rotate(180deg); }
+  .combo-sheet-body { padding: 0 1.1rem 1.1rem; }
   .combo-summary-chips { max-height: 90px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .combo-panel--summary { transition: none; }
+  .combo-panel--summary, .combo-dock-trigger__icon { transition: none; }
 }

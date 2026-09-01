@@ -615,12 +615,14 @@
     if (!bar) return;
     const onMobile = window.matchMedia("(max-width: 768px)").matches;
     const hasItems = cart.length > 0;
-    const onCheckout = currentPage === "checkout";
+    /* Regla "una sola capa fija inferior": en Combos manda el dock del
+       combo (#comboSummary), nunca deben coexistir los dos. */
+    const onExcludedPage = currentPage === "checkout" || currentPage === "promos";
     const scrolled = window.scrollY > 260;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const show = onMobile && hasItems && !onCheckout && scrolled;
+    const show = onMobile && hasItems && !onExcludedPage && scrolled;
     bar.classList.toggle("visible", show);
-    if (reduce) bar.classList.toggle("visible", onMobile && hasItems && !onCheckout);
+    if (reduce) bar.classList.toggle("visible", onMobile && hasItems && !onExcludedPage);
   }
   window.addEventListener("scroll", renderStickyCartVisibility, { passive: true });
   const cartItemsEl = $("cartItems");
@@ -1117,14 +1119,20 @@
     const totalAmountEl = $("comboTotalAmount");
     const waBtn = $("comboWhatsappBtn");
     const summaryEl = $("comboSummary");
+    const dockText = $("comboDockText");
+    const dockAmount = $("comboDockAmount");
     if (!countEl) return;
-    /* En movil el panel es flotante (position:fixed) y solo se muestra si
-       hay algo que resumir -- mismo patron que .sticky-cart. Sin esto,
-       tapaba el footer (y cualquier otro contenido) de forma permanente
-       incluso con el combo vacio. En desktop es sticky dentro del grid,
-       la clase no tiene efecto visual ahi. */
+    /* En movil el panel es un dock flotante (position:fixed) y solo se
+       muestra si hay algo que resumir -- mismo patron que .sticky-cart.
+       Sin esto, tapaba el footer de forma permanente incluso con el combo
+       vacio. En desktop es sticky dentro del grid, la clase no tiene
+       efecto visual ahi. */
     if (summaryEl) summaryEl.classList.toggle("visible", comboSelectedIds.length > 0);
+    /* Si el combo se vacia (ultimo item quitado), colapsa el sheet: no
+       tiene sentido dejarlo "abierto" mostrando un panel vacio. */
+    if (summaryEl && comboSelectedIds.length === 0) comboSetSheetExpanded(false);
     countEl.textContent = `${comboSelectedIds.length}/${COMBO_MAX} fragancias`;
+    if (dockText) dockText.textContent = comboSelectedIds.length === 1 ? "1 fragancia" : `${comboSelectedIds.length} fragancias`;
     chipsEl.innerHTML = comboSelectedIds.map((pid) => {
       const prod = getProductById(pid);
       if (!prod) return "";
@@ -1137,14 +1145,30 @@
       discountLabelEl.textContent = info.discountPct > 0 ? `${info.discountPct}% dto (${info.ruleLabel})` : "Sin descuento aún";
       totalAmountEl.textContent = info.discountPct > 0 ? `${formatPrice(info.subtotal)} → ${formatPrice(info.total)}` : formatPrice(info.subtotal);
       waBtn.disabled = false;
+      if (dockAmount) dockAmount.textContent = formatPrice(info.total);
     } else {
       totalWrap.style.display = "none";
       hintEl.style.display = "block";
       const falta = COMBO_MIN - info.count;
       hintEl.textContent = info.count === 0 ? `Elige al menos ${COMBO_MIN} fragancias` : `Te falta${falta === 1 ? "" : "n"} ${falta} más para armar tu combo`;
       waBtn.disabled = true;
+      if (dockAmount) dockAmount.textContent = info.count > 0 ? formatPrice(info.subtotal) : "";
     }
   }
+  /* Dock compacto <-> bottom sheet (solo tiene efecto visual en movil,
+     ver CSS -- en desktop .combo-dock-trigger esta oculto). */
+  function comboSetSheetExpanded(expanded) {
+    const summaryEl = $("comboSummary");
+    const trigger = $("comboDockTrigger");
+    if (!summaryEl || !trigger) return;
+    summaryEl.classList.toggle("expanded", expanded);
+    trigger.setAttribute("aria-expanded", String(expanded));
+  }
+  function comboToggleSheet() {
+    const summaryEl = $("comboSummary");
+    comboSetSheetExpanded(!(summaryEl && summaryEl.classList.contains("expanded")));
+  }
+  window.comboToggleSheet = comboToggleSheet;
   function initComboBuilder() {
     comboSize = "3";
     comboSelectedIds = [];
