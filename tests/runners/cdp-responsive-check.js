@@ -2,6 +2,7 @@
    suite real: navega, espera render, abre modal y carrito, mide en cada viewport. */
 const { spawn } = require("child_process");
 const fs = require("fs");
+const http = require("http");
 const os = require("os");
 const path = require("path");
 
@@ -10,12 +11,25 @@ const edge = process.env.EDGE_PATH || [
   "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
   "C:/Program Files/Microsoft/Edge/Application/msedge.exe",
 ].find(fs.existsSync);
-const url = `file://${path.join(root, "index.html").replace(/\\/g, "/").replace(/ /g, "%20")}`;
 const port = Number(process.env.RESP_CDP_PORT || 9595);
 const profile = path.join(os.tmpdir(), `fo-resp-${process.pid}`);
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+const mime = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".webp": "image/webp", ".png": "image/png", ".svg": "image/svg+xml", ".mp4": "video/mp4" };
+function createServer() {
+  return http.createServer((req, res) => {
+    let pathname = decodeURIComponent(req.url.split("?")[0]);
+    if (pathname === "/" || pathname === "") pathname = "/index.html";
+    const file = path.resolve(root, `.${pathname}`);
+    if (!file.startsWith(root) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); return res.end("Not found"); }
+    res.writeHead(200, { "Content-Type": mime[path.extname(file)] || "application/octet-stream" });
+    fs.createReadStream(file).pipe(res);
+  });
+}
 
 (async () => {
+  const app = createServer();
+  await new Promise((resolve) => app.listen(0, "127.0.0.1", resolve));
+  const url = `http://127.0.0.1:${app.address().port}/`;
   fs.rmSync(profile, { recursive: true, force: true });
   const browser = spawn(edge, [
     "--headless=new", "--disable-gpu", "--no-first-run", "--disable-default-apps",
@@ -46,7 +60,7 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
     const cases = [
       { w: 320, h: 568, expCols: 1, touch: true },
-      { w: 390, h: 844, expCols: 1, touch: true },
+      { w: 390, h: 844, expCols: 2, touch: true },
       { w: 768, h: 1024, expCols: 3, touch: false },
       { w: 1280, h: 900, expCols: 5, touch: false },
       { w: 1440, h: 900, expCols: 5, touch: false },
@@ -89,6 +103,7 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
     ws.close();
   } finally {
     browser.kill();
+    await new Promise((resolve) => app.close(resolve));
     try { fs.rmSync(profile, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 }); } catch (_) {}
   }
 })().catch((e) => { console.error(e.stack || e); process.exitCode = 1; });

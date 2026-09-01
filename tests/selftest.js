@@ -210,19 +210,16 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(selectable === 0, "comboMaxCapsSelection", "seleccionables restantes=" + selectable);
   }, 400);
 
-  /* 11. Combo builder: boton de WhatsApp habilitado y abre wa.me con el pedido
-     (no pasa por el carrito -- es un envio directo, a proposito). */
+  /* 11. Combo: confirmar agrega un pack temporal y lleva al checkout único. */
   step(function () {
-    var waBtn = document.getElementById("comboWhatsappBtn");
-    ok(waBtn && !waBtn.disabled, "comboWhatsappEnabled", "disabled=" + (waBtn ? waBtn.disabled : "sin boton"));
-    window.__opened = null;
-    if (waBtn) { waBtn.click(); }
-    ok(!!window.__opened && window.__opened.indexOf("https://wa.me/") === 0, "comboWhatsappOpens", "window.open=" + window.__opened);
+    var comboBtn = document.getElementById("comboConfirmBtn");
+    ok(comboBtn && !comboBtn.disabled, "comboConfirmEnabled", "disabled=" + (comboBtn ? comboBtn.disabled : "sin boton"));
+    if (comboBtn) { comboBtn.click(); }
+    ok(document.getElementById("page-checkout").classList.contains("active"), "comboGoesCheckout", "checkout no activo");
   }, 300);
 
-  /* 12. carrito lateral. El combo (paso 11) se manda directo por WhatsApp,
-     no pasa por el carrito -- por eso solo hay 1 item (el agregado en el
-     paso "addToCart" inicial), no 2. cartPackClases (.cart-pack-strip)
+  /* 12. carrito lateral. El combo queda en el carrito como un pack,
+     junto con el item agregado en el paso inicial. cartPackClases (.cart-pack-strip)
      se retiro: nada en la UI actual crea un item type:"pack" en el
      carrito para poder probarlo; el render de ese caso se deja intacto
      en el codigo por compatibilidad con localStorage de clientes
@@ -232,7 +229,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(!!open, "cartOpenControl", "sin control de apertura");
     if (open) { open.click(); }
     ok(document.getElementById("cartSidebar").classList.contains("active"), "cartOpens", "sidebar no activo");
-    ok(document.querySelectorAll("#cartItems .cart-item").length === 1, "cartItems1", "items=" + document.querySelectorAll("#cartItems .cart-item").length);
+    ok(document.querySelectorAll("#cartItems .cart-item").length === 2, "cartItems2", "items=" + document.querySelectorAll("#cartItems .cart-item").length);
   }, 400);
 
   /* 12. qty + total */
@@ -311,21 +308,12 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(names.length === cfg && names[0] === "María G.", "reviewsNames", names.join(","));
   }, 300);
 
-  /* 13f. topbar estatica + marquee: renderizado, animacion y reduced-motion */
+  /* 13f. announcement estable: una sola información útil, sin marquee. */
   step(function () {
-    var cfg = (window.FO_CONFIG && window.FO_CONFIG.TOPBAR_BENEFITS) ? window.FO_CONFIG.TOPBAR_BENEFITS.length : 0;
-    var track = document.getElementById("marqueeTrack");
-    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var items = track ? track.querySelectorAll(".marquee-item") : [];
-    ok(!!track, "marqueeTrackExists", "sin #marqueeTrack");
-    ok(items.length >= 7 && items.length === (reduce ? cfg : cfg * 2), "marqueeItems", "items=" + items.length + " cfg=" + cfg);
-    var contact = document.querySelector(".topbar-social a[data-wa-link]");
-    ok(!!contact && contact.getAttribute("href").indexOf("wa.me/51994467586") !== -1, "topbarContact", "sin icono WhatsApp enlazado");
-    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var anim = track ? getComputedStyle(track).animationName : "";
-    ok(reduce ? (anim === "none" || anim === "marqueeScroll") : anim === "marqueeScroll",
-      "marqueeAnimates", "anim=" + anim + " reduce=" + reduce);
-    ok(!reduce ? items.length === cfg * 2 : items.length === cfg, "marqueeReducedStatic", "reduce=" + reduce + " items=" + items.length);
+    var announcement = document.querySelector(".announcement");
+    ok(!!announcement, "announcementExists", "sin announcement");
+    ok(announcement && /Envíos a todo el Perú/i.test(announcement.textContent), "announcementStable", "texto inesperado");
+    ok(!document.getElementById("marqueeTrack"), "marqueeRemoved", "marquee global todavía existe");
   }, 300);
 
   /* 13g. FABs agrupados, monocromaticos, esquina inferior derecha */
@@ -345,16 +333,16 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(!!sticky, "stickyCartStill", "sin sticky-cart");
   }, 300);
 
-  /* 13i. promo-strip: 4 columnas con iconos FA; margen compacto (navega a catalogo) */
+  /* 13i. promo-strip: bloque compacto 5/10/15, sin carrusel. */
   step(function () {
     window.navigateTo("catalogo");
-    var items = document.querySelectorAll(".promo-strip .packs-benefit");
-    ok(items.length === 4, "promoStrip4", "items=" + items.length);
-    var icon = document.querySelector(".promo-strip .packs-benefit__icon i");
-    ok(!!icon, "promoStripIcons", "sin <i> en íconos");
+    var summary = document.querySelector(".discount-summary");
+    var tiers = summary ? summary.querySelectorAll(".discount-summary__tiers div") : [];
+    ok(!!summary, "promoSummaryExists", "sin bloque de beneficios");
+    ok(tiers.length === 3 && /5%/.test(tiers[0].textContent) && /10%/.test(tiers[1].textContent) && /15%/.test(tiers[2].textContent), "promoTiers", "tiers=" + tiers.length);
     var mb = getComputedStyle(document.querySelector(".promo-strip")).marginBottom;
     var px = parseFloat(mb) || 99;
-    ok(px <= 29, "promoStripCompact", "marginBottom=" + mb);
+    ok(px <= 40, "promoStripCompact", "marginBottom=" + mb);
   }, 500);
 
   /* 13h. chips de tamano: retirado -- .pack-size-chip (toolbar oscura a

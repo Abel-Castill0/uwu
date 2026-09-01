@@ -23,7 +23,9 @@ const run = (url, runIndex) => new Promise((resolve) => {
   const checks = [spawnSync(process.execPath, ["--check", "script.js"], { cwd: root }).status === 0, spawnSync(process.execPath, ["--check", "animations.js"], { cwd: root }).status === 0];
   const app = server(); await new Promise((resolve) => app.listen(0, "127.0.0.1", resolve));
   const port = app.address().port;
-  const targets = [`file://${path.join(root, "index.html").replace(/\\/g, "/").replace(/ /g, "%20")}`, `http://127.0.0.1:${port}/`, `http://127.0.0.1:${port}/site/`];
+  // La aplicación se verifica por HTTP local, igual que en producción: evita
+  // falsos positivos de file:// (origen, carga de assets y service workers).
+  const targets = [`http://127.0.0.1:${port}/`, `http://127.0.0.1:${port}/site/`];
   for (let index = 0; index < targets.length; index += 1) {
     let passed = await run(targets[index], index);
     // Edge puede perder una navegación tras cerrar su perfil temporal; el

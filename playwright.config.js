@@ -6,7 +6,9 @@ module.exports = {
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // El catálogo inicial carga vídeo e imágenes pesadas; limitar la concurrencia
+  // local evita que el servidor estático sature conexiones y falsee flujos UI.
+  workers: process.env.CI ? 1 : 2,
   reporter: [['html', { outputFolder: 'tests/playwright-report' }], ['list']],
   use: {
     baseURL: 'http://localhost:8080',
@@ -22,7 +24,12 @@ module.exports = {
     { name: 'mobile-safari', use: { ...require('@playwright/test').devices['iPhone 12'] } },
   ],
   webServer: {
-    command: 'python -m http.server 8080',
+    // python -m http.server es monohilo y no aguanta 3 proyectos de
+    // navegador en paralelo durante ~15min de suite -- se caia a mitad de
+    // corrida (ECONNREFUSED) y arrastraba a fallo todo lo que venia
+    // despues, sin relacion con bugs reales de la app. http-server (Node,
+    // ya usado por el preview de Claude Code) soporta la concurrencia real.
+    command: 'npx http-server -p 8080 -c-1 --silent',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
     timeout: 30000,

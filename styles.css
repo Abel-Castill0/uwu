@@ -71,6 +71,11 @@
     --color-accent:      #C99B5F;
     --color-accent-soft: #F6EDE0;
 
+    /* Capas de interfaz: header < backdrop del drawer < drawer. */
+    --z-header:           1000;
+    --z-drawer-backdrop:  2800;
+    --z-drawer:           2801;
+
     /* Premium spacing scale */
     --space-xs:   0.25rem;
     --space-sm:   0.5rem;
@@ -129,7 +134,6 @@
     background: var(--cream-1);
     color: var(--text-primary);
     line-height: 1.65;
-    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -227,20 +231,21 @@
     HEADER (Dark luxury)
   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
   .header {
-    position: sticky; top: 0; z-index: 1000;
+    position: sticky; top: 0; z-index: var(--z-header);
     background: #0d0a06;                       /* negro cÃ¡lido */
     border-bottom: 1px solid rgba(212,169,106,.12);
-    padding: .85rem 2rem;
-    transition: padding .35s ease, box-shadow .35s ease;
+    transition: box-shadow .35s ease;
   }
-  .header.scrolled {
-    padding: .55rem 2rem;
-    box-shadow: 0 4px 30px rgba(0,0,0,.35);
-  }
+  .header.scrolled { box-shadow: 0 4px 30px rgba(0,0,0,.35); }
+  /* El padding vive en header-inner (no en .header) para que el
+     announcement de arriba tenga su propio padding, mas ajustado. */
   .header-inner {
     max-width: var(--max-w); margin: 0 auto;
     display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+    padding: .85rem 2rem;
+    transition: padding .35s ease;
   }
+  .header.scrolled .header-inner { padding: .55rem 2rem; }
   /* â”€â”€ Logo â”€â”€ */
   .logo { display: flex; align-items: center; gap: .7rem; flex-shrink: 0; transition: transform var(--t-spring); }
   .logo:hover { transform: scale(1.02); }
@@ -261,6 +266,10 @@
   }
   /* â”€â”€ Nav â”€â”€ */
   .nav { display: flex; gap: 2.2rem; align-items: center; list-style: none; }
+  /* En desktop .nav-links no debe pintar caja propia: sus <a> deben seguir
+     siendo hijos flex directos de .nav (mismo layout de siempre). El
+     drawer movil le da su propio display:flex/column (ver media query). */
+  .nav-links { display: contents; }
   .nav a {
     color: rgba(255,255,255,.72); font-size: .82rem; font-weight: 500;
     letter-spacing: .08em; text-transform: uppercase; transition: color var(--t-base);
@@ -942,9 +951,10 @@
   .cart-sidebar {
     position: fixed; top: 0; right: 0; z-index: 3001; width: var(--cart-w, 420px); max-width: 100vw;
     height: 100vh; height: 100dvh; background: var(--surface); border-left: 1px solid var(--border);
-    display: flex; flex-direction: column; transform: translateX(100%);
+    display: none; flex-direction: column; transform: translateX(100%);
     transition: transform .35s cubic-bezier(.16,1,.3,1); box-shadow: -18px 0 55px rgba(5,5,5,.16);
   }
+  .cart-sidebar.mounted { display: flex; }
   .cart-sidebar.active { transform: translateX(0); }
   .cart-header { padding: 1.1rem 1.3rem; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--surface-warm); }
   .cart-header-left { display: flex; align-items: center; gap: .65rem; }
@@ -1099,29 +1109,89 @@
   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
   @media (max-width: 1024px) { .footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; } }
   @media (max-width: 900px) {
-    /* display:none/.open{display:flex} aparecia/desaparecia de golpe, sin
-       transicion (display no es animable) -- eso es lo "brusco" reportado.
-       Reemplazado por opacity+transform, con visibility retrasada solo al
-       cerrar para no dejarlo en el tab order mientras esta invisible. */
+    /* Drawer lateral derecho (antes: dropdown debajo del header, sin
+       backdrop, con muchisimo espacio vertical vacio entre 3 links y sin
+       las utilidades que deberian haber salido del header). Mismo patron
+       visual que .cart-sidebar (surface + shadow + slide-in). */
     .nav {
-      display: flex; position: absolute; top: 100%; left: 0; right: 0; background: var(--surface);
-      flex-direction: column; padding: 1.5rem; border-bottom: 1px solid var(--border); gap: .8rem;
-      box-shadow: var(--shadow-md); z-index: 999;
-      opacity: 0; visibility: hidden; transform: translateY(-10px); pointer-events: none;
-      transition: opacity .28s ease, transform .28s cubic-bezier(.22,.7,.3,1), visibility 0s linear .28s;
+      /* align-items:center venia heredado de la regla desktop (.nav es la
+         misma barra horizontal ahi) -- en columna, "center" encoge cada
+         seccion a su ancho de contenido y la centra como isla flotante,
+         en vez de dejarla ocupar el ancho completo alineada a la
+         izquierda. Eso es la causa real del "vacio vertical" y de que el
+         selector de tema se sintiera como un widget aparte: no era solo
+         espaciado, era que cada bloque quedaba angosto y descolgado. */
+      display: flex; flex-direction: column; align-items: stretch;
+      position: fixed; top: 0; right: 0; bottom: 0; left: auto;
+      width: min(320px, 85vw); background: var(--surface);
+      padding: 0 0 calc(1.4rem + env(safe-area-inset-bottom, 0px));
+      box-shadow: -12px 0 40px rgba(0,0,0,.25); z-index: var(--z-drawer);
+      overflow-y: auto;
+      transform: translateX(100%); pointer-events: none;
+      transition: transform .32s cubic-bezier(.22,.7,.3,1);
     }
-    .nav.open {
-      opacity: 1; visibility: visible; transform: translateY(0); pointer-events: all;
-      transition: opacity .28s ease, transform .28s cubic-bezier(.22,.7,.3,1);
-    }
+    .nav.open { transform: translateX(0); pointer-events: all; }
     @media (prefers-reduced-motion: reduce) { .nav { transition: none; } }
-    .nav a { font-size: .9rem; padding: .6rem 0; border-bottom: 1px solid var(--border-light); color: var(--text-secondary); }
+    .nav-drawer-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: calc(1.1rem + env(safe-area-inset-top, 0px)) 1.4rem 1rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .nav-drawer-title {
+      font-family: var(--font-display); font-size: 1rem; font-weight: 600;
+      letter-spacing: .04em; color: var(--text-primary);
+    }
+    .nav-close {
+      background: none; border: none; color: var(--text-muted); cursor: pointer;
+      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; transition: background var(--t-fast), color var(--t-fast);
+    }
+    .nav-close:hover { background: var(--surface-warm); color: var(--gold-deep); }
+    .nav-links { display: flex; flex-direction: column; padding: .6rem 1.4rem 0; gap: .1rem; }
+    .nav a {
+      font-size: 1rem; font-weight: 600; letter-spacing: .02em; text-transform: none;
+      padding: .85rem 0; color: var(--text-primary); min-height: 44px;
+      display: flex; align-items: center;
+    }
     .nav a::after { background: var(--gold); }
     .nav a:hover, .nav a.active { color: var(--gold-deep); }
-    .nav a:last-child { border-bottom: none; }
+    .nav-divider { display: block; height: 1px; background: var(--border-light); margin: .8rem 1.4rem; }
+    .nav-utilities { display: flex; flex-direction: column; padding: 0 1.4rem; gap: .1rem; }
+    .nav-util-link {
+      display: flex; align-items: center; gap: .7rem;
+      padding: .7rem 0; color: var(--text-secondary); font-size: .88rem; font-weight: 500;
+      text-decoration: none;
+    }
+    .nav-util-link i { width: 18px; text-align: center; color: var(--gold-deep); font-size: 1rem; }
+    [data-theme="dark"] .nav-util-link i { color: var(--gold-light); }
+    .nav-util-link:hover { color: var(--gold-deep); }
+    .nav-theme {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .9rem 1.4rem 0; margin-top: .3rem;
+    }
+    .nav-theme-label { font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+    .nav-theme-switch { display: flex; background: var(--surface-warm); border-radius: var(--r-pill); padding: 3px; gap: 2px; }
+    .nav-theme-opt {
+      border: none; background: none; cursor: pointer;
+      padding: .4rem .85rem; border-radius: var(--r-pill); font-size: .74rem; font-weight: 600;
+      color: var(--text-muted); transition: all var(--t-fast); min-height: 32px;
+    }
+    .nav-theme-opt[aria-checked="true"] {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #1A120B;
+    }
+    /* margin-top:auto empujaba esta nota al fondo absoluto del drawer
+       (height:100dvh), dejando un vacio enorme entre el selector de tema
+       y "Lima, Peru" -- exactamente el "demasiado vacio vertical"
+       reportado. Sin auto, sigue el flujo normal justo despues del tema:
+       drawer compuesto por grupos relacionados y compactos, sin franjas
+       muertas ni la sensacion de que el tema es un widget aislado. */
+    .nav-footer-note {
+      display: block; padding: 1.1rem 1.4rem 1.4rem;
+      font-size: .74rem; color: var(--text-muted); letter-spacing: .04em;
+    }
     .hamburger { display: flex; }
-    .header { padding: .65rem 1.2rem; }
-    .header-inner { gap: .8rem; }
+    .header-inner { padding: .65rem 1.2rem; gap: .8rem; }
     .logo-img { width: 40px; height: 40px; }
     .section { padding: 3.8rem 1.2rem; }
     .hero { min-height: 74vh; }
@@ -3082,7 +3152,6 @@
      en html ademas de body rompe position:sticky en TODO el sitio (el
      header deja de pegarse arriba y desaparece al hacer scroll) — bug
      real detectado en auditoria, corregido sin perder la salvaguarda. */
-  body { overflow-x: hidden; max-width: 100vw; }
   .cat-tile, .product-card, .promo-card { max-width: 100%; }
 
   /* â”€â”€ S. BUG REAL â€” menÃº hamburguesa mÃ³vil con texto blanco
@@ -3757,59 +3826,39 @@ backdrop-filter: blur(6px);
   .theme-toggle.rotating .theme-icon { transform: rotate(360deg); }
 
   /* ============================================================
-    TOPBAR + MARQUEE + FABS + REDISEÑO DE FILTROS — 2026
+    ANNOUNCEMENT + NAV DRAWER + FABS + REDISEÑO DE FILTROS — 2026
+    Antes: topbar (beneficio rotativo + redes) + marquee (cinta de
+    promos) + header-inner, 3 franjas superpuestas leyendo el mismo
+    array. Ahora: 1 announcement estático + 1 fila de navegación. Redes,
+    contacto y tema viven en el nav-drawer (móvil) y en el footer.
     ============================================================ */
 
-  /* ---------- Topbar: contacto estático (WhatsApp, envíos, redes) ---------- */
-  .topbar {
+  /* ---------- Announcement: 1 sola línea estática, sin rotar ---------- */
+  .announcement {
     background: linear-gradient(90deg, #1A120B, #261B10 50%, #1A120B);
     border-bottom: 1px solid rgba(212,169,106,.18);
-    font-size: .76rem; letter-spacing: .02em;
-  }
-  .topbar-inner {
-    max-width: 1200px; margin: 0 auto; padding: .4rem 2rem;
-    display: flex; align-items: center; gap: 1.4rem;
+    font-size: .74rem; letter-spacing: .03em; font-weight: 500;
     color: rgba(255,255,255,.82);
+    display: flex; align-items: center; justify-content: center; gap: .5rem;
+    padding: .38rem 1rem;
   }
-  .topbar-contact { display: flex; align-items: center; gap: 1.3rem; flex-wrap: wrap; }
-  .topbar-item { display: inline-flex; align-items: center; gap: .45rem; }
-  .topbar-item i { color: var(--gold-light); font-size: .85em; }
-  .topbar-item a { color: inherit; text-decoration: none; font-weight: 600; transition: color var(--t-fast); }
-  .topbar-item a:hover { color: var(--gold-light); }
-  .topbar-social { margin-left: auto; display: inline-flex; gap: .35rem; }
-  .topbar-social a {
-    width: 26px; height: 26px; border-radius: 50%;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,.08); color: rgba(255,255,255,.85);
-    font-size: .85rem; text-decoration: none;
-    transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
-  }
-  .topbar-social a:hover { background: var(--gold); color: #0d0a06; transform: translateY(-2px); }
+  .announcement i { color: var(--gold-light); font-size: .85em; }
 
-  /* ---------- Marquee: cinta continua de promociones ---------- */
-  .promo-marquee {
-    position: relative; overflow: hidden;
-    background: linear-gradient(90deg, #140E08, #261B10 50%, #140E08);
-    border-bottom: 1px solid rgba(212,169,106,.14);
-    font-size: .78rem; letter-spacing: .04em; color: rgba(255,255,255,.85);
-    padding: .42rem 0;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  /* ---------- Nav drawer: utilidades trasladadas desde el header ---------- */
+  .nav-drawer-head, .nav-divider, .nav-utilities, .nav-theme, .nav-footer-note {
+    display: none; /* solo existen dentro del drawer móvil, ver media query */
   }
-  .promo-marquee__track {
-    display: inline-flex; align-items: center; white-space: nowrap; will-change: transform;
-    animation: marqueeScroll 30s linear infinite;
+  .nav-backdrop {
+    /* El drawer y su velo comparten una escala semántica, por debajo del
+       carrito y otros diálogos que ya usan su propia capa. */
+    position: fixed; inset: 0; z-index: var(--z-drawer-backdrop);
+    background: rgba(10,7,4,.5); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity .28s ease, visibility 0s linear .28s;
   }
-  .promo-marquee:hover .promo-marquee__track { animation-play-state: paused; }
-  .marquee-item { padding: 0 .5rem; }
-  .marquee-sep { color: var(--gold); opacity: .7; padding: 0 .35rem; font-size: .72rem; }
-  @keyframes marqueeScroll {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .promo-marquee__track { animation: none !important; }
-    .promo-marquee:hover .promo-marquee__track { animation-play-state: running; }
+  .nav-backdrop.active {
+    opacity: 1; visibility: visible; pointer-events: all;
+    transition: opacity .28s ease;
   }
 
   /* ---------- Filtros del catálogo: barra de píldoras premium ---------- */
@@ -4030,7 +4079,8 @@ backdrop-filter: blur(6px);
 
   /* ---------- Ocultar FABs cuando el carrito está abierto ---------- */
 body:has(#cartSidebar.active) #waFab { display: none !important; }
-body:has(#cartSidebar.active) .back-to-top { display: none; }
+body:has(#cartSidebar.active) .back-to-top,
+body:has(#modalOverlay.active) .back-to-top { display: none; }
 body:has(#cartSidebar.active) .sticky-cart { display: none; }
   .footer-payments {
     display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .5rem;
@@ -4049,7 +4099,6 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
 
   /* ---------- Responsive ---------- */
   @media (max-width: 900px) {
-    .topbar-inner { padding: .35rem 1rem; gap: 1rem; }
     .packs-toolbar { top: 62px; }
   }
   @media (max-width: 767px) {
@@ -4082,13 +4131,7 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
     #catalogResultsCount { margin-left: 0; width: 100%; font-size: .78rem; }
   }
   @media (max-width: 767px) {
-    /* Header mobile: el topbar (beneficio rotativo) + el marquee (cinta de
-       promos) leen el mismo array TOPBAR_BENEFITS y muestran lo mismo dos
-       veces seguidas -- redundante. Los iconos de WhatsApp/TikTok del topbar
-       tambien se repiten en el FAB, el CTA inferior y el footer. En mobile
-       se quita todo eso y queda solo: 1 linea de beneficio + logo/nav/acciones. */
-    .promo-marquee { display: none; }
-    .topbar-inner { padding: .3rem 1rem; gap: 0; justify-content: center; }
+    .announcement { padding: .32rem 1rem; font-size: .68rem; }
   }
   @media (max-width: 640px) {
     .packs-toolbar { top: 108px; padding: .6rem .7rem; border-radius: 14px; }
@@ -4096,9 +4139,6 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
     .fab-group { right: 14px; bottom: calc(5.7rem + 10px); }
     .wa-fab { width: 48px; height: 48px; font-size: 1.25rem; }
     .back-to-top { bottom: calc(5.7rem + 48px + 48px + .65rem + 12px); }
-  }
-  @media (min-width: 1200px) {
-    .topbar-inner { padding-left: 2.5rem; padding-right: 2.5rem; }
   }
 
   /* ============================================================
@@ -4247,26 +4287,16 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
   }
 
   /* ---- Modal: botón principal siempre visible (sticky al fondo) ---- */
-  #modalAddBtn { position: sticky; bottom: 0; z-index: 5; margin-top: .2rem; }
+  #modalAddBtn { position: static; margin-top: .2rem; }
   .modal-body { position: relative; }
 
-  /* ---- Topbar y marquee: franja noir fija (ambos temas) ---- */
-  .topbar {
+  /* ---- Announcement: franja noir fija (ambos temas) ---- */
+  .announcement {
     background: linear-gradient(90deg, #1A120B, #261B10 50%, #1A120B);
     border-bottom: 1px solid rgba(212,169,106,.14);
     color: rgba(255,255,255,.85);
   }
-  .topbar-inner { color: rgba(255,255,255,.88); }
-  .topbar-item i { color: #D4A96A; }
-  .topbar-item a:hover { color: #E8CE9C; }
-  .topbar-social a { background: rgba(255,255,255,.08); color: rgba(255,255,255,.85); }
-  .topbar-social a:hover { background: #D4A96A; color: #1A120B; transform: translateY(-2px); }
-  .promo-marquee {
-    background: linear-gradient(90deg, #140E08, #261B10 50%, #140E08);
-    border-bottom: 1px solid rgba(212,169,106,.08);
-    color: rgba(255,255,255,.88);
-  }
-  .marquee-sep { color: #D4A96A; opacity: .7; }
+  .announcement i { color: #D4A96A; }
 
   /* ---- Transiciones suaves de 200 ms (UX sin estrés) ---- */
   .product-card,
@@ -4304,25 +4334,6 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
   [data-theme="light"] .theme-icon .theme-icon-sun { display: block; }
   [data-theme="light"] .theme-toggle { color: var(--gold-deep); }
   [data-theme="dark"] .theme-toggle { color: var(--gold-light); }
-
-  /* ---- Topbar: rotador de un beneficio a la vez ---- */
-  .topbar-contact--right { margin-left: auto; display: flex; align-items: center; gap: 1.3rem; }
-  @media (max-width: 767px) {
-    /* Iconos WhatsApp/TikTok del topbar: redundantes en mobile (ya estan en
-       el FAB, el CTA inferior y el footer) -- se ocultan para dejar el
-       topbar en una sola linea. Regla despues de la anterior a proposito:
-       misma especificidad, gana por orden de aparicion. */
-    .topbar-contact--right { display: none; }
-  }
-  .topbar-rotator { display: inline-flex; align-items: center; gap: .45rem; min-height: 1.2em; }
-  .topbar-rotator--fade { animation: topbarFade .6s ease; }
-  @keyframes topbarFade {
-    0% { opacity: 0; transform: translateY(4px); }
-    100% { opacity: 1; transform: translateY(0); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .topbar-rotator--fade { animation: none; }
-  }
 
   /* ---- Iconos SVG: tamaño y alineación unificada (trazo fino, plata/oro) ---- */
   .trust-icon { display: inline-flex; }
@@ -4996,10 +5007,17 @@ background: #E8DCCC;
    ============================================================ */
 @media (pointer: coarse) {
   .modal-close, .cart-close, .theme-toggle, .social-links a,
-  .topbar-social a, .cart-item-qty button, .cart-item-remove {
+  .cart-item-qty button, .cart-item-remove {
     min-width: 44px; min-height: 44px;
     display: inline-flex; align-items: center; justify-content: center;
   }
+  /* .nav-util-link NO entra en la regla de arriba a proposito: es una fila
+     ancha icono+texto ("WhatsApp"/"TikTok"), no un boton-icono cuadrado --
+     justify-content:center la centraba entera dentro del drawer en vez de
+     alinearla a la izquierda como el resto de la lista. Ya mide >44px de
+     alto por su propio padding (.7rem verticales), el target tactil no se
+     pierde. */
+  .nav-util-link { min-height: 44px; }
   .modal-close { width: 44px; height: 44px; }
   .cart-close { width: 44px; height: 44px; }
   .theme-toggle { width: 44px; height: 44px; }
@@ -5052,44 +5070,17 @@ background: #E8DCCC;
   font-weight: 300;
 }
 
-/* ── FIXED MOBILE CTA ─────────────────────────────── */
-.mobile-cta {
-  display: none;
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 9000;
-  padding: .75rem 1rem; padding-bottom: calc(.75rem + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(to top, rgba(13,10,6,.98), rgba(13,10,6,.9) 70%, transparent);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  pointer-events: none;
-}
-.mobile-cta-btn {
-  display: flex; align-items: center; justify-content: center; gap: .6rem;
-  width: 100%; padding: .95rem 1.5rem; border-radius: 9999px; border: none;
-  background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-deep));
-  color: #fff; font-family: var(--font-body); font-size: .8rem;
-  font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
-  text-decoration: none; cursor: pointer;
-  box-shadow: 0 8px 32px rgba(201,155,95,.45);
-  transition: all .3s cubic-bezier(.16,1,.3,1);
-  pointer-events: auto;
-  animation: ctaPulse 3s ease-in-out infinite;
-}
-.mobile-cta-btn:hover { transform: scale(1.02); box-shadow: 0 12px 40px rgba(201,155,95,.55); }
-@keyframes ctaPulse {
-  0%, 100% { box-shadow: 0 8px 32px rgba(201,155,95,.45); }
-  50% { box-shadow: 0 8px 40px rgba(201,155,95,.65), 0 0 0 4px rgba(201,155,95,.15); }
-}
+/* ── CTA GLOBAL "HACER PEDIDO": eliminado a proposito ──────────────
+   El pedido ahora termina siempre en Checkout (unico CTA final de
+   compra). Ver seccion COMBO/CHECKOUT y regla "1 sola capa fija
+   inferior" mas abajo. */
 @media (max-width: 767px) {
-  .mobile-cta { display: block; }
-  /* Regla "una sola capa fija inferior" en movil: antes el FAB de
-     WhatsApp se reposicionaba para no chocar con el mini-carrito, pero
-     coexistian igual (2 elementos flotantes a la vez). Se retira el FAB
-     por completo en movil -- WhatsApp sigue disponible en el menu, el
-     carrito/checkout y el footer, sin perder la funcion. */
+  /* WhatsApp tampoco persigue al usuario en movil: sigue disponible en
+     el menu, el footer y el checkout, sin perder la funcion. */
   .wa-fab { display: none; }
 }
-@media (min-width: 768px) { .mobile-cta { display: none !important; } }
-/* Desktop: el FAB se conserva, pero cede paso si hay un dock de
-   carrito/combo activo (mismo criterio :has() ya usado para
+/* Desktop: el FAB se conserva (acceso discreto), pero cede paso si hay
+   un dock de carrito/combo activo (mismo criterio :has() ya usado para
    back-to-top). */
 body:has(#stickyCart.visible) .wa-fab,
 body:has(#comboSummary.visible) .wa-fab { display: none; }
@@ -5105,7 +5096,7 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
    ya es display:none, sin JS extra). */
 .combo-builder {
   max-width: var(--max-w); margin: 0 auto; padding: 2.4rem 1.5rem 4rem;
-  display: grid; grid-template-columns: 1fr 340px; gap: 1.6rem; align-items: start;
+  display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 1.6rem; align-items: start;
 }
 .combo-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.3rem; }
 .combo-panel--summary { position: sticky; top: 6.5rem; }
@@ -5120,8 +5111,11 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
   transition: all var(--t-base);
 }
 .combo-size-btn:hover { border-color: var(--gold-light); }
-.combo-size-btn.active { background: var(--gold); border-color: var(--gold); color: #fff; }
-[data-theme="dark"] .combo-size-btn.active { color: #1A120B; }
+/* .active se declara mas abajo (version final tipo "segmented control",
+   junto a .combo-item) -- esta version anterior nunca ganaba la cascada
+   (misma especificidad, gana el orden posterior) pero quedaba como
+   codigo muerto confuso. Retirada tras confirmar 0 diferencia visual
+   (verificado en runtime antes de borrar). */
 
 /* Busqueda */
 .combo-search-wrap { position: relative; margin-bottom: .6rem; }
@@ -5143,7 +5137,10 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
   transition: border-color var(--t-base), background var(--t-base);
 }
 .combo-item:hover { border-color: var(--gold-light); }
-.combo-item.selected { border-color: var(--gold); background: var(--gold-pale); }
+/* .selected (version tenue final: borde semitransparente + fondo
+   apenas distinto) se declara mas abajo -- esta version anterior con
+   borde solido nunca ganaba la cascada, codigo muerto confuso.
+   Retirada tras confirmar 0 diferencia visual. */
 .combo-item.disabled { opacity: .45; cursor: not-allowed; }
 .combo-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--gold-deep); flex-shrink: 0; cursor: inherit; }
 .combo-item__check { display: none; } /* el checkbox nativo ya es visible; reservado por si se quiere reemplazar por un icono a medida */
@@ -5172,8 +5169,8 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
 .combo-summary-total__label { font-size: .74rem; color: var(--gold-deep); font-weight: 600; }
 [data-theme="dark"] .combo-summary-total__label { color: var(--gold-light); }
 .combo-summary-total__amount { font-family: var(--font-display); font-size: 1.35rem; font-weight: 500; color: var(--text-primary); }
-.combo-whatsapp-btn { width: 100%; }
-.combo-whatsapp-btn:disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
+.combo-confirm-btn { width: 100%; }
+.combo-confirm-btn:disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
 
 /* Responsive: un panel en movil, resumen flotante al fondo del viewport
    -- mismo patron ya probado en .sticky-cart: oculto (fuera de pantalla,
@@ -5186,7 +5183,15 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
 .combo-dock-trigger { display: none; }
 
 @media (max-width: 767px) {
-  .combo-builder { grid-template-columns: 1fr; padding: 1.6rem 1rem 1rem; gap: 1rem; }
+  /* Bug real: "1fr" solo (== minmax(auto,1fr)) no limita el minimo del
+     track al ancho del contenedor -- si el contenido interno (texto sin
+     wrap, un input, una fila larga) pide mas min-content del que hay
+     espacio, el grid crece para darselo y desborda horizontalmente todo
+     el documento (arrastra tambien los overlays position:fixed inset:0,
+     que terminan midiendo el viewport ya agrandado). minmax(0,1fr) fuerza
+     el minimo a 0 y el contenido interno se ajusta/trunca en vez de
+     empujar el grid. */
+  .combo-builder { grid-template-columns: minmax(0, 1fr); padding: 1.6rem 1rem 1rem; gap: 1rem; }
   .combo-list { max-height: none; }
   /* Dock compacto (~64px) por defecto; "bottom sheet" solo al tocarlo
      (.expanded) -- antes el panel completo (chips+total+boton) quedaba
@@ -5221,4 +5226,119 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .combo-panel--summary, .combo-dock-trigger__icon { transition: none; }
+}
+
+/* ── Quiet commerce pass: one compact promotion block ─────────── */
+.promo-strip { display: block; margin: 1.25rem auto 2.5rem; max-width: var(--max-w); padding: 0 1.5rem; }
+.discount-summary { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(260px, .9fr) auto; align-items: center; gap: 1.5rem; padding: 1.15rem 1.35rem; border: 1px solid var(--border-light); background: var(--surface-warm); }
+.discount-summary__heading { display: flex; flex-direction: column; gap: .18rem; }
+.discount-summary__heading strong { font-family: var(--font-display); font-size: 1.15rem; font-weight: 500; color: var(--text-primary); }
+.discount-summary__heading span:last-child { font-size: .72rem; color: var(--text-muted); }
+.discount-summary__eyebrow { font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-deep); }
+.discount-summary__tiers { display: grid; grid-template-columns: repeat(3, 1fr); border-left: 1px solid var(--border-light); }
+.discount-summary__tiers div { display: flex; flex-direction: column; gap: .1rem; padding: 0 1rem; border-right: 1px solid var(--border-light); }
+.discount-summary__tiers strong { font-size: .75rem; font-weight: 500; color: var(--text-muted); }
+.discount-summary__tiers span { font-family: var(--font-display); font-size: 1.25rem; color: var(--gold-deep); }
+.discount-summary__more { border: 0; background: transparent; color: var(--text-secondary); font-size: .72rem; text-decoration: underline; text-underline-offset: .25em; cursor: pointer; white-space: nowrap; }
+
+/* El combo usa un control segmentado y filas casi editoriales. */
+.combo-size-select { position: relative; padding-top: .35rem; gap: 0; }
+.combo-size-select::before { content: "Tamaño"; position: absolute; left: 0; top: -.55rem; font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
+.combo-size-btn { border-radius: 0; }
+.combo-size-btn:first-of-type { border-radius: var(--r-md) 0 0 var(--r-md); }
+.combo-size-btn:last-of-type { border-radius: 0 var(--r-md) var(--r-md) 0; }
+.combo-size-btn + .combo-size-btn { margin-left: -1px; }
+.combo-item.selected { border-color: rgba(201,155,95,.48); background: color-mix(in srgb, var(--gold-pale) 52%, var(--surface)); }
+/* .combo-size-btn.active final (gradiente + texto oscuro, contraste
+   verificado en runtime en ambos temas): */
+.combo-size-btn.active {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  border-color: var(--gold-light);
+  color: #1A120B;
+  box-shadow: 0 4px 14px rgba(201,155,95,.24);
+}
+.combo-size-btn:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 3px;
+}
+[data-theme="dark"] .combo-item { border-color: rgba(245,239,230,.08); }
+/* Bug real: esta regla es mas especifica que ".combo-item.selected" de
+   mas arriba ([data-theme="dark"] le gana por especificidad, no por
+   orden), asi que en dark el borde volvia a var(--gold) solido (100%
+   opacidad) aunque la version base ya se habia suavizado a un borde
+   semitransparente -- justo el "demasiado contorno" reportado en dark.
+   Mismo criterio de sutileza que el resto del combo: check + fondo
+   apenas distinto + acento tenue, no un borde grueso. */
+[data-theme="dark"] .combo-item.selected {
+  border-color: rgba(212,169,106,.55);
+  background: rgba(212,169,106,.12);
+}
+
+@media (max-width: 767px) {
+  .promo-strip { padding: 0 1rem; margin-bottom: 1.8rem; }
+  .discount-summary { grid-template-columns: 1fr; gap: .9rem; padding: 1rem; }
+  .discount-summary__tiers { border-left: 0; border-top: 1px solid var(--border-light); padding-top: .85rem; }
+  .discount-summary__tiers div { padding: 0 .75rem; }
+  .discount-summary__more { justify-self: start; }
+}
+
+/* Drawer móvil: se reubica en <body> desde script.js. Así ninguna propiedad
+   del header (en especial backdrop-filter) puede convertirlo en un panel
+   corto, recortado o anclado a la altura del encabezado. */
+@media (max-width: 900px) {
+  .header { overflow: visible; }
+  .header .theme-toggle { display: none; }
+  .nav-backdrop {
+    z-index: var(--z-drawer-backdrop);
+    /* Velo discreto: conserva contexto detrás del drawer y evita la
+       sensación de glassmorphism borroso. */
+    background: rgba(10, 7, 4, .44);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .nav {
+    top: 0;
+    right: 0;
+    bottom: auto;
+    left: auto;
+    width: min(86vw, 360px);
+    height: 100dvh;
+    min-height: 100vh;
+    max-height: none;
+    z-index: var(--z-drawer);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: #221912;
+    color: #f8f1e7;
+    border-left: 1px solid rgba(229, 200, 150, .16);
+    box-shadow: -18px 0 52px rgba(0, 0, 0, .32);
+  }
+  .nav:not(.mounted) { display: none; }
+  /* Estas utilidades se declaran ocultas en desktop más abajo en la hoja.
+     Las reactivamos aquí, al final, para que el drawer conserve cabecera,
+     canales de contacto, selector de tema y pie en móvil. */
+  .nav .nav-drawer-head { display: flex; }
+  .nav .nav-divider { display: block; }
+  .nav .nav-utilities { display: flex; }
+  .nav .nav-theme { display: flex; }
+  .nav .nav-footer-note { display: block; }
+  .nav .nav-drawer-head,
+  .nav .nav-divider { border-color: rgba(248, 241, 231, .13); }
+  .nav .nav-drawer-title,
+  .nav a { color: #f8f1e7; }
+  .nav a:hover,
+  .nav a.active { color: var(--gold-light); }
+  .nav .nav-close { color: rgba(248, 241, 231, .76); min-width: 44px; min-height: 44px; }
+  .nav .nav-close:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+  .nav .nav-util-link,
+  .nav .nav-theme-label,
+  .nav .nav-footer-note { color: rgba(248, 241, 231, .66); }
+  .nav .nav-util-link i { color: var(--gold-light); }
+  .nav .nav-theme-switch { background: rgba(255, 255, 255, .08); }
+  .nav .nav-theme-opt { color: rgba(248, 241, 231, .72); }
+  .nav .nav-theme-opt[aria-checked="true"] { color: #1a120b; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-backdrop { transition: none; }
+  .nav { transition: none; }
 }

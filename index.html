@@ -149,33 +149,31 @@
       <div class="loading-text">Preparando tu experiencia...</div>
     </div>
   </div>
+  <script>
+    // El velo es decorativo: no puede bloquear navegación si una inicialización
+    // secundaria tarda o falla. script.js lo retira antes en la ruta normal.
+    window.setTimeout(function () {
+      var screen = document.getElementById('loadingScreen');
+      if (!screen || screen.classList.contains('hidden')) return;
+      screen.classList.add('hidden');
+      window.setTimeout(function () { if (screen.isConnected) screen.remove(); }, 700);
+    }, 1800);
+  </script>
   <noscript>
     <div style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#7a1f1f;color:#fff;text-align:center;padding:.8rem 1rem;font-family:Arial,sans-serif;font-size:.9rem;">
       Esta tienda requiere JavaScript para funcionar. Actívalo o usa un navegador compatible.
     </div>
   </noscript>
   <!-- ============ HEADER ============ -->
+  <!-- Rediseño "quiet luxury": antes 3 franjas (topbar+redes / marquee
+       rotativo / logo+nav) apilaban ~155-163px en movil y competian entre
+       si. Ahora son 2: 1 announcement estatico (sin rotar, sin redes) +
+       1 fila de navegación. Redes/tema/contacto viven en el menú y el
+       footer, no en el header. -->
   <header class="header" id="header">
-    <!-- Topbar: beneficio rotativo + contacto y redes separados -->
-    <div class="topbar" aria-label="Beneficios y contacto">
-      <div class="topbar-inner">
-        <div class="topbar-contact">
-          <span class="topbar-item topbar-rotator" id="topbarRotator" aria-live="polite">
-            <i class="fa-solid fa-truck-fast" aria-hidden="true"></i>
-            <span id="topbarRotatorText">Envíos a todo el Perú</span>
-          </span>
-        </div>
-        <div class="topbar-contact topbar-contact--right">
-          <div class="topbar-social">
-            <a href="https://wa.me/51994467586" class="fab fa-whatsapp" data-wa-link title="WhatsApp" aria-label="Escríbenos por WhatsApp"></a>
-            <a href="https://www.tiktok.com/@fraganceobsession.pe" target="_blank" rel="noopener noreferrer" title="TikTok" aria-label="TikTok"><i class="fab fa-tiktok" aria-hidden="true"></i></a>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Marquee: promociones en cinta deslizante continua -->
-    <div class="promo-marquee" aria-label="Promociones">
-      <div class="promo-marquee__track" id="marqueeTrack"></div>
+    <div class="announcement" aria-label="Información de envío">
+      <i class="fa-solid fa-truck-fast" aria-hidden="true"></i>
+      <span>Envíos a todo el Perú · 1-2 días hábiles</span>
     </div>
     <div class="header-inner">
       <a class="logo" role="button" tabindex="0" aria-label="Ir al inicio" onclick="navigateTo('home')">
@@ -185,10 +183,42 @@
           <span class="logo-slogan">deja que la fragancia hable por ti</span>
         </div>
       </a>
-      <nav class="nav" id="nav" aria-label="Navegación principal">
-        <a onclick="navigateTo('home')" class="active" data-page="home">Inicio</a>
-        <a onclick="navigateTo('catalogo')" data-page="catalogo">Catálogo</a>
-        <a onclick="navigateTo('promos')" data-page="promos">Combos</a>
+      <!-- Ancla de restauración: en móvil el drawer se monta en <body> para
+           que el backdrop-filter del header no pueda recortarlo. -->
+      <template id="navMount"></template>
+      <nav class="nav" id="nav" tabindex="-1" aria-label="Navegación principal">
+        <!-- Cabecera del drawer: solo visible en movil (ver CSS). -->
+        <div class="nav-drawer-head">
+          <span class="nav-drawer-title">FRAGRANCE OBSESSION</span>
+          <button type="button" class="nav-close" id="navClose" aria-label="Cerrar menú">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <div class="nav-links">
+          <a onclick="navigateTo('home')" class="active" data-page="home">Inicio</a>
+          <a onclick="navigateTo('catalogo')" data-page="catalogo">Catálogo</a>
+          <a onclick="navigateTo('promos')" data-page="promos">Combos</a>
+        </div>
+        <!-- Utilidades: trasladadas aqui desde el header (WhatsApp, TikTok,
+             tema). Solo visibles dentro del drawer movil; en desktop el
+             tema tiene su propio icono discreto en .header-actions. -->
+        <div class="nav-divider" aria-hidden="true"></div>
+        <div class="nav-utilities">
+          <a href="https://wa.me/51994467586" data-wa-link class="nav-util-link" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-whatsapp" aria-hidden="true"></i><span>WhatsApp</span>
+          </a>
+          <a href="https://www.tiktok.com/@fraganceobsession.pe" target="_blank" rel="noopener noreferrer" class="nav-util-link">
+            <i class="fab fa-tiktok" aria-hidden="true"></i><span>TikTok</span>
+          </a>
+        </div>
+        <div class="nav-theme">
+          <span class="nav-theme-label">Tema</span>
+          <div class="nav-theme-switch" role="radiogroup" aria-label="Tema">
+            <button type="button" class="nav-theme-opt" id="navThemeLight" role="radio" aria-checked="false">Claro</button>
+            <button type="button" class="nav-theme-opt" id="navThemeDark" role="radio" aria-checked="false">Oscuro</button>
+          </div>
+        </div>
+        <div class="nav-footer-note">Lima, Perú</div>
       </nav>
       <div class="header-actions">
         <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema" aria-pressed="false"
@@ -208,6 +238,7 @@
       </div>
     </div>
   </header>
+  <div class="nav-backdrop" id="navBackdrop"></div>
 
   <!-- ============ PÁGINA HOME ============ -->
   <main>
@@ -521,34 +552,19 @@
       <div class="filters-offcanvas__backdrop" id="filtersBackdrop"></div>
 
       <!-- Promociones oficiales del catálogo -->
-      <section class="packs-benefits promo-strip" aria-label="Promociones del catálogo">
-        <div class="packs-benefit">
-          <span class="packs-benefit__icon" aria-hidden="true"><i class="fa-solid fa-droplet"></i></span>
-          <div>
-            <strong>2 a 5 decants: 5% dcto</strong>
-            <span>Descuento automático · decants de 1 a 10ml</span>
+      <section class="promo-strip" aria-label="Promociones del catálogo">
+        <div class="discount-summary">
+          <div class="discount-summary__heading">
+            <span class="discount-summary__eyebrow">Beneficio automático</span>
+            <strong>Descuentos por cantidad</strong>
+            <span>Decants de 1 a 10 ml · nicho y diseñador combinables</span>
           </div>
-        </div>
-        <div class="packs-benefit">
-          <span class="packs-benefit__icon" aria-hidden="true"><i class="fa-solid fa-fire-flame-curved"></i></span>
-          <div>
-            <strong>6 a 9: 10% · 10+: 15% dcto</strong>
-            <span>Compra más, ahorra más</span>
+          <div class="discount-summary__tiers" aria-label="Descuentos por cantidad">
+            <div><strong>2–5</strong><span>5%</span></div>
+            <div><strong>6–9</strong><span>10%</span></div>
+            <div><strong>10+</strong><span>15%</span></div>
           </div>
-        </div>
-        <div class="packs-benefit">
-          <span class="packs-benefit__icon" aria-hidden="true"><i class="fa-solid fa-tags"></i></span>
-          <div>
-            <strong>3 decants de la misma marca: 10%</strong>
-            <span>Elige 3 perfumes de una casa</span>
-          </div>
-        </div>
-        <div class="packs-benefit">
-          <span class="packs-benefit__icon" aria-hidden="true"><i class="fa-solid fa-gift"></i></span>
-          <div>
-            <strong>Desde S/ 199: vial nicho de regalo</strong>
-            <span>Más envío gratis en todo el Perú</span>
-          </div>
+          <button type="button" class="discount-summary__more" onclick="openInfoModal('beneficios')">Ver beneficios</button>
         </div>
       </section>
 
@@ -566,7 +582,7 @@
       <div class="page-hero-content">
         <div class="section-eyebrow page-hero-eyebrow">Descuento Automático</div>
         <h2 class="section-title page-hero-title">Arma tu Combo</h2>
-        <p class="section-subtitle page-hero-subtitle">Elige entre 3 y 6 fragancias del mismo tamaño y pide tu combo directo por WhatsApp.</p>
+        <p class="section-subtitle page-hero-subtitle">Elige de 3 a 6 fragancias del mismo tamaño, revisa tu selección y continúa al checkout.</p>
       </div>
     </section>
 
@@ -604,9 +620,9 @@
             <span class="combo-summary-total__label" id="comboDiscountLabel"></span>
             <span class="combo-summary-total__amount" id="comboTotalAmount"></span>
           </div>
-          <button type="button" class="btn-add-large btn-add-wa combo-whatsapp-btn" id="comboWhatsappBtn" disabled onclick="sendComboWhatsApp()">
-            <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
-            <span>Pedir mi combo por WhatsApp</span>
+          <button type="button" class="btn-add-large combo-confirm-btn" id="comboConfirmBtn" disabled onclick="confirmCombo()">
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            <span>Confirmar combo</span>
           </button>
         </div>
       </aside>
@@ -892,19 +908,6 @@
       </p>
     </div>
   </footer>
-
-  <!-- Fixed Mobile CTA -->
-  <div class="mobile-cta" id="mobileCta">
-    <a href="https://wa.me/51994467586?text=Hola%2C%20quiero%20hacer%20un%20pedido" class="mobile-cta-btn" target="_blank" rel="noopener">
-      <i class="fab fa-whatsapp" aria-hidden="true"></i>
-      <span>Hacer Pedido</span>
-    </a>
-  </div>
-
-  <!-- Back to Top -->
-  <button class="back-to-top" id="backToTop" aria-label="Volver arriba">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-  </button>
 
   <!-- Animation libraries (orden importa: GSAP → ScrollTrigger → app → animations) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>

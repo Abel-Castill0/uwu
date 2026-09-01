@@ -697,18 +697,24 @@
      CART — OPEN / CLOSE
   ══════════════════════════════════════════════════════════════ */
   function openCart() {
+    const cartSidebar = $("cartSidebar");
     $("cartOverlay").classList.add("active");
-    $("cartSidebar").classList.add("active");
+    cartSidebar.classList.add("mounted");
+    requestAnimationFrame(() => cartSidebar.classList.add("active"));
     document.body.style.overflow = "hidden";
     document.body.classList.add("modal-open");
     document.documentElement.classList.add("modal-open");
     if (window.__modalScrollY === undefined) window.__modalScrollY = window.scrollY;
     updateCartUI();
-    focusModal($("cartSidebar"));
+    focusModal(cartSidebar);
   }
   function closeCart() {
+    const cartSidebar = $("cartSidebar");
     $("cartOverlay").classList.remove("active");
-    $("cartSidebar").classList.remove("active");
+    cartSidebar.classList.remove("active");
+    window.setTimeout(() => {
+      if (!cartSidebar.classList.contains("active")) cartSidebar.classList.remove("mounted");
+    }, 350);
     document.body.style.overflow = "";
     document.body.classList.remove("modal-open");
     document.documentElement.classList.remove("modal-open");
@@ -981,9 +987,9 @@
   if (infoModalEl) {
     infoModalEl.addEventListener("keydown", (e) => trapTabFocus(infoModalEl, e));
   }
-  function focusModal(container) {
+  function focusModal(container, returnTo) {
     if (!container) return;
-    lastFocusedEl = document.activeElement;
+    lastFocusedEl = returnTo || document.activeElement;
     requestAnimationFrame(() => { try { container.focus(); } catch (e) { /* noop */ } });
   }
   function restoreFocus() {
@@ -996,12 +1002,18 @@
   /* ══════════════════════════════════════════════════════════════
      ARMA TU COMBO — constructor de dos paneles en la pagina de packs.
      Combo propio, NO reutiliza calcularDescuentos(): tramos y tope
-     distintos, pedidos explicitamente para esta funcionalidad --
-     3-5 decants -> 5%, 6 decants -> 10% (tope del combo); 3+ misma
-     marca -> FO_CONFIG.DESCUENTOS.POR_MARCA (mismo valor que el resto
-     del sitio, no hardcodeado aparte); gana el mayor, no se acumulan.
-     El pedido se manda directo por WhatsApp -- no pasa por el
-     carrito/checkout normal (a proposito, ver spec).
+     distintos, pedidos explicitamente para esta funcionalidad (ver
+     HANDOFF.md Prompt 35 -- "reglas propias, explicitamente distintas
+     de calcularDescuentos()", instruccion real del negocio, no una
+     inferencia del codigo) -- 3-5 decants -> 5%, 6 decants -> 10%
+     (tope del combo); 3+ misma marca -> FO_CONFIG.DESCUENTOS.POR_MARCA
+     (mismo valor que el resto del sitio, no hardcodeado aparte); gana
+     el mayor, no se acumulan.
+     El pedido YA NO se manda directo por WhatsApp (cambio explicito de
+     una ronda posterior a Prompt 35): confirmCombo() lo agrega al
+     carrito como 1 item type:"pack" con el precio ya descontado, y
+     navega a Checkout -- mismo final de compra unico que el resto del
+     sitio (WhatsApp solo se dispara ahi, no antes).
   ══════════════════════════════════════════════════════════════ */
   function getComboEligibleProducts() {
     return products.filter((p) =>
@@ -1117,7 +1129,7 @@
     const totalWrap = $("comboSummaryTotal");
     const discountLabelEl = $("comboDiscountLabel");
     const totalAmountEl = $("comboTotalAmount");
-    const waBtn = $("comboWhatsappBtn");
+    const confirmBtn = $("comboConfirmBtn");
     const summaryEl = $("comboSummary");
     const dockText = $("comboDockText");
     const dockAmount = $("comboDockAmount");
@@ -1132,26 +1144,32 @@
        tiene sentido dejarlo "abierto" mostrando un panel vacio. */
     if (summaryEl && comboSelectedIds.length === 0) comboSetSheetExpanded(false);
     countEl.textContent = `${comboSelectedIds.length}/${COMBO_MAX} fragancias`;
-    if (dockText) dockText.textContent = comboSelectedIds.length === 1 ? "1 fragancia" : `${comboSelectedIds.length} fragancias`;
+    const info = getComboDiscountInfo();
+    if (dockText) {
+      if (comboSelectedIds.length >= COMBO_MIN) dockText.textContent = `${info.count} fragancias · ${formatPrice(info.total)}`;
+      else {
+        const falta = COMBO_MIN - comboSelectedIds.length;
+        dockText.textContent = `${comboSelectedIds.length} fragancia${comboSelectedIds.length === 1 ? "" : "s"} · Te falta${falta === 1 ? "" : "n"} ${falta} para continuar`;
+      }
+    }
     chipsEl.innerHTML = comboSelectedIds.map((pid) => {
       const prod = getProductById(pid);
       if (!prod) return "";
       return `<span class="combo-chip">${esc(prod.name)} <button type="button" class="combo-chip-x" onclick="comboToggleProduct(${pid})" aria-label="Quitar ${esc(prod.name)}">&times;</button></span>`;
     }).join("");
-    const info = getComboDiscountInfo();
     if (info.isValid) {
       hintEl.style.display = "none";
       totalWrap.style.display = "flex";
       discountLabelEl.textContent = info.discountPct > 0 ? `${info.discountPct}% dto (${info.ruleLabel})` : "Sin descuento aún";
       totalAmountEl.textContent = info.discountPct > 0 ? `${formatPrice(info.subtotal)} → ${formatPrice(info.total)}` : formatPrice(info.subtotal);
-      waBtn.disabled = false;
+      confirmBtn.disabled = false;
       if (dockAmount) dockAmount.textContent = formatPrice(info.total);
     } else {
       totalWrap.style.display = "none";
       hintEl.style.display = "block";
       const falta = COMBO_MIN - info.count;
       hintEl.textContent = info.count === 0 ? `Elige al menos ${COMBO_MIN} fragancias` : `Te falta${falta === 1 ? "" : "n"} ${falta} más para armar tu combo`;
-      waBtn.disabled = true;
+      confirmBtn.disabled = true;
       if (dockAmount) dockAmount.textContent = info.count > 0 ? formatPrice(info.subtotal) : "";
     }
   }
@@ -1183,37 +1201,41 @@
     renderComboList();
     renderComboSummary();
   }
-  /* Mensaje directo a WhatsApp -- mismo patron que openWhatsAppQuote()
-     (frasco completo): window.open con fallback a location.href, track()
-     y toast de confirmacion. No pasa por cart/confirmarCompra a proposito. */
-  function sendComboWhatsApp() {
+  /* El combo usa el mismo final de compra que el resto del sitio. */
+  function confirmCombo() {
     const info = getComboDiscountInfo();
     if (!info.isValid) {
       showToast(`⚠️ Elige al menos ${COMBO_MIN} fragancias para tu combo`);
       return;
     }
-    const lines = comboSelectedIds.map((pid) => {
+    const includedProducts = comboSelectedIds.map((pid) => {
       const prod = getProductById(pid);
-      return prod ? `• ${prod.name} (${prod.brand}) — ${comboSize}ml` : null;
+      return prod ? { id: prod.id, name: prod.name, brand: prod.brand, size: comboSize + "ml" } : null;
     }).filter(Boolean);
-    const msg = `Hola! Quiero pedir este combo de ${info.count} decants de ${comboSize}ml:\n\n${lines.join("\n")}` +
-      `\n\nSubtotal: ${formatPrice(info.subtotal)}` +
-      (info.discountPct > 0 ? `\nDescuento: ${info.discountPct}% (${info.ruleLabel})` : "") +
-      `\nTotal: ${formatPrice(info.total)}` +
-      `\n\n¿Podemos coordinar el pedido?`;
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
-    const win = window.open(url, "_blank");
-    if (!win) location.href = url;
-    track("combo_whatsapp_order", { value: info.total, items: info.count, discount_pct: info.discountPct });
-    showToast("📲 Abriendo WhatsApp con tu combo...");
+    cart.push({
+      productId: "combo-" + Date.now(), type: "pack", isPack: true,
+      name: `Combo curado · ${info.count} fragancias`, brand: "FRAGRANCE OBSESSION",
+      image: "fondo_promos.webp", size: comboSize + "ml", price: info.total, qty: 1,
+      subtotal: info.subtotal, discount: info.discountAmount, discountPct: info.discountPct,
+      discountLabel: info.ruleLabel, includedProducts,
+    });
+    saveCart();
+    updateCartUI();
+    track("combo_confirmed", { value: info.total, items: info.count, discount_pct: info.discountPct });
+    comboSetSheetExpanded(false);
+    navigateTo("checkout");
   }
-  window.sendComboWhatsApp = sendComboWhatsApp;
+  window.confirmCombo = confirmCombo;
 
   /* ══════════════════════════════════════════════════════════════
      NAVIGATION
   ══════════════════════════════════════════════════════════════ */
   function navigateTo(page) {
     if (!VALID_PAGES.has(page)) return;
+    // La navegación es el único punto común de los links del sitio. Cierra el
+    // drawer antes de cambiar la vista para que backdrop, scroll y ARIA no
+    // queden desincronizados con el panel visual.
+    closeNav({ restoreFocus: false, restoreScroll: false });
     currentPage = page;
     document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
     const target = $("page-" + page);
@@ -1237,10 +1259,6 @@
     if (page === "checkout") renderCheckoutPage();
     if (page === "home") renderFeatured();
     track("page_view", { page_title: "FRAGRANCE OBSESSION · " + page, page_path: "/" + (page === "home" ? "" : page) });
-    const nav = $("nav");
-    nav.classList.remove("open");
-    const hb = $("hamburger");
-    if (hb) hb.setAttribute("aria-expanded", "false");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   window.navigateTo = navigateTo;
@@ -2095,24 +2113,93 @@
   const cartClose = document.querySelector(".cart-close");
   if (cartClose) cartClose.addEventListener("click", closeCart);
 
+  /* ══════════════════════════════════════════════════════════════
+     MENÚ MÓVIL — drawer lateral (antes: dropdown simple sin backdrop,
+     sin focus trap, sin scroll lock). Mismo patrón que openCart/openModal:
+     modal-open + overflow:hidden + focusModal/restoreFocus/trapTabFocus.
+  ══════════════════════════════════════════════════════════════ */
   const hamburger = $("hamburger");
-  if (hamburger) {
-    hamburger.addEventListener("click", () => {
-      const nav = $("nav");
-      const expanded = hamburger.getAttribute("aria-expanded") === "true";
-      nav.classList.toggle("open");
-      hamburger.setAttribute("aria-expanded", String(!expanded));
+  const navEl = $("nav");
+  const navMount = $("navMount");
+  const navBackdrop = $("navBackdrop");
+  const navClose = $("navClose");
+
+  // `backdrop-filter` vuelve al header un containing block para descendientes
+  // fixed en algunos navegadores móviles. El drawer debe vivir junto al
+  // backdrop, directamente bajo body, mientras se usa como overlay.
+  const navMediaQuery = window.matchMedia("(max-width: 900px)");
+  function placeNavForViewport() {
+    if (!navEl || !navMount) return;
+    if (navMediaQuery.matches) {
+      if (navEl.parentElement !== document.body) document.body.appendChild(navEl);
+      return;
+    }
+    closeNav();
+    if (navEl.parentElement === document.body) navMount.after(navEl);
+  }
+  placeNavForViewport();
+  if (navMediaQuery.addEventListener) navMediaQuery.addEventListener("change", placeNavForViewport);
+  else navMediaQuery.addListener(placeNavForViewport);
+
+  function openNav() {
+    if (!navEl) return;
+    navEl.classList.add("mounted");
+    if (navBackdrop) navBackdrop.classList.add("active");
+    if (hamburger) hamburger.setAttribute("aria-expanded", "true");
+    document.body.style.overflow = "hidden";
+    document.body.classList.add("modal-open");
+    document.documentElement.classList.add("modal-open");
+    if (window.__modalScrollY === undefined) window.__modalScrollY = window.scrollY;
+    requestAnimationFrame(() => {
+      if (hamburger && hamburger.getAttribute("aria-expanded") !== "true") return;
+      navEl.classList.add("open");
+      focusModal(navEl, hamburger);
     });
   }
+  function closeNav({ restoreFocus: shouldRestoreFocus = true, restoreScroll = true } = {}) {
+    if (!navEl) return;
+    // No usar solo .open como guardia: navigateTo() era capaz de retirar esa
+    // clase mientras el backdrop y el scroll lock seguían activos.
+    const wasOpen = navEl.classList.contains("open")
+      || (navBackdrop && navBackdrop.classList.contains("active"))
+      || (hamburger && hamburger.getAttribute("aria-expanded") === "true");
+    if (!wasOpen) return;
+    navEl.classList.remove("open");
+    if (navBackdrop) navBackdrop.classList.remove("active");
+    if (hamburger) hamburger.setAttribute("aria-expanded", "false");
+    document.body.style.overflow = "";
+    document.body.classList.remove("modal-open");
+    document.documentElement.classList.remove("modal-open");
+    if (restoreScroll && window.__modalScrollY !== undefined) {
+      window.scrollTo(0, window.__modalScrollY);
+    }
+    window.__modalScrollY = undefined;
+    if (shouldRestoreFocus) restoreFocus();
+    window.setTimeout(() => {
+      if (!navEl.classList.contains("open")) navEl.classList.remove("mounted");
+    }, 350);
+  }
+  if (hamburger) {
+    hamburger.addEventListener("click", () => {
+      if (hamburger.getAttribute("aria-expanded") === "true") closeNav(); else openNav();
+    });
+  }
+  if (navClose) navClose.addEventListener("click", closeNav);
+  if (navBackdrop) navBackdrop.addEventListener("click", closeNav);
+  if (navEl) {
+    navEl.addEventListener("keydown", (e) => trapTabFocus(navEl, e));
+    // Los links de navegación ya llaman a navigateTo() vía onclick; solo
+    // falta cerrar el drawer al elegir uno (en desktop .nav no es drawer,
+    // closeNav() es un no-op porque nunca tuvo la clase "open").
+    navEl.querySelectorAll(".nav-links a").forEach((a) => a.addEventListener("click", closeNav));
+  }
+  window.closeNav = closeNav;
 
   window.addEventListener("scroll", () => {
     const header = $("header");
     if (header) header.classList.toggle("scrolled", window.scrollY > 50);
     const btt = $("backToTop");
     if (btt) btt.classList.toggle("visible", window.scrollY > 500);
-    // Mobile CTA: show after scrolling past hero
-    const mCta = $("mobileCta");
-    if (mCta) mCta.classList.toggle("visible", window.scrollY > 400);
   }, { passive: true });
 
   /* ══════════════════════════════════════════════════════════════
@@ -2138,36 +2225,49 @@
   }
   function setupThemeToggle() {
     const btn = $("themeToggle");
-    if (!btn) return;
-    const icon = btn.querySelector(".theme-icon");
+    const lightOpt = $("navThemeLight");
+    const darkOpt = $("navThemeDark");
+    if (!btn && !lightOpt && !darkOpt) return;
     let usedOnce = false;
 
+    // El tema es una sola fuente de verdad (document.documentElement
+    // data-theme); el icono de desktop y el segmented control del drawer
+    // móvil son dos vistas del mismo estado, no dos controles separados.
     function syncUI() {
       const dark = document.documentElement.getAttribute("data-theme") === "dark";
-      btn.setAttribute("aria-pressed", String(dark));
-      // El tooltip indica la acción que realizará el botón
-      btn.setAttribute("data-tooltip", dark ? "Modo claro" : "Modo oscuro");
+      if (btn) {
+        btn.setAttribute("aria-pressed", String(dark));
+        btn.setAttribute("data-tooltip", dark ? "Modo claro" : "Modo oscuro");
+      }
+      if (lightOpt) lightOpt.setAttribute("aria-checked", String(!dark));
+      if (darkOpt) darkOpt.setAttribute("aria-checked", String(dark));
       updateThemeColor();
+    }
+    function setTheme(next) {
+      document.documentElement.setAttribute("data-theme", next);
+      try { localStorage.setItem("fo_theme", next); } catch (e) { /* storage no disponible */ }
+      if (btn) {
+        btn.classList.remove("rotating");
+        void btn.offsetWidth;
+        btn.classList.add("rotating");
+        if (!usedOnce) {
+          usedOnce = true;
+          btn.classList.add("pulse");
+          setTimeout(() => btn.classList.remove("pulse"), 650);
+        }
+      }
+      syncUI();
     }
     syncUI();
 
-    btn.addEventListener("click", () => {
-      const dark = document.documentElement.getAttribute("data-theme") === "dark";
-      const next = dark ? "light" : "dark";
-      document.documentElement.setAttribute("data-theme", next);
-      try { localStorage.setItem("fo_theme", next); } catch (e) { /* storage no disponible */ }
-      // Animación de rotación del ícono
-      btn.classList.remove("rotating");
-      void btn.offsetWidth;
-      btn.classList.add("rotating");
-      // Pulso sutil la primera vez que se usa
-      if (!usedOnce) {
-        usedOnce = true;
-        btn.classList.add("pulse");
-        setTimeout(() => btn.classList.remove("pulse"), 650);
-      }
-      syncUI();
-    });
+    if (btn) {
+      btn.addEventListener("click", () => {
+        const dark = document.documentElement.getAttribute("data-theme") === "dark";
+        setTheme(dark ? "light" : "dark");
+      });
+    }
+    if (lightOpt) lightOpt.addEventListener("click", () => setTheme("light"));
+    if (darkOpt) darkOpt.addEventListener("click", () => setTheme("dark"));
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -2285,6 +2385,7 @@
       closeModal();
       closeCart();
       closeFiltersPanel();
+      closeNav();
     }
   });
 
@@ -2507,51 +2608,6 @@
     });
   }
 
-  /* Marquee de promociones: cinta deslizante continua bajo el topbar.
-     Contenido duplicado para un loop perfecto. Con prefers-reduced-motion
-     se muestra estático (una sola pasada, sin animación). */
-  function renderMarquee() {
-    const track = $("marqueeTrack");
-    const benefits = Array.isArray(FO.TOPBAR_BENEFITS) ? FO.TOPBAR_BENEFITS : [];
-    if (!track || !benefits.length) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const item = (b) => `<span class="marquee-item">${b}</span>`;
-    const sep = `<span class="marquee-sep" aria-hidden="true">·</span>`;
-    const once = benefits.map(item).join(sep);
-    track.innerHTML = reduce.matches
-      ? once
-      : once + sep + once + sep;
-    if (!reduce.matches) {
-      const duration = Math.max(22, benefits.length * 4);
-      track.style.animationDuration = duration + "s";
-    }
-  }
-
-  /* Rotador de la topbar: un beneficio a la vez (fade cada 4s).
-     Con prefers-reduced-motion solo se muestra el primero, sin animación. */
-  function setupTopbarRotator() {
-    const rot = $("topbarRotator");
-    const txt = $("topbarRotatorText");
-    const benefits = Array.isArray(FO.TOPBAR_BENEFITS) ? FO.TOPBAR_BENEFITS : [];
-    if (!rot || !txt || benefits.length < 2) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let i = 0;
-    let timer = null;
-    const tick = () => {
-      i = (i + 1) % benefits.length;
-      txt.textContent = benefits[i];
-      rot.classList.remove("topbar-rotator--fade");
-      void rot.offsetWidth;
-      rot.classList.add("topbar-rotator--fade");
-    };
-    const start = () => { if (timer === null) timer = setInterval(tick, 4000); };
-    const stop = () => { if (timer !== null) { clearInterval(timer); timer = null; } };
-    start();
-    // Pausa cuando la pestaña no es visible (ahorra CPU/batería en móvil).
-    document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
-    window.__topbarStop = stop;
-  }
-
   /* Reseñas desde config.js (Social Proof) */
   function renderReviews() {
     const track = $("reviewsTrack");
@@ -2631,6 +2687,12 @@
       html: `<p><strong>FRAGRANCE OBSESSION</strong> nació con una idea simple: que puedas disfrutar de las mejores fragancias del mundo sin tener que comprar un frasco completo.</p>
         <p>Seleccionamos cuidadosamente perfumes árabes, de diseñador y nicho, y los ofrecemos en decants premium con <strong>extracción con jeringa</strong> desde el frasco original.</p>
         <p>Más de 1,000 clientes en todo el Perú ya confían en nosotros. Somos una tienda peruana, con despacho en Lima Metropolitana y envíos a todo el país.</p>`,
+    },
+    beneficios: {
+      title: "Beneficios por cantidad",
+      html: `<p>Los descuentos se aplican automáticamente sobre decants elegibles de <strong>1 a 10 ml</strong>. Puedes combinar fragancias nicho y de diseñador.</p>
+        <p><strong>2–5 decants:</strong> 5% · <strong>6–9:</strong> 10% · <strong>10 o más:</strong> 15%.</p>
+        <p>Las presentaciones de 20 y 30 ml no participan en este beneficio. Los pedidos desde S/ 199 incluyen envío gratis y un vial de regalo.</p>`,
     },
   };
 
@@ -2808,8 +2870,6 @@
     renderReviews();
     setupReviewsCarousel();
     renderTrustBadges();
-    renderMarquee();
-    setupTopbarRotator();
     setupFooterInfoLinks();
     setupConnectivityToasts();
     applyConfigLinks();
