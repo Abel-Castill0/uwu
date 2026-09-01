@@ -129,6 +129,24 @@
     return out;
   }
 
+  /* ── Precio promocional de un producto individual (frasco completo) ──
+     NUNCA fabrica un precio de referencia: solo calcula el % real a
+     partir de un `regularPrice` que el negocio confirmó como precio
+     ordinario/estándar auténtico (no un valor inflado para simular un
+     descuento -- Indecopi lo trata como publicidad engañosa). Si no hay
+     `regularPrice`, o es <= al precio final, no hay promo que mostrar:
+     se devuelve null y la UI debe caer al precio normal, sin inventar
+     nada. El % siempre se deriva de los dos precios reales, nunca se
+     hardcodea aparte (evita el bug real detectado: "1050 -> 860" anunciado
+     como "20% OFF" cuando matemáticamente es ~18.1%). */
+  function calcularPrecioPromo(regularPrice, price) {
+    if (typeof regularPrice !== "number" || typeof price !== "number") return null;
+    if (!(regularPrice > price) || price < 0) return null;
+    const pct = Math.round(((regularPrice - price) / regularPrice) * 100);
+    return { regularPrice, price, pct, ahorro: redondear(regularPrice - price) };
+  }
+
   w.calcularDescuentos = calcularDescuentos;
   w.FO_CALCULAR_DESCUENTOS = calcularDescuentos;
+  w.calcularPrecioPromo = calcularPrecioPromo;
 })(window);

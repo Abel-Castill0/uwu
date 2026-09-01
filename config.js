@@ -106,10 +106,15 @@ window.FO_CONFIG = {
   /* ── FRASCO COMPLETO → WHATSAPP DE COTIZACIÓN ──────────────────
      Al elegir "Frasco Completo" en el modal de producto ya NO se
      agrega al carrito: se abre WhatsApp con un mensaje de cotización.
-     El mensaje es una función (name, brand) → texto. */
+     El mensaje es una función (name, brand, condition, price) → texto.
+     condition = "Tester" / "Parcial · 99% de contenido" / "" (sellado
+     normal, sin mención). price ya viene formateado ("S/ 630.00") o "". */
   FRASCO_COMPLETO_WHATSAPP: true,
-  WHATSAPP_COTIZAR_MSG: (name, brand) =>
-    `Hola, quiero cotizar el frasco completo de ${name} (${brand}). ¿Me pueden dar más información?`,
+  WHATSAPP_COTIZAR_MSG: (name, brand, condition, price) =>
+    `Hola, quiero cotizar el frasco completo de ${name} (${brand})` +
+    (condition ? ` — ${condition}` : "") +
+    (price ? ` (${price})` : "") +
+    `. ¿Me pueden dar más información?`,
 
 /* ── DECANTS PREMIUM (5ml y 10ml) ─────────────────────────────
       Añade automáticamente variantes "premium" al modal de producto

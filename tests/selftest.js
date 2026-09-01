@@ -625,6 +625,37 @@ step(function () {
     }
   }, 350);
 
+  /* 15b. Condición real de frascos completos (tester/parcial): pedido
+     explícito del cliente -- los últimos 3 del catálogo (ids 146-148) NO
+     pueden presentarse como "Caja Sellada" normal. Cubre card + WhatsApp;
+     el modal ya se prueba en tests/e2e/fragrance.spec.js. */
+  step(function () {
+    window.navigateTo("catalogo");
+    var completos = document.querySelector('[data-filter="completos"]');
+    if (completos) completos.click();
+  }, 400);
+  step(function () {
+    var chip = function (id) {
+      var card = document.querySelector('#catalogGrid .product-card[data-product-id="' + id + '"]');
+      var el = card && card.querySelector(".presentation-chip");
+      return el ? el.textContent.trim() : null;
+    };
+    ok(chip(146) === "Tester", "condTester146", "chip=" + chip(146));
+    ok(chip(147) === "Parcial · 99% de contenido", "condParcial147", "chip=" + chip(147));
+    ok(chip(148) === "Parcial · 99% de contenido", "condParcial148", "chip=" + chip(148));
+    ok(chip(141) === "Caja Sellada", "condSelladoNormal141", "chip=" + chip(141));
+    // WhatsApp: la condición y el precio no deben perderse al cotizar
+    window.openModal(147);
+  }, 300);
+  step(function () {
+    window.__opened = null;
+    var addBtn = document.getElementById("modalAddBtn");
+    if (addBtn) addBtn.click();
+    var wa = window.__opened || "";
+    ok(wa.indexOf("Parcial") !== -1, "waIncludesCondition", "url=" + wa);
+    ok(wa.indexOf("630") !== -1, "waIncludesPrice", "url=" + wa);
+  }, 300);
+
   /* 16. resumen */
   step(function () {
     ok(errors.length === 0, "noConsoleErrors", errors.join(" | ") || "vacío");

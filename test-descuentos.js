@@ -125,5 +125,33 @@ function r2(n) { return Math.round(n * 100) / 100; }
   check("tam_subtotalOriginalIncluyeTodo", d.subtotalOriginal === 200 + 600, "subtotal=" + d.subtotalOriginal);
 }
 
+/* ── Caso 9: calcularPrecioPromo — precio individual (frasco completo).
+   Bug real detectado: el cliente pidió anunciar "1050 con 20% OFF a 860",
+   pero 1050->860 es ~18.1%, no 20%. La funcion nunca debe redondear a un
+   numero "bonito" inventado -- el % siempre sale de los dos precios
+   reales, y sin un regularPrice real no hay promo que mostrar. ── */
+const promo = window.calcularPrecioPromo;
+{
+  const p = promo(1075, 860);
+  check("promo_20pct_real", p && p.pct === 20, JSON.stringify(p)); // 1075*0.80 = 860 exacto
+}
+{
+  const p = promo(1050, 860);
+  check("promo_1050_noEs20pct", p && p.pct !== 20, JSON.stringify(p));
+  check("promo_1050_pctReal", p && p.pct === 18, JSON.stringify(p)); // (1050-860)/1050 = 18.09% -> redondeado 18
+}
+{
+  const p = promo(undefined, 860);
+  check("promo_sinRegularPrice_null", p === null, JSON.stringify(p));
+}
+{
+  const p = promo(800, 860); // "regular" menor al precio final: invalido
+  check("promo_regularMenorAlFinal_null", p === null, JSON.stringify(p));
+}
+{
+  const p = promo(860, 860); // igual: no es promo, es el mismo precio
+  check("promo_regularIgualAlFinal_null", p === null, JSON.stringify(p));
+}
+
 console.log("RESULTADO: " + passed + " PASS | " + failed + " FAIL");
 process.exit(failed ? 1 : 0);

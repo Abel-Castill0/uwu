@@ -524,6 +524,26 @@
   .product-name { font-family: var(--font-display); font-size: 1.25rem; color: var(--text-primary); font-weight: 400; letter-spacing: .01em; line-height: 1.25; }
   .product-brand { font-size: .75rem; color: var(--text-muted); letter-spacing: .02em; }
   .product-price { font-size: 1.1rem; font-weight: 700; color: var(--gold-deep); margin-top: auto; padding-top: .7rem; letter-spacing: .02em; white-space: nowrap; }
+  /* Precio promocional: solo se pinta si productPromoInfo() encontro un
+     regularPrice real -- ver script.js. "Antes" pequeno y tachado, %
+     discreto, precio final domina. Sin rojo, sin badge grande. */
+  .product-price:has(.price-final) {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .4rem;
+    white-space: normal;
+  }
+  .price-regular {
+    font-size: .74rem; font-weight: 500; color: var(--text-muted);
+    text-decoration: line-through; text-decoration-color: rgba(150,120,90,.55);
+    order: 1;
+  }
+  .price-pct {
+    font-size: .68rem; font-weight: 600; color: var(--gold-deep);
+    order: 2;
+  }
+  .price-final {
+    font-size: 1.1rem; font-weight: 700; color: var(--gold-deep);
+    order: 3; flex-basis: 100%;
+  }
   .btn-add {
     width: 100%; margin-top: .8rem; padding: .7rem; background: transparent; border: 1.5px solid var(--border);
     color: var(--text-secondary); border-radius: var(--r-pill); font-weight: 600; font-size: .72rem;
@@ -840,6 +860,16 @@
   @media (min-width: 760px) { .modal-body { justify-content: center; } }
   .modal h2 { font-family: var(--font-display); font-size: 1.7rem; font-weight: 400; text-align: center; margin-bottom: .15rem; color: var(--text-primary); line-height: 1.18; }
   .modal-brand { text-align: center; color: var(--gold); font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; margin-bottom: 1.1rem; }
+  /* Condición real (Tester / Parcial): pastilla discreta, no una alerta --
+     mismo lenguaje editorial que .presentation-chip pero para el fondo
+     claro del modal. Visible junto a marca/precio, nunca escondida. */
+  .modal-condition {
+    display: table; margin: -.6rem auto 1.1rem;
+    background: var(--surface-warm, var(--cream-1)); color: var(--text-secondary);
+    border: 1px solid var(--border); border-radius: var(--r-pill);
+    padding: .3rem .85rem; font-size: .68rem; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+  }
   .modal-notes { text-align: center; color: var(--text-muted); font-size: .84rem; line-height: 1.7; margin-bottom: 1.5rem; padding: 0 .25rem; white-space: pre-line; }
   .tab-switch {
     display: flex; justify-content: center; margin: 0 auto 1.4rem; background: var(--cream-2);
@@ -873,6 +903,10 @@
   @keyframes sizePop { 0% { transform: scale(1); } 45% { transform: scale(1.05); } 100% { transform: scale(1); } }
   .size-options { gap: .55rem; }
   .modal-price-display { text-align: center; font-size: 1.6rem; font-weight: 700; color: var(--gold-deep); margin-bottom: 1.4rem; font-family: var(--font-display); letter-spacing: .02em; display: flex; align-items: center; justify-content: center; gap: .55rem; flex-wrap: wrap; }
+  /* Precio promocional en el modal: mismo criterio que la card, con el
+     precio final restaurado al tamaño dominante propio del modal. */
+  .modal-price-display .price-final { font-size: 1.6rem; }
+  .modal-price-display .price-regular { font-family: var(--font-body); }
   .price-size-badge {
     font-family: var(--font-body); font-size: .72rem; font-weight: 700; letter-spacing: .04em;
     color: #fff; background: var(--color-black);

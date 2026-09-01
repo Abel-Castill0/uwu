@@ -820,6 +820,14 @@
     }
     $("modalName").textContent = product.name;
     $("modalBrand").textContent = product.brand;
+    // Condición real (Tester / Parcial): visible junto a nombre/marca, no
+    // escondida dentro del párrafo de descripción (pedido explícito).
+    const modalConditionEl = $("modalCondition");
+    if (modalConditionEl) {
+      const condition = sealedConditionLabel(product);
+      modalConditionEl.textContent = condition;
+      modalConditionEl.style.display = condition ? "block" : "none";
+    }
     $("modalNotes").textContent =
       "✨ " + product.description + (product.notes ? "\n\nNotas: " + product.notes : "");
     $("tabFull").classList.toggle("active", isFull);
@@ -851,7 +859,10 @@
       })
       .join("");
     const price = currentModalSize ? sizes[currentModalSize] : null;
-    $("modalPrice").innerHTML = price
+    const modalPromo = isFull ? productPromoInfo(product) : null;
+    $("modalPrice").innerHTML = modalPromo
+      ? `<span class="price-regular">${esc(formatPrice(modalPromo.regularPrice))}</span><span class="price-pct">${modalPromo.pct}% menos</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
+      : price
       ? `${esc(formatPrice(price))} <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : "Selecciona tamaño";
     // Botón principal: cotizar por WhatsApp (frasco) o añadir al carrito (decant)
@@ -890,8 +901,17 @@
   /* Cotización de frasco completo por WhatsApp (botón del modal y enlace). */
   function openWhatsAppQuote(product) {
     if (!product) return;
+    // La condición (Tester/Parcial) y el precio no deben perderse al pasar
+    // a WhatsApp -- pedido explícito del cliente, el mensaje ya no puede
+    // ser solo "nombre + marca".
+    const condition = sealedConditionLabel(product);
+    const sizeForPrice = currentModalSize && product.fullSizes && product.fullSizes[currentModalSize] !== undefined
+      ? currentModalSize
+      : Object.keys(product.fullSizes || {})[0];
+    const price = sizeForPrice ? product.fullSizes[sizeForPrice] : null;
+    const priceText = typeof price === "number" ? formatPrice(price) : "";
     const msg = typeof FO.WHATSAPP_COTIZAR_MSG === "function"
-      ? FO.WHATSAPP_COTIZAR_MSG(product.name, product.brand)
+      ? FO.WHATSAPP_COTIZAR_MSG(product.name, product.brand, condition, priceText)
       : `Hola, quiero cotizar el frasco completo de ${product.name} (${product.brand}). ¿Me pueden dar más información?`;
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
     const win = window.open(url, "_blank");
@@ -1263,6 +1283,34 @@
   }
   window.navigateTo = navigateTo;
 
+  /* Condición real de un frasco completo (sellado/tester/parcial): dato
+     de negocio en productos.js (product.sealedStatus + contentPercent),
+     NUNCA inventado aquí. "sellado" no lleva chip propio -- es el estado
+     por defecto esperado, ya cubierto por "Caja Sellada". Un tester o un
+     parcial NO pueden presentarse como si fueran un sellado nuevo (pedido
+     explícito del cliente): esta etiqueta se reutiliza en card, modal y
+     mensaje de WhatsApp para que la condición nunca se pierda en el flujo. */
+  function sealedConditionLabel(product) {
+    if (!product || product.sealedStatus === "sellado" || !product.sealedStatus) return "";
+    if (product.sealedStatus === "tester") return "Tester";
+    if (product.sealedStatus === "parcial") {
+      return product.contentPercent ? `Parcial · ${product.contentPercent}% de contenido` : "Parcial";
+    }
+    return "";
+  }
+
+  /* Precio promocional de un frasco completo (1 sola talla): envoltorio
+     de window.calcularPrecioPromo (descuentos.js) para que la card/modal
+     nunca calculen el % a mano. Sin regularPrice en productos.js -> null,
+     no se muestra nada (nunca se fabrica un "antes" para aparentar %). */
+  function productPromoInfo(product) {
+    if (!product || !product.fullSizes) return null;
+    const sizes = Object.keys(product.fullSizes);
+    if (sizes.length !== 1) return null; // solo aplica a talla unica (frasco completo)
+    const price = product.fullSizes[sizes[0]];
+    return window.calcularPrecioPromo ? window.calcularPrecioPromo(product.regularPrice, price) : null;
+  }
+
   /* ══════════════════════════════════════════════════════════════
      RENDER — PRODUCT CARD
   ══════════════════════════════════════════════════════════════ */
@@ -1271,9 +1319,12 @@
     const fullSizes = Object.keys(product.fullSizes || {});
     const hasDecants = !product.tester && decantSizes.length > 0;
     const hasFull = fullSizes.length > 0;
-    // Presentación: "Sellado" (botella completa) o "Tester"; si hay decants, la card muestra el precio desde el decant
+    const condition = sealedConditionLabel(product);
+    // Presentación: condición real (Tester / Parcial) si aplica; si no,
+    // "Caja Sellada" para cualquier frasco completo sin decants.
     const presentation =
-      product.tester ? "Tester"
+      condition ? condition
+      : product.tester ? "Tester"
       : !hasDecants ? "Caja Sellada"
       : "";
     const minPrice = hasDecants
@@ -1299,7 +1350,14 @@
     const bestsellerHTML = bestseller
       ? `<span class="product-badge bestseller" data-tooltip="El favorito de nuestros clientes">${esc(product.bestsellerLabel || "Más Vendido")}</span>`
       : "";
-    const priceText = minPrice ? `Desde ${formatPrice(minPrice)}` : "Consultar";
+    // Precio promocional: solo si productos.js trae un regularPrice real
+    // (nunca inventado aquí, ver productPromoInfo). Precio final domina
+    // visualmente, el "antes" es pequeño y tachado -- nada de rojo/badge
+    // grande (quiet luxury, no marketplace).
+    const promo = productPromoInfo(product);
+    const priceText = promo
+      ? `<span class="price-regular">${esc(formatPrice(promo.regularPrice))}</span><span class="price-final">${esc(formatPrice(promo.price))}</span><span class="price-pct">${promo.pct}% menos</span>`
+      : minPrice ? `Desde ${formatPrice(minPrice)}` : "Consultar";
     const catLabel =
       product.category === "nicho" ? "Nicho"
       : product.category === "arabe" ? "Árabe"
