@@ -189,7 +189,6 @@
   let activePromoGender = null;
   let activePromoSize = null;
   let activePromoSort = "relevance";
-  let cardPackSizes = {};
   let currentModalProduct = null;
   let currentModalView = "full";
   let currentModalSize = null;
@@ -998,17 +997,20 @@
   }
 
   /* ══════════════════════════════════════════════════════════════
-     MODAL — PACK
+     MODAL — PACK (2-5: 5% · 6+: 10% · 3+ misma marca: 10%)
   ══════════════════════════════════════════════════════════════ */
-  function openPackModal(promoId, presetSize) {
+  let packSelectedBrand = null;
+
+  function openPackModal(promoId) {
     const promo = promos.find((p) => p.id === promoId);
     if (!promo) return;
     currentPackPromo = promo;
-    currentPackIsGroup = (promo.type === "group");
+    currentPackIsGroup = true;
     selectedPackProducts = [];
     currentPackGroupSize = null;
-    currentPackGroupQty = promo.quantity || null;
+    currentPackGroupQty = promo.quantity || 20;
     packGroupPrice = 0;
+    packSelectedBrand = null;
     $("packModalTitle").textContent = promo.name;
     $("packModalDesc").textContent = promo.desc;
     const sizeSelector = $("packGroupSizeSelector");
@@ -1016,27 +1018,14 @@
     const counterEl = $("packCounter");
     const confirmBtn = $("packConfirmBtn");
     const priceDisplay = $("packGroupPrice");
-    if (currentPackIsGroup) {
-      sizeSelector.style.display = "block";
-      productGrid.style.display = "grid";
-      counterEl.style.display = "block";
-      confirmBtn.style.display = "flex";
-      priceDisplay.textContent = "";
-      renderPackSizeOptions();
-      productGrid.innerHTML = '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;padding:1.5rem;">Selecciona un tamaño para ver los perfumes disponibles</p>';
-      counterEl.style.display = "none";
-      confirmBtn.style.display = "none";
-      if (presetSize && promo.options.some((o) => o.size === Number(presetSize))) {
-        selectPackSize(Number(presetSize));
-      }
-    } else {
-      sizeSelector.style.display = "none";
-      productGrid.style.display = "grid";
-      counterEl.style.display = "block";
-      confirmBtn.style.display = "flex";
-      renderPackGrid();
-      updatePackCounter();
-    }
+    sizeSelector.style.display = "none";
+    productGrid.style.display = "grid";
+    counterEl.style.display = "block";
+    confirmBtn.style.display = "flex";
+    priceDisplay.textContent = "";
+    renderPackSizeOptions();
+    renderPackGrid();
+    updatePackCounter();
     $("packModalOverlay").classList.add("active");
     document.body.style.overflow = "hidden";
     document.body.classList.add("modal-open");
@@ -1058,58 +1047,76 @@
     currentPackGroupSize = null;
     currentPackGroupQty = null;
     selectedPackProducts = [];
+    packSelectedBrand = null;
     $("packGroupSizeSelector").style.display = "none";
     $("packGroupPrice").textContent = "";
     restoreFocus();
   }
   function getEligibleProducts(promo) {
-    let eligible = products.filter((p) => !p.tester && !isComingSoon(p.id));
-    if (promo.allowedCategories) {
-      eligible = eligible.filter((p) =>
-        promo.allowedCategories.includes(p.category),
-      );
+    let eligible = products.filter((p) => !p.tester && !isComingSoon(p.id) && p.decantSizes && Object.keys(p.decantSizes).length > 0);
+    if (promo.allowedCategories && promo.allowedCategories.length > 0 && !promo.allowedCategories.includes("todos")) {
+      eligible = eligible.filter((p) => promo.allowedCategories.includes(p.category));
     }
-    const genderRules = promo.eligibleGenders || promo.allowedGenders;
-    if (genderRules) {
-      eligible = eligible.filter((p) => genderRules.includes(p.gender));
-    }
-    if (promo.allowedBrands) {
-      eligible = eligible.filter((p) =>
-        promo.allowedBrands.includes(p.brand),
-      );
-    }
-    if (IS_DEV) {
-      console.log(
-        `[promo] "${promo.name}" → ${eligible.length} perfumes`,
-        { allowedCategories: promo.allowedCategories, allowedGenders: promo.allowedGenders, allowedBrands: promo.allowedBrands },
-      );
+    if (promo.brandPack && packSelectedBrand) {
+      eligible = eligible.filter((p) => p.brand === packSelectedBrand);
     }
     return eligible;
+  }
+  function getPackBrands() {
+    const eligible = products.filter((p) => !p.tester && !isComingSoon(p.id) && p.decantSizes && Object.keys(p.decantSizes).length > 0);
+    const brandMap = new Map();
+    eligible.forEach((p) => {
+      if (!brandMap.has(p.brand)) brandMap.set(p.brand, 0);
+      brandMap.set(p.brand, brandMap.get(p.brand) + 1);
+    });
+    return Array.from(brandMap.entries()).sort((a, b) => b[1] - a[1]).map(([brand, count]) => ({ brand, count }));
   }
   function renderPackGrid() {
     const promo = currentPackPromo;
     if (!promo) return;
-    const eligible = getEligibleProducts(promo);
     const grid = $("packProductGrid");
+    let html = "";
+    if (promo.brandPack) {
+      const brands = getPackBrands();
+      html += `<div class="pack-brand-filter" style="grid-column:1/-1;margin-bottom:.8rem;">
+        <select id="packBrandSelect" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:var(--r-md);background:var(--surface);color:var(--text-primary);font-family:var(--font-body);font-size:.85rem;cursor:pointer;">
+          <option value="">Todas las marcas</option>
+          ${brands.map((b) => `<option value="${esc(b.brand)}"${packSelectedBrand === b.brand ? " selected" : ""}>${esc(b.brand)} (${b.count})</option>`).join("")}
+        </select>
+      </div>`;
+    }
+    const eligible = getEligibleProducts(promo);
     if (eligible.length === 0) {
-      grid.innerHTML =
-        '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;">No hay perfumes disponibles para esta promoción.</p>';
+      html += '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;padding:1.5rem;">No hay perfumes disponibles.</p>';
+      grid.innerHTML = html;
       return;
     }
-    grid.innerHTML = eligible
-      .map((prod) => {
-        const isSelected = selectedPackProducts.includes(prod.id);
-        const imgSrc = prod.cardImage || cardImg(prod);
-        return `
-        <div class="pack-product-item ${isSelected ? "selected" : ""}"
-             data-product-id="${prod.id}" role="button" tabindex="0" aria-pressed="${isSelected}">
-          <img src="${esc(imgSrc)}" alt="${esc(prod.name)}" loading="lazy" decoding="async"
-               onerror="this.src='${PLACEHOLDER_IMG}';" />
-          <span class="pack-product-name">${esc(prod.name)}</span>
-          <span class="pack-product-brand">${esc(prod.brand)}</span>
-        </div>`;
-      })
-      .join("");
+    html += eligible.map((prod) => {
+      const isSelected = selectedPackProducts.includes(prod.id);
+      const imgSrc = prod.cardImage || cardImg(prod);
+      const minPrice = prod.decantSizes ? Math.min(...Object.values(prod.decantSizes)) : 0;
+      return `
+      <div class="pack-product-item ${isSelected ? "selected" : ""}"
+           data-product-id="${prod.id}" role="button" tabindex="0" aria-pressed="${isSelected}">
+        <img src="${esc(imgSrc)}" alt="${esc(prod.name)}" loading="lazy" decoding="async"
+             onerror="this.src='${PLACEHOLDER_IMG}';" />
+        <span class="pack-product-name">${esc(prod.name)}</span>
+        <span class="pack-product-brand">${esc(prod.brand)}</span>
+        <span class="pack-product-price">Desde ${formatPrice(minPrice)}</span>
+      </div>`;
+    }).join("");
+    grid.innerHTML = html;
+    if (promo.brandPack) {
+      const select = $("packBrandSelect");
+      if (select) {
+        select.addEventListener("change", function () {
+          packSelectedBrand = this.value || null;
+          selectedPackProducts = [];
+          renderPackGrid();
+          updatePackCounter();
+        });
+      }
+    }
   }
   function togglePackProduct(productId) {
     const promo = currentPackPromo;
@@ -1119,7 +1126,7 @@
       selectedPackProducts.splice(index, 1);
     } else {
       if (selectedPackProducts.length >= promo.quantity) {
-        showToast(`⚠️ Solo puedes elegir ${promo.quantity} perfumes`);
+        showToast(`⚠️ Máximo ${promo.quantity} perfumes en este pack`);
         return;
       }
       selectedPackProducts.push(productId);
@@ -1128,53 +1135,71 @@
     updatePackCounter();
   }
   window.togglePackProduct = togglePackProduct;
+  function getPackDiscountInfo() {
+    const promo = currentPackPromo;
+    if (!promo || selectedPackProducts.length === 0) return null;
+    const count = selectedPackProducts.length;
+    const minQty = promo.minQty || 2;
+    const discountPct = promo.discountPct || 5;
+    let subtotal = 0;
+    const sizeKey = currentPackGroupSize ? String(currentPackGroupSize) : null;
+    selectedPackProducts.forEach((pid) => {
+      const prod = getProductById(pid);
+      if (prod && prod.decantSizes) {
+        if (sizeKey && prod.decantSizes[sizeKey] !== undefined) {
+          subtotal += prod.decantSizes[sizeKey];
+        } else {
+          const prices = Object.values(prod.decantSizes);
+          if (prices.length > 0) subtotal += Math.min(...prices);
+        }
+      }
+    });
+    const isValid = count >= minQty;
+    const discountAmount = isValid ? Math.round(subtotal * discountPct / 100) : 0;
+    const total = subtotal - discountAmount;
+    return { count, minQty, discountPct, subtotal, discountAmount, total, isValid };
+  }
   function updatePackCounter() {
     const promo = currentPackPromo;
     const counter = $("packCounter");
-    if (promo && counter) {
-      const qty = promo.quantity;
-      counter.textContent = `Seleccionados: ${selectedPackProducts.length} de ${qty}`;
-      counter.classList.toggle("complete", selectedPackProducts.length === qty);
+    const priceEl = $("packGroupPrice");
+    if (!promo || !counter) return;
+    const info = getPackDiscountInfo();
+    if (!info) {
+      counter.textContent = `Seleccionados: 0 · Mínimo: ${promo.minQty || 2}`;
+      counter.classList.remove("complete");
+      if (priceEl) priceEl.textContent = "";
+      return;
+    }
+    const statusClass = info.isValid ? "complete" : "";
+    counter.classList.toggle("complete", info.isValid);
+    if (info.isValid) {
+      counter.textContent = `${info.count} seleccionados · ${info.discountPct}% dto → Ahorras ${formatPrice(info.discountAmount)}`;
+    } else {
+      counter.textContent = `${info.count} de ${info.minQty} mín. · Te faltan ${info.minQty - info.count} para el descuento`;
+    }
+    if (priceEl) {
+      if (info.isValid) {
+        priceEl.innerHTML = `<s style="opacity:.5;margin-right:.4rem;">${formatPrice(info.subtotal)}</s> ${formatPrice(info.total)} <span style="font-size:.75em;color:var(--success);margin-left:.3rem;">(-${info.discountPct}%)</span>`;
+      } else {
+        priceEl.textContent = `Subtotal: ${formatPrice(info.subtotal)}`;
+      }
     }
   }
   function renderPackSizeOptions() {
-    if (!currentPackIsGroup || !currentPackPromo) return;
-    const sizes = currentPackPromo.options.map((opt) => opt.size);
     const container = $("packSizeGrid");
-    container.innerHTML = sizes
-      .map(
-        (size) =>
-          `<button class="size-option${size === currentPackGroupSize ? " selected" : ""}" data-size="${esc(size)}">${esc(size)}</button>`,
-      )
-      .join("");
-    $("packGroupPrice").textContent = "";
+    if (!container) return;
+    const sizes = [2, 3, 5, 10];
+    container.innerHTML = sizes.map((size) =>
+      `<button class="size-option${size === currentPackGroupSize ? " selected" : ""}" data-size="${size}">${size}ml</button>`
+    ).join("");
   }
   function selectPackSize(size) {
     const sizeNum = Number(size);
     currentPackGroupSize = sizeNum;
-    currentPackGroupQty = currentPackPromo.quantity;
-    packGroupPrice = 0;
     document.querySelectorAll("#packSizeGrid .size-option").forEach((btn) => {
-      btn.classList.toggle("selected", btn.dataset.size === size);
+      btn.classList.toggle("selected", btn.dataset.size == size);
     });
-    const option = currentPackPromo.options.find((o) => o.size === sizeNum);
-    const priceEl = $("packGroupPrice");
-    if (option) {
-      packGroupPrice = option.price;
-      priceEl.textContent = `Precio: ${formatPrice(packGroupPrice)}`;
-      priceEl.classList.remove("price-anim");
-      void priceEl.offsetWidth;
-      priceEl.classList.add("price-anim");
-    } else {
-      priceEl.textContent = "";
-    }
-    const productGrid = $("packProductGrid");
-    const counterEl = $("packCounter");
-    const confirmBtn = $("packConfirmBtn");
-    productGrid.style.display = "grid";
-    counterEl.style.display = "block";
-    confirmBtn.style.display = "flex";
-    selectedPackProducts = [];
     renderPackGrid();
     updatePackCounter();
   }
@@ -1183,7 +1208,6 @@
     if (!btn) return;
     selectPackSize(btn.dataset.size);
   });
-  // Selección de perfumes en el pack (click + teclado)
   $("packProductGrid").addEventListener("click", function (e) {
     const item = e.target.closest(".pack-product-item");
     if (!item) return;
@@ -1202,52 +1226,39 @@
   function confirmPack() {
     const promo = currentPackPromo;
     if (!promo) return;
-    const qty = promo.quantity;
-    const sz = currentPackIsGroup ? currentPackGroupSize : promo.size;
-    const prc = currentPackIsGroup ? packGroupPrice : promo.price;
-    if (selectedPackProducts.length < qty) {
-      showToast(`⚠️ Selecciona exactamente ${qty} perfume(s)`);
+    const info = getPackDiscountInfo();
+    if (!info || !info.isValid) {
+      showToast(`⚠️ Selecciona al menos ${promo.minQty || 2} perfumes`);
       return;
     }
     const mainProduct = getProductById(selectedPackProducts[0]);
     const mainImage = mainProduct ? mainProduct.cardImage : "";
-    const includedProducts = selectedPackProducts
-      .map((pid) => {
-        const prod = getProductById(pid);
-        return prod ? { id: pid, name: prod.name, image: prod.cardImage } : null;
-      })
-      .filter(Boolean);
+    const includedProducts = selectedPackProducts.map((pid) => {
+      const prod = getProductById(pid);
+      return prod ? { id: pid, name: prod.name, image: prod.cardImage, brand: prod.brand } : null;
+    }).filter(Boolean);
+    const sizeLabel = currentPackGroupSize ? `${currentPackGroupSize}ml` : "Mixto";
     const packItem = {
       productId: "pack-" + promo.id + "-" + Date.now(),
       type: "pack",
       name: promo.name,
       brand: "Pack Personalizado",
       image: mainImage,
-      size: `${qty} × ${sz}`,
-      price: prc,
+      size: `${info.count} × ${sizeLabel}`,
+      price: info.total,
       qty: 1,
       isPack: true,
+      discountPct: info.discountPct,
+      subtotalOriginal: info.subtotal,
       includedProductIds: [...selectedPackProducts],
       includedProducts: includedProducts,
     };
-    if (promo.gift) {
-      const giftProduct = getProductById(160);
-      packItem.gift = {
-        name: promo.giftName || (giftProduct ? giftProduct.name : "Regalo"),
-        image: promo.giftImage || (giftProduct ? giftProduct.cardImage : ""),
-        size: sz,
-        price: 0,
-      };
-    }
     const packBtn = $("packConfirmBtn");
     if (mainImage && packBtn) flyToCart(mainImage, packBtn);
     cart.push(packItem);
     saveCart();
     updateCartUI();
-    const mensaje = promo.gift
-      ? `🎁 ¡Pack añadido al carrito! (incluye ${packItem.gift.name} de regalo)`
-      : "✅ ¡Pack añadido al carrito!";
-    showToast(mensaje);
+    showToast(`✅ Pack agregado · ${info.discountPct}% dto → ${formatPrice(info.total)}`);
     pulseCartCount();
     if (packBtn) packBtn.classList.add("added");
     setTimeout(() => {
@@ -1288,7 +1299,6 @@
       activePromoGender = null;
       activePromoSize = null;
       activePromoSort = "relevance";
-      cardPackSizes = {};
       updatePromoFilterButtons();
       renderPromos();
     }
@@ -1518,183 +1528,52 @@
   }
 
    /* ══════════════════════════════════════════════════════════════
-     RENDER — PROMOS
+     RENDER — PROMOS (packs dinámicos: 2-5: 5% · 6+: 10% · marca: 10%)
   ══════════════════════════════════════════════════════════════ */
   function renderPromos() {
     const grid = $("promoGrid");
     const countEl = $("packsCount");
     if (!grid) return;
 
-    const toolbarRow = $("packsToolbarRow");
-    const categoryChosen = Boolean(activePromoFilter);
-    if (toolbarRow) toolbarRow.style.display = categoryChosen ? "flex" : "none";
+    const filtered = promos;
 
-    let filtered;
-    if (!categoryChosen) {
-      filtered = promos;
-      if (countEl) countEl.textContent = `${promos.length} packs`;
-    } else {
-      filtered = promos.filter((p) => p.category === activePromoFilter);
-      if (activePromoFilter === "arabe" && activePromoGender) {
-        filtered = filtered.filter((p) => {
-          if (!p.allowedGenders) return true;
-          return p.allowedGenders.includes(activePromoGender);
-        });
-      }
+    if (countEl) countEl.textContent = `${filtered.length} packs disponibles`;
 
-      if (activePromoSize) {
-        filtered = filtered.filter((p) =>
-          Array.isArray(p.options) && p.options.some((o) => o.size === activePromoSize),
-        );
-      }
+    grid.innerHTML = filtered.map((promo) => {
+      const promoIcon = promo.icon || "fa-box-open";
+      const discountPct = promo.discountPct || 5;
+      const minQty = promo.minQty || 2;
+      const isBrandPack = !!promo.brandPack;
 
-      if (activePromoSort === "price-asc") {
-        filtered = [...filtered].sort(
-          (a, b) => Math.min(...(a.options || []).map((o) => o.price)) - Math.min(...(b.options || []).map((o) => o.price)),
-        );
-      } else if (activePromoSort === "price-desc") {
-        filtered = [...filtered].sort(
-          (a, b) => Math.min(...(b.options || []).map((o) => o.price)) - Math.min(...(a.options || []).map((o) => o.price)),
-        );
-      } else if (activePromoSort === "qty-desc") {
-        filtered = [...filtered].sort((a, b) => (b.quantity || 0) - (a.quantity || 0));
-      }
+      const badgeHtml = `<span class="promo-badge" style="background:var(--gold);color:#fff;">${discountPct}% DTO</span>`;
 
-      if (countEl) {
-        countEl.textContent = `Mostrando ${filtered.length} de ${promos.length} packs`;
-      }
-    }
+      const metaHtml = isBrandPack
+        ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h17v10a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-10z"/><path d="M3.5 8.5l2.2-4h12.6l2.2 4M9.5 12.5h5"/></svg> ${minQty}+ decants misma marca · Filtra por marca`
+        : `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h17v10a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-10z"/><path d="M3.5 8.5l2.2-4h12.6l2.2 4M9.5 12.5h5"/></svg> ${minQty}+ decants · Nicho + Diseñador`;
 
-    if (activePromoFilter === "arabe" && activePromoGender) {
-      filtered = filtered.filter((p) => {
-        if (!p.allowedGenders) return true;
-        return p.allowedGenders.includes(activePromoGender);
-      });
-    }
-
-    if (activePromoSize) {
-      filtered = filtered.filter((p) =>
-        Array.isArray(p.options) && p.options.some((o) => o.size === activePromoSize),
-      );
-    }
-
-    if (activePromoSort === "price-asc") {
-      filtered = [...filtered].sort(
-        (a, b) => Math.min(...(a.options || []).map((o) => o.price)) - Math.min(...(b.options || []).map((o) => o.price)),
-      );
-    } else if (activePromoSort === "price-desc") {
-      filtered = [...filtered].sort(
-        (a, b) => Math.min(...(b.options || []).map((o) => o.price)) - Math.min(...(a.options || []).map((o) => o.price)),
-      );
-    } else if (activePromoSort === "qty-desc") {
-      filtered = [...filtered].sort((a, b) => (b.quantity || 0) - (a.quantity || 0));
-    }
-
-    if (countEl) {
-      countEl.textContent = `Mostrando ${filtered.length} de ${promos.length} packs`;
-    }
-
-    if (filtered.length === 0) {
-      grid.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="13" rx="2"/><path d="M12 7.5V20.5M3.5 12.5h17M12 7.5c-2.8 0-4.6-1-4.6-2.7S9.2 2 12 2s4.6 1 4.6 2.8-1.8 2.7-4.6 2.7z"/></svg></div>
-          <h3 class="empty-state-title">Sin packs aquí</h3>
-          <p class="empty-state-text">No hay packs que coincidan con los filtros. Prueba otra combinación.</p>
+      return `
+        <div class="promo-card reveal-item" data-promo-id="${esc(promo.id)}">
+          <div class="promo-media" data-cat="todos">
+            <div class="promo-media-fallback" aria-hidden="true">
+              <span class="promo-media-icon"><i class="fa-solid ${promoIcon}"></i></span>
+              <span class="promo-media-count">${discountPct}% dto</span>
+            </div>
+            ${badgeHtml}
+          </div>
+          <div class="promo-body">
+            <h3>${esc(promo.name)}</h3>
+            <p class="promo-desc">${esc(promo.desc)}</p>
+            <p class="promo-meta">${metaHtml}</p>
+            <div class="promo-price" style="font-size:1.1rem;font-weight:700;color:var(--gold-deep);">${discountPct}% de descuento</div>
+            <button class="btn-add" data-promo-id="${esc(promo.id)}" aria-label="Seleccionar perfumes para ${esc(promo.name)}">
+              Seleccionar Perfumes
+            </button>
+          </div>
         </div>`;
-      return;
-    }
-
-    grid.innerHTML = filtered
-      .map((promo) => {
-        let priceHtml = "";
-        const imageUrl = promo.image || cardImg(promo);
-
-        // Precio según tamaño seleccionado en la card (si hay) o "Desde el menor"
-        const cardSize = cardPackSizes[promo.id] || null;
-        const sizeOption = cardSize
-          ? (promo.options || []).find((o) => o.size === Number(cardSize))
-          : null;
-
-        if (promo.type === "group" && Array.isArray(promo.options) && promo.options.length) {
-          const allPrices = promo.options.map((opt) => opt.price);
-          const minPrice = Math.min(...allPrices);
-          const maxPrice = Math.max(...allPrices);
-          priceHtml = sizeOption
-            ? formatPrice(sizeOption.price)
-            : (minPrice === maxPrice ? formatPrice(minPrice) : `Desde ${formatPrice(minPrice)}`);
-        } else if (promo.price) {
-          priceHtml = formatPrice(promo.price);
-        } else {
-          priceHtml = "Consultar";
-        }
-
-        // Texto informativo
-        const infoLine = promo.type === "group"
-          ? `${promo.quantity} perfumes · Elige tamaño`
-          : `${promo.quantity} perfume(s) · ${promo.size}`;
-
-        // Badge (flota sobre la banda de imagen)
-        const badgeHtml = promo.badge
-          ? `<span class="promo-badge">${esc(promo.badge)}</span>`
-          : "";
-
-        // Granularidad → "por decant" cuando hay tamaño seleccionado
-        const perDecantHtml = sizeOption && promo.quantity
-          ? `<span class="promo-per-decant">≈ ${formatPrice(sizeOption.price / promo.quantity)} c/u</span>`
-          : "";
-
-        // Mini-selector de tamaño inline (arquitectura nueva: decide el precio sin abrir el modal)
-        const sizeChipsHtml = (promo.options || []).length > 1
-          ? `<div class="promo-size-picker" role="group" aria-label="Elegir tamaño de ${esc(promo.name)}">
-               ${promo.options.map((o) => `
-                 <button class="promo-size-chip${o.size === Number(cardSize) ? " active" : ""}" data-promo-size="${esc(o.size)}" aria-pressed="${o.size === Number(cardSize)}">
-                   ${esc(o.size)}
-                 </button>`).join("")}
-             </div>`
-          : "";
-
-        const promoIcon = promo.icon || getCategoryIcon(promo.category);
-        const countLabel = promo.quantity
-          ? `${promo.quantity} decants`
-          : "Pack";
-        const imgHtml = imageUrl
-          ? `<img src="${esc(imageUrl)}" alt="${esc(promo.name)}" class="promo-img" loading="lazy" decoding="async" onload="this.classList.add('img-loaded')" onerror="this.remove()" />`
-          : "";
-
-        return `
-          <div class="promo-card reveal-item" data-promo-id="${esc(promo.id)}">
-            <div class="promo-media" data-cat="${esc(promo.category)}">
-              <div class="promo-media-fallback" aria-hidden="true">
-                <span class="promo-media-icon">${promoIcon}</span>
-                <span class="promo-media-count">${esc(countLabel)}</span>
-              </div>
-              ${imgHtml}
-              ${badgeHtml}
-            </div>
-            <div class="promo-body">
-              <h3>${esc(promo.name)}</h3>
-              <p class="promo-desc">${esc(promo.desc)}</p>
-              <p class="promo-meta"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h17v10a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-10z"/><path d="M3.5 8.5l2.2-4h12.6l2.2 4M9.5 12.5h5"/></svg> ${infoLine}</p>
-              ${sizeChipsHtml}
-              <div class="promo-price">${priceHtml}${perDecantHtml}</div>
-              <button class="btn-add" data-promo-id="${esc(promo.id)}" aria-label="Seleccionar perfumes para ${esc(promo.name)}">
-                Seleccionar Perfumes
-              </button>
-            </div>
-          </div>`;
-      })
-      .join("");
+    }).join("");
 
     observeRevealElements();
     window.FraganceAnimations?.refresh?.();
-  }
-
-  function applyCardPackSize(promoId, size) {
-    if (size) {
-      cardPackSizes[promoId] = size;
-    } else {
-      delete cardPackSizes[promoId];
-    }
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -2078,51 +1957,6 @@
 
   // Selector inline de tamaño: cambia el precio de la card sin abrir el modal
   // y preselecciona ese tamaño al abrirlo.
-  document.addEventListener("click", function (e) {
-    const chip = e.target.closest(".promo-size-chip");
-    if (!chip) return;
-    e.stopPropagation();
-    const card = chip.closest(".promo-card");
-    if (!card) return;
-    const promoId = card.dataset.promoId;
-    const size = chip.dataset.promoSize;
-    const chosenSize = cardPackSizes[promoId] === size ? null : size;
-    applyCardPackSize(promoId, chosenSize);
-    card.querySelectorAll(".promo-size-chip").forEach((c) => {
-      const active = c.dataset.promoSize === chosenSize;
-      c.classList.toggle("active", active);
-      c.setAttribute("aria-pressed", String(active));
-    });
-    const promo = promos.find((p) => p.id === promoId);
-    if (!promo) return;
-    const opt = chosenSize ? (promo.options || []).find((o) => o.size === chosenSize) : null;
-    const priceEl = card.querySelector(".promo-price");
-    const prices = (promo.options || []).map((o) => o.price);
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    if (priceEl) {
-      priceEl.childNodes[0].textContent = opt
-        ? formatPrice(opt.price)
-        : (min === max ? formatPrice(min) : `Desde ${formatPrice(min)}`);
-    }
-    let perDecantEl = card.querySelector(".promo-per-decant");
-    const perDecantText = opt && promo.quantity
-      ? `≈ ${formatPrice(opt.price / promo.quantity)} c/u`
-      : "";
-    if (perDecantText) {
-      if (!perDecantEl) {
-        perDecantEl = document.createElement("span");
-        perDecantEl.className = "promo-per-decant";
-        priceEl.appendChild(perDecantEl);
-      }
-      perDecantEl.textContent = perDecantText;
-    } else if (perDecantEl) {
-      perDecantEl.remove();
-    }
-  });
-
-  /* búsqueda eliminada — catálogo filtra solo por categoría y género */
-
   /* ══════════════════════════════════════════════════════════════
      GLOBAL CLICK DELEGATION (cards, add buttons, promo buttons)
   ══════════════════════════════════════════════════════════════ */
@@ -2148,7 +1982,7 @@
     const promoBtn = e.target.closest(".btn-add[data-promo-id]");
     if (promoBtn) {
       e.stopPropagation();
-      openPackModal(promoBtn.dataset.promoId, cardPackSizes[promoBtn.dataset.promoId] || null);
+      openPackModal(promoBtn.dataset.promoId);
       return;
     }
 
@@ -2157,7 +1991,7 @@
     if (promoCard && !e.target.closest("button")) {
       const pid = promoCard.dataset.promoId;
       if (pid) {
-        openPackModal(pid, cardPackSizes[pid] || null);
+        openPackModal(pid);
         return;
       }
     }

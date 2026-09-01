@@ -77,25 +77,19 @@ window.FO_CONFIG = {
      Reglas que se aplican en el carrito y el checkout.
      Cambia los valores aquí; el resto del sitio se adapta solo. */
   DESCUENTOS: {
-    ACTIVOS: true, // false desactiva TODOS los descuentos de abajo
+    ACTIVOS: true,
 
-    /* Descuento por cantidad de decants (excluyente entre sí), SOLO para
-       presentaciones de 1ml a tamMaxMl (20ml/30ml no cuentan ni reciben
-       este descuento):
-       · 2 a 5 decants   → min2 %
-       · 6 a 9 decants   → min6 %
-       · 10 o más        → min10 %
-       Se aplica sobre el subtotal de esos decants elegibles. Combina
-       nicho y diseñador (no distingue categoría). */
-    POR_CANTIDAD: { activo: true, min2: 5, min6: 10, min10: 15, tamMaxMl: 10 },
+    /* Descuento por cantidad de decants:
+       · 2 a 5 decants   → 5%
+       · 6 o más decants  → 10%
+       Se aplica sobre el subtotal de decants. */
+    POR_CANTIDAD: { activo: true, min2: 5, min6: 10, min10: 10, tamMaxMl: 30 },
 
     /* Descuento por marca repetida:
-       3+ unidades de la misma marca → porcentaje % sobre esa marca. */
+       3+ decants de la misma marca → 10% sobre esa marca. */
     POR_MARCA: { activo: true, minItems: 3, porcentaje: 10 },
 
-    /* Beneficio por umbral de compra (subtotal final >= monto):
-       vial de regalo (línea informativa, no altera stock)
-       + envío gratis (mensaje en carrito/checkout/WhatsApp). */
+    /* Beneficio por umbral de compra */
     UMBRAL: { activo: true, monto: 199, vialGratis: true, envioGratis: true },
 
     /* false = se aplica SOLO la regla de mayor descuento (cantidad o marca).

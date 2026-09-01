@@ -5053,3 +5053,29 @@ background: #E8DCCC;
   .back-to-top { bottom: calc(5.7rem + 70px + 56px + 8px); }
 }
 @media (min-width: 768px) { .mobile-cta { display: none !important; } }
+
+/* ── Pack: precio por producto y filtro de marca ── */
+.pack-product-price {
+  font-size: .7rem; font-weight: 700; color: var(--gold-deep);
+  margin-top: .2rem; letter-spacing: .02em;
+}
+[data-theme="dark"] .pack-product-price { color: var(--gold-light); }
+.pack-brand-filter select {
+  width: 100%; padding: .6rem .8rem;
+  border: 1.5px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface); color: var(--text-primary);
+  font-family: var(--font-body); font-size: .85rem; cursor: pointer;
+}
+.pack-brand-filter select:focus {
+  border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,155,95,.16);
+  outline: none;
+}
+.pack-counter.complete {
+  color: var(--success); font-weight: 700;
+}
+.promo-badge {
+  position: absolute; top: .8rem; right: .8rem;
+  padding: .25rem .6rem; border-radius: var(--r-pill);
+  font-size: .65rem; font-weight: 700; letter-spacing: .05em;
+  z-index: 2;
+}
