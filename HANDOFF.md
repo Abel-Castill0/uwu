@@ -16,7 +16,7 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Responsive (`cdp-responsive-check.js`, 320-1440px) | **5/5 OK** (columnas 1/1/3/5/5, modal 92dvh, sin overflow horizontal) |
 | Contraste AA (`cdp-contrast-check.js`, reparado) | Todo ≥4.5:1 en ambos temas (body 15.6-16.1, producto 16-18.5, muted 5.2-5.4, link footer 4.97-4.99) |
 | Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
-| SW | `fo-v63-ghpages` |
+| SW | `fo-v64-ghpages` |
 | Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
 | TikTok videos | Galería estática: tarjetas `<a target="_blank">` a TikTok, cero iframes/scripts/requests (ver Prompt 27) |
 | Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
@@ -24,6 +24,18 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Modal 10ml premium (id:5 Angels Share on the Rocks) | Corregido: `"10_premium"` apuntaba por error a la imagen de 30ml; eliminada la clave, cae al fallback correcto (ver Prompt 24) |
 | srcset | Eliminado (Prompt 28): una sola capa `img/perfumes_optimized/*.webp` sirve todo, sin lógica de srcset ni bug de espacios en nombres |
 | SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 36 — Bug real en el combo (footer tapado) + UX/UI del combo y navbar (cerrado)
+
+Reporte directo del usuario: "el pie de página no se ve en la página de combos" + pedido de mejorar UX/UI de esa página (fotos de producto) y del navbar ("se ve muy brusco").
+
+- **Bug real confirmado**: `.combo-panel--summary` en móvil quedaba `position:fixed` **siempre visible** (sin selección incluida), tapando permanentemente el pie de página y cualquier contenido debajo. Corregido con el mismo patrón ya probado de `.sticky-cart`: oculto (`opacity:0; pointer-events:none`, fuera de pantalla) hasta que hay al menos 1 fragancia seleccionada (`renderComboSummary()` ahora hace `toggle("visible", comboSelectedIds.length > 0)`). También se redujo de panel edge-to-edge de hasta 60vh a una barra flotante compacta con márgenes (`left/right/bottom: .75rem`, `max-height: 55vh`), consistente visualmente con `.sticky-cart`.
+- **Fotos de producto en el combo**: cada fila de `#comboList` ahora muestra la imagen real del perfume (mismo criterio de fallback que el resto del sitio: `cardImage` o el monograma SVG de marca si no hay foto), 40×40px, `loading="lazy"` — con 116+ filas es obligatorio para no pedir todas las imágenes de golpe. Verificado: 0 requests de imagen al cargar la página (todas diferidas hasta que son necesarias).
+- **Navbar "brusco" — causa real encontrada, no solo estética**: el menú móvil usaba `display:none` ↔ `.open{display:flex}`, una propiedad que no se puede animar — aparecía/desaparecía de golpe. Corregido con `opacity`+`transform`+`visibility` (con `visibility` retrasada solo al cerrar, para no dejarlo en el tab order mientras es invisible), transición de .28s. Además, el header (`#1A120B` plano, sin blur) era el único bloque grande de la UI sin el lenguaje "glass" que ya usa el resto del sitio (modal, carrito, sticky-cart) — se le agregó `background: rgba(26,18,11,.86)` + `backdrop-filter: var(--glass-blur)` (token ya existente), mismo color, ahora flotando en vez de plancha opaca.
+- **Rendimiento/compatibilidad**: sin librerías nuevas, sin JS adicional de peso. `loading="lazy"` en todas las fotos nuevas del combo (patrón ya usado en todo el sitio). `-webkit-backdrop-filter` presente junto a `backdrop-filter` en el header (mismo criterio de compatibilidad Safari ya aplicado en el resto del CSS).
+- **Nota de entorno**: durante la verificación, las imágenes con `loading="lazy"` no cargaban en la pestaña de prueba (`naturalWidth:0`) -- confirmado que es el mismo artefacto de pestaña sin foco de sesiones anteriores (se reprodujo idéntico en el catálogo ya existente y sin tocar), no un bug introducido esta ronda. La suite CDP corre en su propio Edge, no afectada.
+
+**Verificación**: `npm run smoke` 14/14, `node test-descuentos.js` 25/25, `node --check` OK. `npm test` (exit code real, sin pipe): **103/103 PASS en las 9 corridas**, exit code 0.
 
 ## Prompt 35 — Eliminación de "SWY Amber" + nuevo constructor "Arma tu Combo" (cerrado)
 

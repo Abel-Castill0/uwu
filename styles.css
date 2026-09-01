@@ -1099,8 +1099,22 @@
   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
   @media (max-width: 1024px) { .footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; } }
   @media (max-width: 900px) {
-    .nav { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); flex-direction: column; padding: 1.5rem; border-bottom: 1px solid var(--border); gap: .8rem; box-shadow: var(--shadow-md); z-index: 999; }
-    .nav.open { display: flex; }
+    /* display:none/.open{display:flex} aparecia/desaparecia de golpe, sin
+       transicion (display no es animable) -- eso es lo "brusco" reportado.
+       Reemplazado por opacity+transform, con visibility retrasada solo al
+       cerrar para no dejarlo en el tab order mientras esta invisible. */
+    .nav {
+      display: flex; position: absolute; top: 100%; left: 0; right: 0; background: var(--surface);
+      flex-direction: column; padding: 1.5rem; border-bottom: 1px solid var(--border); gap: .8rem;
+      box-shadow: var(--shadow-md); z-index: 999;
+      opacity: 0; visibility: hidden; transform: translateY(-10px); pointer-events: none;
+      transition: opacity .28s ease, transform .28s cubic-bezier(.22,.7,.3,1), visibility 0s linear .28s;
+    }
+    .nav.open {
+      opacity: 1; visibility: visible; transform: translateY(0); pointer-events: all;
+      transition: opacity .28s ease, transform .28s cubic-bezier(.22,.7,.3,1);
+    }
+    @media (prefers-reduced-motion: reduce) { .nav { transition: none; } }
     .nav a { font-size: .9rem; padding: .6rem 0; border-bottom: 1px solid var(--border-light); color: var(--text-secondary); }
     .nav a::after { background: var(--gold); }
     .nav a:hover, .nav a.active { color: var(--gold-deep); }
@@ -4369,7 +4383,14 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
 
   /* ---------- Header ---------- */
 .header {
-  background: #1A120B;
+  /* Antes solido/opaco (#1A120B plano): el unico bloque grande de la UI
+     sin el lenguaje "glass" que ya usa el resto del sitio (modal, carrito,
+     sticky-cart) -- se sentia como una plancha dura en vez de flotar sobre
+     el contenido. Mismo color, con transparencia + var(--glass-blur) ya
+     definido para el resto de superficies elevadas. */
+  background: rgba(26,18,11,.86);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
     border-bottom: 1px solid rgba(212,169,106,.14);
   }
   .logo:hover .logo-img { filter: drop-shadow(0 5px 14px rgba(160,168,178,.55)); }
@@ -5091,6 +5112,10 @@ background: #E8DCCC;
 .combo-item.disabled { opacity: .45; cursor: not-allowed; }
 .combo-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--gold-deep); flex-shrink: 0; cursor: inherit; }
 .combo-item__check { display: none; } /* el checkbox nativo ya es visible; reservado por si se quiere reemplazar por un icono a medida */
+.combo-item__img {
+  width: 40px; height: 40px; flex-shrink: 0; object-fit: contain; padding: 3px;
+  border-radius: var(--r-sm); background: #fff; border: 1px solid var(--border-light);
+}
 .combo-item__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .combo-item__brand { font-size: .68rem; color: var(--text-muted); }
 .combo-item__name { font-size: .85rem; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -5115,14 +5140,27 @@ background: #E8DCCC;
 .combo-whatsapp-btn { width: 100%; }
 .combo-whatsapp-btn:disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
 
-/* Responsive: un panel en movil, resumen fijo al fondo del viewport */
+/* Responsive: un panel en movil, resumen flotante al fondo del viewport
+   -- mismo patron ya probado en .sticky-cart: oculto (fuera de pantalla,
+   sin pointer-events) hasta que hay algo que resumir, para no tapar el
+   footer ni nada mas cuando el combo esta vacio (bug real reportado:
+   antes quedaba position:fixed SIEMPRE visible, incluso sin selección,
+   ocultando el pie de pagina permanentemente). */
 @media (max-width: 767px) {
   .combo-builder { grid-template-columns: 1fr; padding: 1.6rem 1rem 1rem; gap: 1rem; }
-  .combo-panel--catalog { padding-bottom: 12rem; } /* espacio para no quedar tapado por el resumen fijo */
   .combo-list { max-height: none; }
   .combo-panel--summary {
-    position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 900;
-    border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,.12);
-    max-height: 60vh; overflow-y: auto;
+    position: fixed; left: .75rem; right: .75rem; bottom: .75rem; top: auto; z-index: 900;
+    border-radius: var(--r-lg); box-shadow: 0 18px 50px rgba(0,0,0,.35);
+    max-height: 55vh; overflow-y: auto;
+    background: var(--surface-elevated, var(--surface));
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    transform: translateY(calc(100% + 1.5rem)); opacity: 0; pointer-events: none;
+    transition: transform .45s cubic-bezier(.22,.7,.3,1), opacity .3s ease;
   }
+  .combo-panel--summary.visible { transform: translateY(0); opacity: 1; pointer-events: all; }
+  .combo-summary-chips { max-height: 90px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .combo-panel--summary { transition: none; }
 }

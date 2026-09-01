@@ -1084,14 +1084,22 @@
       list.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:2rem 1rem;">No hay perfumes que coincidan con la búsqueda.</p>';
       return;
     }
+    /* Fotografia por perfume: mismo criterio de fallback que el resto del
+       sitio (cardImage real, o el monograma SVG de marca si no hay foto
+       -- nunca un icono roto). loading="lazy" es obligatorio aqui: son
+       hasta ~140 filas, sin lazy el navegador pediria todas las imagenes
+       de golpe. */
     list.innerHTML = eligible.map((prod) => {
       const isSelected = comboSelectedIds.includes(prod.id);
       const hasSize = comboProductHasSize(prod, comboSize);
       const disabled = !hasSize || (!isSelected && comboSelectedIds.length >= COMBO_MAX);
       const price = hasSize ? formatPrice(prod.decantSizes[comboSize]) : `Sin ${comboSize}ml`;
+      const imgSrc = prod.cardImage || cardImg(prod);
       return `<label class="combo-item${isSelected ? " selected" : ""}${disabled ? " disabled" : ""}">
         <input type="checkbox" data-product-id="${prod.id}"${isSelected ? " checked" : ""}${disabled ? " disabled" : ""} />
         <span class="combo-item__check" aria-hidden="true"></span>
+        <img class="combo-item__img" src="${esc(imgSrc)}" alt="" loading="lazy" decoding="async"
+             onerror="this.src='${PLACEHOLDER_IMG}';" />
         <span class="combo-item__text">
           <span class="combo-item__brand">${esc(prod.brand)}</span>
           <span class="combo-item__name">${esc(prod.name)}</span>
@@ -1108,7 +1116,14 @@
     const discountLabelEl = $("comboDiscountLabel");
     const totalAmountEl = $("comboTotalAmount");
     const waBtn = $("comboWhatsappBtn");
+    const summaryEl = $("comboSummary");
     if (!countEl) return;
+    /* En movil el panel es flotante (position:fixed) y solo se muestra si
+       hay algo que resumir -- mismo patron que .sticky-cart. Sin esto,
+       tapaba el footer (y cualquier otro contenido) de forma permanente
+       incluso con el combo vacio. En desktop es sticky dentro del grid,
+       la clase no tiene efecto visual ahi. */
+    if (summaryEl) summaryEl.classList.toggle("visible", comboSelectedIds.length > 0);
     countEl.textContent = `${comboSelectedIds.length}/${COMBO_MAX} fragancias`;
     chipsEl.innerHTML = comboSelectedIds.map((pid) => {
       const prod = getProductById(pid);
