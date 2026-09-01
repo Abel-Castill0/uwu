@@ -160,90 +160,42 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(img && img.complete && img.naturalWidth > 0, "logoOk", "naturalWidth=" + (img ? img.naturalWidth : "sin img"));
   }, 500);
 
-  /* 8. promos: tiles y 3 packs por categoria */
+  /* 8. Pack builder: navigate, verify grid renders */
   step(function () {
     window.navigateTo("promos");
-    var tile = document.querySelector('[data-promo-filter="nicho"]');
-    ok(!!tile, "promoTileNicho", "sin tile nicho");
-    if (tile) { tile.click(); }
-    ok(document.querySelectorAll("#promoGrid .promo-card").length === 3, "promosNicho3", "promoGrid=" + document.querySelectorAll("#promoGrid .promo-card").length);
-    var tile2 = document.querySelector('[data-promo-filter="disenador"]');
-    if (tile2) { tile2.click(); }
-    ok(document.querySelectorAll("#promoGrid .promo-card").length === 3, "promosDisenador3", "promoGrid=" + document.querySelectorAll("#promoGrid .promo-card").length);
+    var grid = document.getElementById("packProductGrid");
+    ok(!!grid, "packGridExists", "sin packProductGrid");
+    var items = document.querySelectorAll("#packProductGrid .pack-product-item");
+    ok(items.length > 0, "packItemsRendered", "items=" + items.length);
   }, 500);
 
-  /* 9. pack nicho-5: abrir, tamano 3ml, precio 48, 93 items (excluye "Próximamente"), seleccion, confirmar */
+  /* 9. Pack builder: select 2 items, verify 5% discount */
   step(function () {
-    var tile = document.querySelector('[data-promo-filter="nicho"]');
-    if (tile) { tile.click(); }
-    var btn = document.querySelector('.btn-add[data-promo-id="pack-nicho-5"]');
-    ok(!!btn, "packBtnNicho5", "sin pack-nicho-5");
-    if (!btn) { return; }
-    btn.click();
-    ok(document.getElementById("packModalOverlay").classList.contains("active"), "packModalOpens", "overlay no activo");
-    ok(document.querySelectorAll("#packSizeGrid .size-option").length === 4, "packSizes4", "");
-    var c3 = document.querySelector('#packSizeGrid .size-option[data-size="3"]');
-    if (c3) { c3.click(); }
-  }, 450);
-
-  step(function () {
-    var price = document.getElementById("packGroupPrice");
-    ok(price && price.textContent.indexOf("S/ 48.00") >= 0, "packPrice48", "price=" + (price ? price.textContent.trim() : "sin price"));
-    ok(document.querySelectorAll("#packProductGrid .pack-product-item").length === 93, "packItems93", "items=" + document.querySelectorAll("#packProductGrid .pack-product-item").length);
-    var first = document.querySelector("#packProductGrid .pack-product-item");
-    if (first) { first.click(); }
+    var all = document.querySelectorAll("#packProductGrid .pack-product-item");
+    if (all[0]) { all[0].click(); }
+    if (all[1]) { all[1].click(); }
+    var count = document.getElementById("packSummaryCount");
+    ok(count && count.textContent.indexOf("2") >= 0, "packCount2", "count=" + (count ? count.textContent.trim() : ""));
+    var discount = document.getElementById("packSummaryDiscount");
+    ok(discount && discount.textContent.indexOf("5") >= 0, "packDiscount5", "discount=" + (discount ? discount.textContent.trim() : ""));
   }, 400);
 
+  /* 10. Pack builder: select 6 total → 10% */
   step(function () {
-    for (var i = 1; i <= 5; i++) {
-      var all = document.querySelectorAll("#packProductGrid .pack-product-item");
-      var it = all[i];
-      if (it) { it.click(); }
-    }
-    var cnt = document.getElementById("packCounter");
-    ok(cnt && cnt.textContent.indexOf("5 de 5") >= 0, "packCounter", "counter=" + (cnt ? cnt.textContent.trim() : ""));
+    var all = document.querySelectorAll("#packProductGrid .pack-product-item");
+    for (var i = 2; i < 6; i++) { if (all[i]) { all[i].click(); } }
+    var discount = document.getElementById("packSummaryDiscount");
+    ok(discount && discount.textContent.indexOf("10") >= 0, "packNow10", "discount=" + (discount ? discount.textContent.trim() : ""));
   }, 400);
 
-step(function () {
+  /* 11. Pack builder: confirm adds to cart */
+  step(function () {
     var before = cartTotal();
     var confirm = document.getElementById("packConfirmBtn");
-    ok(confirm && getComputedStyle(confirm).display !== "none", "packConfirmVisible", "display=" + (confirm ? getComputedStyle(confirm).display : "sin btn"));
+    ok(confirm && !confirm.disabled, "packConfirmEnabled", "disabled=" + (confirm ? confirm.disabled : "sin btn"));
     if (confirm) { confirm.click(); }
     ok(cartTotal() === before + 1, "packAddsOne", before + " -> " + cartTotal());
-    window.__packDone = false;
-    window.__chains += 1;
-    var polls = 0;
-    (function pollCart() {
-      var cart = document.getElementById("cartSidebar");
-      var ov = document.getElementById("packModalOverlay");
-      if (cart && cart.classList.contains("active") && ov && !ov.classList.contains("active")) {
-        window.__packDone = true;
-        window.__chains -= 1;
-        return;
-      }
-      // Tope de seguridad: si el modal no cierra a tiempo no colgamos la suite.
-      if (++polls > 80) { window.__packDone = true; window.__chains -= 1; return; }
-      setTimeout(pollCart, 100);
-    })();
-  }, 450);
-
-  /* 10. pack disenador-5: tamano 3ml, precio 27 */
-  step(function waitPackDone() {
-    if (!window.__packDone) { setTimeout(waitPackDone, 200); return; }
-    var tile = document.querySelector('[data-promo-filter="disenador"]');
-    if (tile) { tile.click(); }
-    var btn = document.querySelector('.btn-add[data-promo-id="pack-disenador-5"]');
-    ok(!!btn, "packBtnDisenador5", "sin pack-disenador-5");
-    if (!btn) { return; }
-    btn.click();
-    var c3 = document.querySelector('#packSizeGrid .size-option[data-size="3"]');
-    if (c3) { c3.click(); }
-  }, 950);
-
-  step(function () {
-    var price = document.getElementById("packGroupPrice");
-    ok(price && price.textContent.indexOf("S/ 27.00") >= 0, "packPrice27", "price=" + (price ? price.textContent.trim() : "sin price"));
-  }, 400);
+  }, 600);
 
   /* 11. carrito lateral */
   step(function () {

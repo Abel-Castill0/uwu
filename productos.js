@@ -164,12 +164,6 @@
     { id: 148, name: "Lamar Kajal", brand: "Lamar", category: "nicho", gender: "unisex", notes: "Vainilla, ámbar y especias: cálido, envolvente y sensual.", description: "Parcial con caja al 99% 100ml. Envío con seguro.", fullSizes: {100:650}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "parcial", sealedSize: "100ml", featured: false, badge: null, badgeText: "" },
   ];
 
-  w.FO_PROMOS = [
-    { id: "pack-2-5", name: "Pack 2-5 Decants", category: "todos", type: "group", desc: "Elige entre 2 y 5 decants y obtén 5% de descuento. Combina nicho y diseñador libremente.", icon: "fa-percent", image: "", allowedCategories: ["nicho", "disenador"], minQty: 2, discountPct: 5 },
-    { id: "pack-6-plus", name: "Pack 6+ Decants", category: "todos", type: "group", desc: "Elige 6 o más decants y obtén 10% de descuento. Combina nicho y diseñador libremente.", icon: "fa-fire-flame-curved", image: "", allowedCategories: ["nicho", "disenador"], minQty: 6, discountPct: 10 },
-    { id: "pack-marca", name: "Pack Misma Marca", category: "todos", type: "group", desc: "Elige 3 o más decants de la misma marca y obtén 10% de descuento. Filtra por marca al seleccionar.", icon: "fa-tags", image: "", allowedCategories: ["nicho", "disenador"], minQty: 3, discountPct: 10, brandPack: true },
-  ];
-
   w.FO_BESTSELLERS = {
   6: "Más Vendido",
   17: "Tendencia en TikTok",

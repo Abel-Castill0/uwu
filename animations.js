@@ -249,7 +249,7 @@
     if (grid && grid.children.length) animateGrid(grid, ".product-card");
     _observers.push(watchGrid("catalogGrid",  ".product-card"));
     _observers.push(watchGrid("featuredGrid", ".product-card"));
-    _observers.push(watchGrid("promoGrid",    ".promo-card"));
+    _observers.push(watchGrid("packProductGrid", ".pack-product-item"));
   }
 
   /* ══════════════════════════════════════════════════════════

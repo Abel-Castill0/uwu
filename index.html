@@ -557,20 +557,20 @@
     </section>
   </div>
 
-  <!-- ============ PACKS DE DECANTS ============ -->
+  <!-- ============ ARMA TU PACK ============ -->
   <div class="page" id="page-promos">
     <section class="page-hero promo-hero">
-      <img src="fondo_promos.webp" alt="Packs de Decants FRAGRANCE OBSESSION" class="page-hero-img" loading="lazy"
+      <img src="fondo_promos.webp" alt="Arma tu Pack FRAGRANCE OBSESSION" class="page-hero-img" loading="lazy"
         decoding="async" />
       <div class="page-hero-overlay"></div>
       <div class="page-hero-content">
-        <div class="section-eyebrow page-hero-eyebrow">Descuentos por Pack</div>
+        <div class="section-eyebrow page-hero-eyebrow">Descuento Automático</div>
         <h2 class="section-title page-hero-title">Arma tu Pack</h2>
-        <p class="section-subtitle page-hero-subtitle">Selecciona tus decants favoritos y obtén descuento automático. Nicho y diseñador juntos.</p>
+        <p class="section-subtitle page-hero-subtitle">Selecciona tus decants favoritos y obtén descuento al instante. Nicho y diseñador juntos.</p>
       </div>
     </section>
 
-    <!-- Reglas de descuento claras -->
+    <!-- Reglas de descuento -->
     <section class="discount-ladder" aria-label="Reglas de descuento">
       <div class="discount-ladder__row">
         <div class="discount-ladder__step">
@@ -588,66 +588,54 @@
           <span class="discount-ladder__pct">10%</span>
         </div>
       </div>
-      <p class="discount-ladder__note">Combina nicho y diseñador · El descuento se aplica sobre el precio regular</p>
+      <p class="discount-ladder__note">El mejor descuento se aplica automáticamente · Combina libremente</p>
     </section>
 
-    <!-- Beneficios -->
-    <section class="packs-benefits" aria-label="Beneficios de los packs">
-      <div class="packs-benefit">
-        <span class="packs-benefit__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9.2 9.6h3.6a1.9 1.9 0 0 1 0 3.8H9.2"/></svg></span>
-        <div>
-          <strong>Descuento automático</strong>
-          <span>5% o 10% según la cantidad que elijas</span>
+    <!-- Filtros: búsqueda + marca + tamaño -->
+    <section class="pack-builder-tools" id="packTools">
+      <div class="pack-search-row">
+        <div class="pack-search-wrap">
+          <i class="fa-solid fa-magnifying-glass pack-search-icon" aria-hidden="true"></i>
+          <input type="search" id="packSearchInput" class="pack-search-input" placeholder="Buscar por nombre o marca..." autocomplete="off" />
+        </div>
+        <div class="pack-brand-filter" id="packBrandFilterWrap" style="display:none;">
+          <select id="packBrandSelect" aria-label="Filtrar por marca">
+            <option value="">Todas las marcas</option>
+          </select>
+        </div>
+        <div class="pack-size-filter">
+          <select id="packSizeSelect" aria-label="Filtrar por tamaño">
+            <option value="">Todos los tamaños</option>
+            <option value="2">2 ml</option>
+            <option value="3">3 ml</option>
+            <option value="5">5 ml</option>
+            <option value="10">10 ml</option>
+          </select>
         </div>
       </div>
-      <div class="packs-benefit">
-        <span class="packs-benefit__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="7.5" width="17" height="13" rx="2"/><path d="M12 7.5V20.5M3.5 12.5h17M12 7.5c-2.8 0-4.6-1-4.6-2.7S9.2 2 12 2s4.6 1 4.6 2.8-1.8 2.7-4.6 2.7z"/></svg></span>
-        <div>
-          <strong>Elige tus perfumes</strong>
-          <span>Nicho y diseñador mixtos en un mismo pack</span>
-        </div>
-      </div>
-      <div class="packs-benefit">
-        <span class="packs-benefit__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l2.2-4h12.6l2.2 4M3.5 8.5h17v10a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-10z"/></svg></span>
-        <div>
-          <strong>Misma marca = más ahorro</strong>
-          <span>3+ decants de una marca → 10% extra</span>
-        </div>
-      </div>
+      <p class="pack-results" id="packResults"></p>
     </section>
 
-    <!-- Cómo funciona -->
-    <section class="packs-how" id="packsComoFunciona">
-      <div class="section-header">
-        <div class="section-eyebrow">Solo 3 pasos</div>
-        <h2 class="section-title">¿Cómo funciona?</h2>
-      </div>
-      <div class="packs-steps">
-        <div class="packs-step">
-          <span class="packs-step__num" aria-hidden="true">01</span>
-          <h3>Elige un pack</h3>
-          <p>2-5 decants (5% dto), 6+ decants (10% dto) o 3+ de la misma marca (10% dto).</p>
-        </div>
-        <div class="packs-step">
-          <span class="packs-step__num" aria-hidden="true">02</span>
-          <h3>Selecciona tus perfumes</h3>
-          <p>Busca por marca o explora el catálogo. El descuento se calcula en tiempo real.</p>
-        </div>
-        <div class="packs-step">
-          <span class="packs-step__num" aria-hidden="true">03</span>
-          <h3>Confirma y recibe</h3>
-          <p>Agrega al carrito, paga por WhatsApp y recibe en 1-2 días a todo el Perú.</p>
-        </div>
-      </div>
-    </section>
-
+    <!-- Grid de productos para seleccionar -->
     <section class="cat-section">
-      <!-- Grid de packs -->
-      <div class="promo-toolbar" id="packsToolbarRow" style="display:none;">
-        <p class="catalog-results" id="packsCount"></p>
-      </div>
-      <div class="product-grid" id="promoGrid"></div>
+      <div class="product-grid" id="packProductGrid"></div>
     </section>
+
+    <!-- Barra sticky: resumen del pack -->
+    <div class="pack-summary-bar" id="packSummaryBar">
+      <div class="pack-summary-inner">
+        <div class="pack-summary-chips" id="packSummaryChips"></div>
+        <div class="pack-summary-info">
+          <span class="pack-summary-count" id="packSummaryCount">0 seleccionados</span>
+          <span class="pack-summary-discount" id="packSummaryDiscount"></span>
+          <span class="pack-summary-total" id="packSummaryTotal"></span>
+        </div>
+        <button class="btn-add-large pack-confirm-btn" id="packConfirmBtn" onclick="confirmPack()">
+          <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+          <span>Agregar al Carrito</span>
+        </button>
+      </div>
+    </div>
   </div>
   <!-- ============ CHECKOUT ============ -->
   <div class="page" id="page-checkout">
@@ -782,38 +770,6 @@
           <span class="modal-trust__item"><i class="fa-solid fa-lock" aria-hidden="true"></i> Pago Seguro</span>
           <span class="modal-trust__item"><i class="fa-solid fa-gem" aria-hidden="true"></i> 100% Originales</span>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ MODAL PACK (rediseñado) ============ -->
-  <div class="modal-overlay" id="packModalOverlay" role="dialog" aria-modal="true" aria-labelledby="packModalTitle">
-    <div class="modal pack-modal" id="packModal" tabindex="-1" role="document">
-      <button class="modal-close" onclick="closePackModal()" aria-label="Cerrar">
-        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-      </button>
-      <div class="modal-body">
-        <h2 id="packModalTitle"></h2>
-        <p id="packModalDesc" class="pack-modal-desc"></p>
-        <!-- Selector de tamaño (filtro de ml) -->
-        <div id="packGroupSizeSelector" style="display:none;">
-          <div class="pack-size-selector">
-            <span class="pack-size-label">Tamaño del decant</span>
-            <div class="size-options" id="packSizeGrid" style="justify-content:center;"></div>
-          </div>
-        </div>
-        <!-- Precio con descuento -->
-        <div class="modal-price-display" id="packGroupPrice" style="margin:0.6rem 0 1rem;font-size:1rem;"></div>
-        <!-- Grid de perfumes -->
-        <div class="pack-product-grid" id="packProductGrid"></div>
-        <!-- Contador + descuento -->
-        <div class="pack-counter-wrap">
-          <p id="packCounter" class="pack-counter"></p>
-        </div>
-        <button class="btn-add-large" id="packConfirmBtn" onclick="confirmPack()">
-          <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
-          <span>Agregar Pack al Carrito</span>
-        </button>
       </div>
     </div>
   </div>

@@ -9,7 +9,6 @@
      (edita ese archivo para agregar/quitar perfumes, no este)
   ══════════════════════════════════════════════════════════════ */
   const products = window.FO_PRODUCTS || window.PACO_PRODUCTS || [];
-  const promos = window.FO_PROMOS || window.PACO_PROMOS || [];
   // Única fuente de verdad para rutas de la SPA. Las vistas auxiliares se
   // conservan porque los modales informativos las usan internamente.
   const VALID_PAGES = new Set([
@@ -185,21 +184,16 @@
     arabe: (p) => !p.tester && isProduct(p) && p.category === "arabe",
     disenador: (p) => !p.tester && isProduct(p) && p.category === "disenador",
   };
-  let activePromoFilter = null;
-  let activePromoGender = null;
-  let activePromoSize = null;
-  let activePromoSort = "relevance";
   let currentModalProduct = null;
   let currentModalView = "full";
   let currentModalSize = null;
   let currentPage = "home";
   let catalogVisibleCount = 24;
-  let currentPackPromo = null;
-  let selectedPackProducts = [];
-  let currentPackIsGroup = false;
-  let currentPackGroupSize = null;
-  let currentPackGroupQty = null;
-  let packGroupPrice = 0;
+  /* ── Pack Builder state ── */
+  let packSelectedIds = [];
+  let packBrandFilter = null;
+  let packSizeFilter = null;
+  let packSearchQuery = "";
   /* currentSearchTerm eliminado — búsqueda removida */
 
   try {
@@ -997,102 +991,110 @@
   }
 
   /* ══════════════════════════════════════════════════════════════
-     MODAL — PACK (2-5: 5% · 6+: 10% · 3+ misma marca: 10%)
+     PACK BUILDER — inline on packs page
+     Rules: 2-5 → 5%, 6+ → 10%, 3+ same brand → 10% (best applies)
   ══════════════════════════════════════════════════════════════ */
-  let packSelectedBrand = null;
-
-  function openPackModal(promoId) {
-    const promo = promos.find((p) => p.id === promoId);
-    if (!promo) return;
-    currentPackPromo = promo;
-    currentPackIsGroup = true;
-    selectedPackProducts = [];
-    currentPackGroupSize = null;
-    currentPackGroupQty = promo.quantity || 20;
-    packGroupPrice = 0;
-    packSelectedBrand = null;
-    $("packModalTitle").textContent = promo.name;
-    $("packModalDesc").textContent = promo.desc;
-    const sizeSelector = $("packGroupSizeSelector");
-    const productGrid = $("packProductGrid");
-    const counterEl = $("packCounter");
-    const confirmBtn = $("packConfirmBtn");
-    const priceDisplay = $("packGroupPrice");
-    sizeSelector.style.display = "none";
-    productGrid.style.display = "grid";
-    counterEl.style.display = "block";
-    confirmBtn.style.display = "flex";
-    priceDisplay.textContent = "";
-    renderPackSizeOptions();
-    renderPackGrid();
-    updatePackCounter();
-    $("packModalOverlay").classList.add("active");
-    document.body.style.overflow = "hidden";
-    document.body.classList.add("modal-open");
-    document.documentElement.classList.add("modal-open");
-    if (window.__modalScrollY === undefined) window.__modalScrollY = window.scrollY;
-    focusModal($("packModal"));
-  }
-  function closePackModal() {
-    $("packModalOverlay").classList.remove("active");
-    document.body.style.overflow = "";
-    document.body.classList.remove("modal-open");
-    document.documentElement.classList.remove("modal-open");
-    if (window.__modalScrollY !== undefined) {
-      window.scrollTo(0, window.__modalScrollY);
-      window.__modalScrollY = undefined;
-    }
-    currentPackPromo = null;
-    currentPackIsGroup = false;
-    currentPackGroupSize = null;
-    currentPackGroupQty = null;
-    selectedPackProducts = [];
-    packSelectedBrand = null;
-    $("packGroupSizeSelector").style.display = "none";
-    $("packGroupPrice").textContent = "";
-    restoreFocus();
-  }
-  function getEligibleProducts(promo) {
-    let eligible = products.filter((p) => !p.tester && !isComingSoon(p.id) && p.decantSizes && Object.keys(p.decantSizes).length > 0);
-    if (promo.allowedCategories && promo.allowedCategories.length > 0 && !promo.allowedCategories.includes("todos")) {
-      eligible = eligible.filter((p) => promo.allowedCategories.includes(p.category));
-    }
-    if (promo.brandPack && packSelectedBrand) {
-      eligible = eligible.filter((p) => p.brand === packSelectedBrand);
-    }
-    return eligible;
+  function getPackEligibleProducts() {
+    return products.filter((p) =>
+      !p.tester && !isComingSoon(p.id) &&
+      p.decantSizes && Object.keys(p.decantSizes).length > 0
+    );
   }
   function getPackBrands() {
-    const eligible = products.filter((p) => !p.tester && !isComingSoon(p.id) && p.decantSizes && Object.keys(p.decantSizes).length > 0);
+    const eligible = getPackEligibleProducts();
     const brandMap = new Map();
     eligible.forEach((p) => {
-      if (!brandMap.has(p.brand)) brandMap.set(p.brand, 0);
-      brandMap.set(p.brand, brandMap.get(p.brand) + 1);
+      brandMap.set(p.brand, (brandMap.get(p.brand) || 0) + 1);
     });
     return Array.from(brandMap.entries()).sort((a, b) => b[1] - a[1]).map(([brand, count]) => ({ brand, count }));
   }
-  function renderPackGrid() {
-    const promo = currentPackPromo;
-    if (!promo) return;
-    const grid = $("packProductGrid");
-    let html = "";
-    if (promo.brandPack) {
-      const brands = getPackBrands();
-      html += `<div class="pack-brand-filter" style="grid-column:1/-1;margin-bottom:.8rem;">
-        <select id="packBrandSelect" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:var(--r-md);background:var(--surface);color:var(--text-primary);font-family:var(--font-body);font-size:.85rem;cursor:pointer;">
-          <option value="">Todas las marcas</option>
-          ${brands.map((b) => `<option value="${esc(b.brand)}"${packSelectedBrand === b.brand ? " selected" : ""}>${esc(b.brand)} (${b.count})</option>`).join("")}
-        </select>
-      </div>`;
+  function getPackDiscountInfo() {
+    if (packSelectedIds.length === 0) return null;
+    const count = packSelectedIds.length;
+    let subtotal = 0;
+    packSelectedIds.forEach((pid) => {
+      const prod = getProductById(pid);
+      if (prod && prod.decantSizes) {
+        const prices = Object.values(prod.decantSizes);
+        if (prices.length > 0) subtotal += Math.min(...prices);
+      }
+    });
+    /* Rule 1: quantity discount */
+    let qtyPct = 0;
+    if (count >= 6) qtyPct = 10;
+    else if (count >= 2) qtyPct = 5;
+    /* Rule 2: brand discount (3+ same brand) */
+    const brandCounts = {};
+    packSelectedIds.forEach((pid) => {
+      const prod = getProductById(pid);
+      if (prod) brandCounts[prod.brand] = (brandCounts[prod.brand] || 0) + 1;
+    });
+    let brandPct = 0;
+    Object.values(brandCounts).forEach((c) => {
+      if (c >= 3 && 10 > brandPct) brandPct = 10;
+    });
+    /* Best discount wins (no stacking) */
+    const discountPct = Math.max(qtyPct, brandPct);
+    const isValid = count >= 2;
+    const discountAmount = isValid ? Math.round(subtotal * discountPct / 100) : 0;
+    const total = subtotal - discountAmount;
+    /* Determine which rule triggered */
+    let ruleLabel = "";
+    if (brandPct >= qtyPct && brandPct > 0) ruleLabel = "3+ misma marca";
+    else if (qtyPct === 10) ruleLabel = "6+ decants";
+    else if (qtyPct === 5) ruleLabel = "2-5 decants";
+    return { count, discountPct, subtotal, discountAmount, total, isValid, ruleLabel, brandCounts };
+  }
+  function packToggleProduct(productId) {
+    const idx = packSelectedIds.indexOf(productId);
+    if (idx > -1) {
+      packSelectedIds.splice(idx, 1);
+    } else {
+      packSelectedIds.push(productId);
+      /* Auto-set brand filter when selecting a product */
+      if (!packBrandFilter && packSelectedIds.length === 1) {
+        const prod = getProductById(productId);
+        if (prod) {
+          packBrandFilter = prod.brand;
+          const sel = $("packBrandSelect");
+          if (sel) {
+            const opt = Array.from(sel.options).find((o) => o.value === prod.brand);
+            if (opt) sel.value = prod.brand;
+          }
+        }
+      }
     }
-    const eligible = getEligibleProducts(promo);
+    renderPackBuilderGrid();
+    renderPackSummary();
+  }
+  window.packToggleProduct = packToggleProduct;
+  function renderPackBuilderGrid() {
+    const grid = $("packProductGrid");
+    if (!grid) return;
+    let eligible = getPackEligibleProducts();
+    /* Apply brand filter */
+    if (packBrandFilter) {
+      eligible = eligible.filter((p) => p.brand === packBrandFilter);
+    }
+    /* Apply size filter */
+    if (packSizeFilter) {
+      eligible = eligible.filter((p) => p.decantSizes && p.decantSizes[packSizeFilter] !== undefined);
+    }
+    /* Apply search */
+    if (packSearchQuery) {
+      const q = packSearchQuery.toLowerCase();
+      eligible = eligible.filter((p) =>
+        p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q)
+      );
+    }
+    const countEl = $("packResults");
+    if (countEl) countEl.textContent = `${eligible.length} perfumes disponibles`;
     if (eligible.length === 0) {
-      html += '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;padding:1.5rem;">No hay perfumes disponibles.</p>';
-      grid.innerHTML = html;
+      grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;padding:2rem;">No hay perfumes que coincidan con los filtros.</p>';
       return;
     }
-    html += eligible.map((prod) => {
-      const isSelected = selectedPackProducts.includes(prod.id);
+    grid.innerHTML = eligible.map((prod) => {
+      const isSelected = packSelectedIds.includes(prod.id);
       const imgSrc = prod.cardImage || cardImg(prod);
       const minPrice = prod.decantSizes ? Math.min(...Object.values(prod.decantSizes)) : 0;
       return `
@@ -1105,172 +1107,106 @@
         <span class="pack-product-price">Desde ${formatPrice(minPrice)}</span>
       </div>`;
     }).join("");
-    grid.innerHTML = html;
-    if (promo.brandPack) {
-      const select = $("packBrandSelect");
-      if (select) {
-        select.addEventListener("change", function () {
-          packSelectedBrand = this.value || null;
-          selectedPackProducts = [];
-          renderPackGrid();
-          updatePackCounter();
-        });
-      }
-    }
   }
-  function togglePackProduct(productId) {
-    const promo = currentPackPromo;
-    if (!promo) return;
-    const index = selectedPackProducts.indexOf(productId);
-    if (index > -1) {
-      selectedPackProducts.splice(index, 1);
-    } else {
-      if (selectedPackProducts.length >= promo.quantity) {
-        showToast(`⚠️ Máximo ${promo.quantity} perfumes en este pack`);
-        return;
-      }
-      selectedPackProducts.push(productId);
-    }
-    renderPackGrid();
-    updatePackCounter();
-  }
-  window.togglePackProduct = togglePackProduct;
-  function getPackDiscountInfo() {
-    const promo = currentPackPromo;
-    if (!promo || selectedPackProducts.length === 0) return null;
-    const count = selectedPackProducts.length;
-    const minQty = promo.minQty || 2;
-    const discountPct = promo.discountPct || 5;
-    let subtotal = 0;
-    const sizeKey = currentPackGroupSize ? String(currentPackGroupSize) : null;
-    selectedPackProducts.forEach((pid) => {
+  function renderPackSummary() {
+    const chipsEl = $("packSummaryChips");
+    const countEl = $("packSummaryCount");
+    const discountEl = $("packSummaryDiscount");
+    const totalEl = $("packSummaryTotal");
+    const barEl = $("packSummaryBar");
+    const confirmBtn = $("packConfirmBtn");
+    if (!chipsEl || !countEl) return;
+    /* Chips */
+    chipsEl.innerHTML = packSelectedIds.map((pid) => {
       const prod = getProductById(pid);
-      if (prod && prod.decantSizes) {
-        if (sizeKey && prod.decantSizes[sizeKey] !== undefined) {
-          subtotal += prod.decantSizes[sizeKey];
-        } else {
-          const prices = Object.values(prod.decantSizes);
-          if (prices.length > 0) subtotal += Math.min(...prices);
-        }
-      }
-    });
-    const isValid = count >= minQty;
-    const discountAmount = isValid ? Math.round(subtotal * discountPct / 100) : 0;
-    const total = subtotal - discountAmount;
-    return { count, minQty, discountPct, subtotal, discountAmount, total, isValid };
-  }
-  function updatePackCounter() {
-    const promo = currentPackPromo;
-    const counter = $("packCounter");
-    const priceEl = $("packGroupPrice");
-    if (!promo || !counter) return;
+      if (!prod) return "";
+      return `<span class="pack-chip">${esc(prod.name)} <button class="pack-chip-x" onclick="packToggleProduct(${pid})" aria-label="Quitar ${esc(prod.name)}">&times;</button></span>`;
+    }).join("");
+    /* Show/hide bar */
+    if (barEl) barEl.classList.toggle("active", packSelectedIds.length > 0);
+    /* Count */
+    countEl.textContent = `${packSelectedIds.length} seleccionados`;
+    /* Discount info */
     const info = getPackDiscountInfo();
-    if (!info) {
-      counter.textContent = `Seleccionados: 0 · Mínimo: ${promo.minQty || 2}`;
-      counter.classList.remove("complete");
-      if (priceEl) priceEl.textContent = "";
-      return;
-    }
-    const statusClass = info.isValid ? "complete" : "";
-    counter.classList.toggle("complete", info.isValid);
-    if (info.isValid) {
-      counter.textContent = `${info.count} seleccionados · ${info.discountPct}% dto → Ahorras ${formatPrice(info.discountAmount)}`;
+    if (info && info.isValid) {
+      discountEl.textContent = `${info.discountPct}% dto (${info.ruleLabel})`;
+      discountEl.style.display = "inline";
+      totalEl.textContent = `${formatPrice(info.subtotal)} → ${formatPrice(info.total)}`;
+      totalEl.style.display = "inline";
+      if (confirmBtn) confirmBtn.disabled = false;
+    } else if (info) {
+      discountEl.textContent = info.count === 1 ? "Falta 1 más para dto" : `${info.count}/2 mín.`;
+      discountEl.style.display = "inline";
+      totalEl.textContent = `Subtotal: ${formatPrice(info.subtotal)}`;
+      totalEl.style.display = "inline";
+      if (confirmBtn) confirmBtn.disabled = true;
     } else {
-      counter.textContent = `${info.count} de ${info.minQty} mín. · Te faltan ${info.minQty - info.count} para el descuento`;
-    }
-    if (priceEl) {
-      if (info.isValid) {
-        priceEl.innerHTML = `<s style="opacity:.5;margin-right:.4rem;">${formatPrice(info.subtotal)}</s> ${formatPrice(info.total)} <span style="font-size:.75em;color:var(--success);margin-left:.3rem;">(-${info.discountPct}%)</span>`;
-      } else {
-        priceEl.textContent = `Subtotal: ${formatPrice(info.subtotal)}`;
-      }
+      discountEl.textContent = "";
+      discountEl.style.display = "none";
+      totalEl.textContent = "Selecciona al menos 2 decants";
+      totalEl.style.display = "inline";
+      if (confirmBtn) confirmBtn.disabled = true;
     }
   }
-  function renderPackSizeOptions() {
-    const container = $("packSizeGrid");
-    if (!container) return;
-    const sizes = [2, 3, 5, 10];
-    container.innerHTML = sizes.map((size) =>
-      `<button class="size-option${size === currentPackGroupSize ? " selected" : ""}" data-size="${size}">${size}ml</button>`
-    ).join("");
+  function renderPackBrandSelect() {
+    const wrap = $("packBrandFilterWrap");
+    const sel = $("packBrandSelect");
+    if (!wrap || !sel) return;
+    const brands = getPackBrands();
+    if (brands.length <= 1) { wrap.style.display = "none"; return; }
+    wrap.style.display = "";
+    sel.innerHTML = '<option value="">Todas las marcas</option>' +
+      brands.map((b) => `<option value="${esc(b.brand)}"${packBrandFilter === b.brand ? " selected" : ""}>${esc(b.brand)} (${b.count})</option>`).join("");
   }
-  function selectPackSize(size) {
-    const sizeNum = Number(size);
-    currentPackGroupSize = sizeNum;
-    document.querySelectorAll("#packSizeGrid .size-option").forEach((btn) => {
-      btn.classList.toggle("selected", btn.dataset.size == size);
-    });
-    renderPackGrid();
-    updatePackCounter();
+  function initPackBuilder() {
+    packSelectedIds = [];
+    packBrandFilter = null;
+    packSizeFilter = null;
+    packSearchQuery = "";
+    renderPackBrandSelect();
+    renderPackBuilderGrid();
+    renderPackSummary();
   }
-  $("packSizeGrid").addEventListener("click", function (e) {
-    const btn = e.target.closest(".size-option");
-    if (!btn) return;
-    selectPackSize(btn.dataset.size);
-  });
-  $("packProductGrid").addEventListener("click", function (e) {
-    const item = e.target.closest(".pack-product-item");
-    if (!item) return;
-    const id = parseInt(item.dataset.productId, 10);
-    if (id) togglePackProduct(id);
-  });
-  $("packProductGrid").addEventListener("keydown", function (e) {
-    if (e.key !== "Enter" && e.key !== " ") return;
-    const item = e.target.closest(".pack-product-item");
-    if (!item) return;
-    e.preventDefault();
-    const id = parseInt(item.dataset.productId, 10);
-    if (id) togglePackProduct(id);
-  });
-
   function confirmPack() {
-    const promo = currentPackPromo;
-    if (!promo) return;
     const info = getPackDiscountInfo();
     if (!info || !info.isValid) {
-      showToast(`⚠️ Selecciona al menos ${promo.minQty || 2} perfumes`);
+      showToast("⚠️ Selecciona al menos 2 decants");
       return;
     }
-    const mainProduct = getProductById(selectedPackProducts[0]);
+    const mainProduct = getProductById(packSelectedIds[0]);
     const mainImage = mainProduct ? mainProduct.cardImage : "";
-    const includedProducts = selectedPackProducts.map((pid) => {
+    const includedProducts = packSelectedIds.map((pid) => {
       const prod = getProductById(pid);
       return prod ? { id: pid, name: prod.name, image: prod.cardImage, brand: prod.brand } : null;
     }).filter(Boolean);
-    const sizeLabel = currentPackGroupSize ? `${currentPackGroupSize}ml` : "Mixto";
     const packItem = {
-      productId: "pack-" + promo.id + "-" + Date.now(),
+      productId: "pack-builder-" + Date.now(),
       type: "pack",
-      name: promo.name,
-      brand: "Pack Personalizado",
+      name: "Pack Personalizado",
+      brand: "Pack ARMA TU PACK",
       image: mainImage,
-      size: `${info.count} × ${sizeLabel}`,
+      size: `${info.count} decants`,
       price: info.total,
       qty: 1,
       isPack: true,
       discountPct: info.discountPct,
       subtotalOriginal: info.subtotal,
-      includedProductIds: [...selectedPackProducts],
+      includedProductIds: [...packSelectedIds],
       includedProducts: includedProducts,
     };
-    const packBtn = $("packConfirmBtn");
-    if (mainImage && packBtn) flyToCart(mainImage, packBtn);
+    const confirmBtn = $("packConfirmBtn");
+    if (mainImage && confirmBtn) flyToCart(mainImage, confirmBtn);
     cart.push(packItem);
     saveCart();
     updateCartUI();
     showToast(`✅ Pack agregado · ${info.discountPct}% dto → ${formatPrice(info.total)}`);
     pulseCartCount();
-    if (packBtn) packBtn.classList.add("added");
-    setTimeout(() => {
-      if (packBtn) packBtn.classList.remove("added");
-      closePackModal();
-      openCart();
-    }, 550);
+    /* Reset */
+    packSelectedIds = [];
+    renderPackBuilderGrid();
+    renderPackSummary();
   }
   window.confirmPack = confirmPack;
-  $("packModalOverlay").addEventListener("click", function (e) {
-    if (e.target === this) closePackModal();
-  });
 
   /* ══════════════════════════════════════════════════════════════
      NAVIGATION
@@ -1295,12 +1231,7 @@
       renderCatalog();
     }
     if (page === "promos") {
-      activePromoFilter = null;
-      activePromoGender = null;
-      activePromoSize = null;
-      activePromoSort = "relevance";
-      updatePromoFilterButtons();
-      renderPromos();
+      initPackBuilder();
     }
     if (page === "checkout") renderCheckoutPage();
     if (page === "home") renderFeatured();
@@ -1530,50 +1461,62 @@
    /* ══════════════════════════════════════════════════════════════
      RENDER — PROMOS (packs dinámicos: 2-5: 5% · 6+: 10% · marca: 10%)
   ══════════════════════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════════════════════════
+     PACK BUILDER — event handlers
+  ══════════════════════════════════════════════════════════════ */
   function renderPromos() {
-    const grid = $("promoGrid");
-    const countEl = $("packsCount");
-    if (!grid) return;
+    renderPackBuilderGrid();
+    renderPackSummary();
+  }
 
-    const filtered = promos;
+  /* Brand filter */
+  const packBrandSelect = $("packBrandSelect");
+  if (packBrandSelect) {
+    packBrandSelect.addEventListener("change", function () {
+      packBrandFilter = this.value || null;
+      renderPackBuilderGrid();
+    });
+  }
 
-    if (countEl) countEl.textContent = `${filtered.length} packs disponibles`;
+  /* Size filter */
+  const packSizeSelect = $("packSizeSelect");
+  if (packSizeSelect) {
+    packSizeSelect.addEventListener("change", function () {
+      packSizeFilter = this.value || null;
+      renderPackBuilderGrid();
+    });
+  }
 
-    grid.innerHTML = filtered.map((promo) => {
-      const promoIcon = promo.icon || "fa-box-open";
-      const discountPct = promo.discountPct || 5;
-      const minQty = promo.minQty || 2;
-      const isBrandPack = !!promo.brandPack;
+  /* Search filter */
+  const packSearchInput = $("packSearchInput");
+  if (packSearchInput) {
+    let packSearchTimeout;
+    packSearchInput.addEventListener("input", function () {
+      clearTimeout(packSearchTimeout);
+      packSearchTimeout = setTimeout(() => {
+        packSearchQuery = this.value.trim();
+        renderPackBuilderGrid();
+      }, 200);
+    });
+  }
 
-      const badgeHtml = `<span class="promo-badge" style="background:var(--gold);color:#fff;">${discountPct}% DTO</span>`;
-
-      const metaHtml = isBrandPack
-        ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h17v10a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-10z"/><path d="M3.5 8.5l2.2-4h12.6l2.2 4M9.5 12.5h5"/></svg> ${minQty}+ decants misma marca · Filtra por marca`
-        : `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h17v10a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-10z"/><path d="M3.5 8.5l2.2-4h12.6l2.2 4M9.5 12.5h5"/></svg> ${minQty}+ decants · Nicho + Diseñador`;
-
-      return `
-        <div class="promo-card reveal-item" data-promo-id="${esc(promo.id)}">
-          <div class="promo-media" data-cat="todos">
-            <div class="promo-media-fallback" aria-hidden="true">
-              <span class="promo-media-icon"><i class="fa-solid ${promoIcon}"></i></span>
-              <span class="promo-media-count">${discountPct}% dto</span>
-            </div>
-            ${badgeHtml}
-          </div>
-          <div class="promo-body">
-            <h3>${esc(promo.name)}</h3>
-            <p class="promo-desc">${esc(promo.desc)}</p>
-            <p class="promo-meta">${metaHtml}</p>
-            <div class="promo-price" style="font-size:1.1rem;font-weight:700;color:var(--gold-deep);">${discountPct}% de descuento</div>
-            <button class="btn-add" data-promo-id="${esc(promo.id)}" aria-label="Seleccionar perfumes para ${esc(promo.name)}">
-              Seleccionar Perfumes
-            </button>
-          </div>
-        </div>`;
-    }).join("");
-
-    observeRevealElements();
-    window.FraganceAnimations?.refresh?.();
+  /* Pack product grid click/keydown */
+  const packProductGridEl = $("packProductGrid");
+  if (packProductGridEl) {
+    packProductGridEl.addEventListener("click", function (e) {
+      const item = e.target.closest(".pack-product-item");
+      if (!item) return;
+      const id = parseInt(item.dataset.productId, 10);
+      if (id) packToggleProduct(id);
+    });
+    packProductGridEl.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const item = e.target.closest(".pack-product-item");
+      if (!item) return;
+      e.preventDefault();
+      const id = parseInt(item.dataset.productId, 10);
+      if (id) packToggleProduct(id);
+    });
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -1804,164 +1747,11 @@
   /* ══════════════════════════════════════════════════════════════
      FILTERS — PROMOS
   ══════════════════════════════════════════════════════════════ */
-  function updatePromoFilterButtons() {
-    document.querySelectorAll("#promoFilters .filter-btn").forEach((btn) => {
-      const active = btn.dataset.promoFilter === activePromoFilter;
-      btn.classList.toggle("active", active);
-      btn.setAttribute("aria-pressed", String(active));
-    });
-
-    const genderGroup = $("promoGenderGroup");
-    if (genderGroup) {
-      if (activePromoFilter === "arabe") {
-        genderGroup.style.display = "flex";
-      } else {
-        genderGroup.style.display = "none";
-        activePromoGender = null;
-      }
-    }
-
-    document.querySelectorAll("#promoGenderFilters .filter-btn").forEach((btn) => {
-      const active = btn.dataset.promoGender === activePromoGender;
-      btn.classList.toggle("active", active);
-      btn.setAttribute("aria-pressed", String(active));
-    });
-  }
-
-  const promoFilters = $("promoFilters");
-  if (promoFilters) {
-    promoFilters.addEventListener("click", function (e) {
-      const btn = e.target.closest(".filter-btn");
-      if (!btn) return;
-      activePromoFilter = btn.dataset.promoFilter;
-      activePromoGender = null;
-      btn.classList.remove("chip-pop");
-      void btn.offsetWidth;
-      btn.classList.add("chip-pop");
-      updatePromoFilterButtons();
-      renderPromos();
-    });
-  }
-
-  const promoGenderFilters = $("promoGenderFilters");
-  if (promoGenderFilters) {
-    promoGenderFilters.addEventListener("click", function (e) {
-      const btn = e.target.closest(".filter-btn");
-      if (!btn) return;
-      const val = btn.dataset.promoGender;
-      activePromoGender = activePromoGender === val ? null : val;
-      updatePromoFilterButtons();
-      renderPromos();
-    });
-  }
-
   /* ══════════════════════════════════════════════════════════════
-     FILTERS — PACKS (tamaño + orden + selector inline en cards)
-  ══════════════════════════════════════════════════════════════ */
-  function updatePackSizeFilterButtons() {
-    document.querySelectorAll("#packsSizeFilters .pack-size-chip").forEach((btn) => {
-      const active = btn.dataset.packSize === activePromoSize;
-      btn.classList.toggle("active", active);
-      btn.setAttribute("aria-pressed", String(active));
-    });
-  }
-
-  const packsSizeFilters = $("packsSizeFilters");
-  if (packsSizeFilters) {
-    packsSizeFilters.addEventListener("click", function (e) {
-      const btn = e.target.closest(".pack-size-chip");
-      if (!btn) return;
-      const val = btn.dataset.packSize || null;
-      activePromoSize = activePromoSize === val ? null : val;
-      updatePackSizeFilterButtons();
-      renderPromos();
-    });
-  }
-
-  // Dropdown "Ordenar" de packs (custom, accesible: listbox/options)
-  const sortWrap = $("packsSortWrapper");
-  if (sortWrap) {
-    const sortBtn = $("packsSortButton");
-    const sortMenu = $("packsSortMenu");
-    const sortValue = $("packsSortValue");
-    const SORT_LABELS = {
-      relevance: "Relevancia",
-      "price-asc": "Precio: menor a mayor",
-      "price-desc": "Precio: mayor a menor",
-      "qty-desc": "Más perfumes primero",
-    };
-    const setSortVisual = (val) => {
-      activePromoSort = val || "relevance";
-      const opts = sortMenu.querySelectorAll(".packs-sort__option");
-      opts.forEach((o) => {
-        const on = o.dataset.value === activePromoSort;
-        o.classList.toggle("active", on);
-        o.setAttribute("aria-selected", String(on));
-      });
-      if (sortValue) sortValue.textContent = SORT_LABELS[activePromoSort] || activePromoSort;
-    };
-    const applySort = (val) => {
-      setSortVisual(val);
-      renderPromos();
-    };
-    const closeSortMenu = () => {
-      sortMenu.classList.remove("open");
-      sortBtn.setAttribute("aria-expanded", "false");
-    };
-    const openSortMenu = () => {
-      sortMenu.classList.add("open");
-      sortBtn.setAttribute("aria-expanded", "true");
-    };
-    sortBtn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      sortMenu.classList.contains("open") ? closeSortMenu() : openSortMenu();
-    });
-    sortMenu.addEventListener("click", function (e) {
-      const opt = e.target.closest(".packs-sort__option");
-      if (!opt) return;
-      applySort(opt.dataset.value);
-      closeSortMenu();
-    });
-    // Navegación por teclado: flechas mueven la selección, Enter confirma, Esc cierra
-    const sortOptions = Array.from(sortMenu.querySelectorAll(".packs-sort__option"));
-    sortMenu.addEventListener("keydown", function (e) {
-      if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "Enter" && e.key !== "Escape") return;
-      e.preventDefault();
-      const idx = sortOptions.indexOf(document.activeElement);
-      if (e.key === "ArrowDown") {
-        const next = sortOptions[(idx + 1) % sortOptions.length];
-        next.focus();
-        setSortVisual(next.dataset.value);
-      } else if (e.key === "ArrowUp") {
-        const prev = sortOptions[(idx - 1 + sortOptions.length) % sortOptions.length];
-        prev.focus();
-        setSortVisual(prev.dataset.value);
-      } else if (e.key === "Enter") {
-        applySort(document.activeElement.dataset.value);
-        closeSortMenu();
-      } else {
-        closeSortMenu();
-        sortBtn.focus();
-      }
-    });
-    sortMenu.addEventListener("focusout", function (e) {
-      if (!sortMenu.contains(e.relatedTarget) && !sortWrap.contains(e.relatedTarget)) closeSortMenu();
-    });
-    document.addEventListener("click", function (e) {
-      if (!e.target.closest("#packsSortWrapper")) closeSortMenu();
-    });
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") closeSortMenu();
-    });
-  }
-
-  // Selector inline de tamaño: cambia el precio de la card sin abrir el modal
-  // y preselecciona ese tamaño al abrirlo.
-  /* ══════════════════════════════════════════════════════════════
-     GLOBAL CLICK DELEGATION (cards, add buttons, promo buttons)
+     GLOBAL CLICK DELEGATION (cards, add buttons)
   ══════════════════════════════════════════════════════════════ */
   document.addEventListener("click", function (e) {
-    // Product card body (not a button)
+    /* Product card body (not a button) — opens product modal */
     const card = e.target.closest(".product-card");
     if (card && !e.target.closest("button")) {
       const id = parseInt(card.dataset.productId, 10);
@@ -1969,31 +1759,13 @@
       return;
     }
 
-    // "Ver y Comprar" button on product card
+    /* "Ver y Comprar" button on product card */
     const addBtn = e.target.closest(".btn-add[data-add-id]");
     if (addBtn) {
       e.stopPropagation();
       const id = parseInt(addBtn.dataset.addId, 10);
       if (id) openModal(id);
       return;
-    }
-
-    // "Seleccionar Perfumes" button on promo card
-    const promoBtn = e.target.closest(".btn-add[data-promo-id]");
-    if (promoBtn) {
-      e.stopPropagation();
-      openPackModal(promoBtn.dataset.promoId);
-      return;
-    }
-
-    // Toda la promo-card es clicable (chips y botones la excluyen)
-    const promoCard = e.target.closest(".promo-card");
-    if (promoCard && !e.target.closest("button")) {
-      const pid = promoCard.dataset.promoId;
-      if (pid) {
-        openPackModal(pid);
-        return;
-      }
     }
   });
 
@@ -2324,7 +2096,6 @@
   ══════════════════════════════════════════════════════════════ */
   window.closeCart = closeCart;
   window.closeModal = closeModal;
-  window.closePackModal = closePackModal;
   window.closeInfoModal = closeInfoModal;
   window.goToCheckout = goToCheckout;
   window.openModal = openModal;
@@ -2536,7 +2307,6 @@
     if (e.key === "Escape") {
       closeModal();
       closeCart();
-      closePackModal();
       closeFiltersPanel();
     }
   });
