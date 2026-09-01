@@ -208,7 +208,16 @@
   .filter-pill:focus-visible, .product-card:focus-visible, .promo-card:focus-visible { outline-offset: 3px; }
   /* â”€â”€ PAGE SYSTEM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .page { display: none; }
-  .page.active { display: block; animation: pageIn .5s cubic-bezier(.22,.7,.3,1) both; }
+  /* Sin "both": ese fill-mode dejaba transform:translateY(0)/filter:blur(0)
+     del keyframe final aplicados de forma PERMANENTE tras terminar la
+     animacion (matrix identidad, no el literal "none") -- eso crea un
+     containing block nuevo para cualquier position:fixed hijo de .page
+     (bug real: rompia la barra sticky de Arma tu Pack, que quedaba
+     anclada a .page en vez de al viewport). Sin "both" (no hay
+     animation-delay, asi que "backwards" no cumplia funcion), al
+     terminar los 0.5s transform/filter vuelven a su valor real (none) y
+     position:fixed vuelve a fijarse al viewport como corresponde. */
+  .page.active { display: block; animation: pageIn .5s cubic-bezier(.22,.7,.3,1); }
   @keyframes pageIn {
     0%   { opacity:0; transform:translateY(28px); filter: blur(2px); }
     60%  { opacity:1; }
@@ -4162,7 +4171,6 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
     .promo-strip .packs-benefit span:last-child { font-size: .62rem; }
     }
   .promo-strip .packs-benefit + .packs-benefit { border-left: 1px solid var(--border-light); }
-  }
 
 
 

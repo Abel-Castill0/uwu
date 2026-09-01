@@ -169,11 +169,23 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(items.length > 0, "packItemsRendered", "items=" + items.length);
   }, 500);
 
-  /* 9. Pack builder: select 2 items, verify 5% discount */
+  /* packToggleProduct() re-renderiza TODO el grid (innerHTML) en cada click
+     -- correcto para un click real (el usuario siempre apunta a lo que ve
+     en pantalla), pero una NodeList capturada antes del primer click ya
+     apunta a nodos desconectados para el segundo. Re-consultar el DOM
+     vivo entre clicks imita el uso real. */
+  function firstUnselectedPackItem() {
+    var items = document.querySelectorAll("#packProductGrid .pack-product-item:not(.selected)");
+    return items[0];
+  }
+
+  /* 9. Pack builder: select 2 items (marcas distintas), verify 5% discount.
+     El auto-filtro de marca al primer click se quito (bloqueaba mezclar
+     marcas sin avisar) -- por eso el segundo item sigue visible y
+     seleccionable aunque sea de otra marca. */
   step(function () {
-    var all = document.querySelectorAll("#packProductGrid .pack-product-item");
-    if (all[0]) { all[0].click(); }
-    if (all[1]) { all[1].click(); }
+    var a = firstUnselectedPackItem(); if (a) a.click();
+    var b = firstUnselectedPackItem(); if (b) b.click();
     var count = document.getElementById("packSummaryCount");
     ok(count && count.textContent.indexOf("2") >= 0, "packCount2", "count=" + (count ? count.textContent.trim() : ""));
     var discount = document.getElementById("packSummaryDiscount");
@@ -182,8 +194,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
 
   /* 10. Pack builder: select 6 total → 10% */
   step(function () {
-    var all = document.querySelectorAll("#packProductGrid .pack-product-item");
-    for (var i = 2; i < 6; i++) { if (all[i]) { all[i].click(); } }
+    for (var i = 0; i < 4; i++) { var el = firstUnselectedPackItem(); if (el) el.click(); }
     var discount = document.getElementById("packSummaryDiscount");
     ok(discount && discount.textContent.indexOf("10") >= 0, "packNow10", "discount=" + (discount ? discount.textContent.trim() : ""));
   }, 400);
@@ -329,19 +340,15 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(px <= 29, "promoStripCompact", "marginBottom=" + mb);
   }, 500);
 
-  /* 13h. chips de tamano: contraste legible (texto claro sobre toolbar oscura) */
-  step(function () {
-    window.navigateTo("promos");
-    var chip = document.querySelector('.pack-size-chip:not(.active):not([aria-pressed="true"])');
-    if (!chip) { ok(false, "chipContrast", "sin .pack-size-chip"); return; }
-    var c = getComputedStyle(chip).color;
-    var m = c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-    ok(!!m, "chipContrastParse", "color=" + c);
-    if (m) {
-      var r = parseInt(m[1], 10), g = parseInt(m[2], 10), b = parseInt(m[3], 10), a = m[4] === undefined ? 1 : parseFloat(m[4]);
-      ok(a >= 0.8 && r >= 190 && g >= 190 && b >= 190, "chipContrastAA", "rgb=" + r + "," + g + "," + b + " a=" + a);
-    }
-  }, 300);
+  /* 13h. chips de tamano: retirado -- .pack-size-chip (toolbar oscura a
+     medida) ya no existe, "Arma tu Pack" lo reemplazo por
+     #packSizeSelect, un <select> normal con background:var(--surface)
+     color:var(--text-primary) -- los mismos tokens que .pack-search-input
+     justo al lado, ya cubiertos por el contraste del tema general. El
+     riesgo especifico que este test vigilaba (una combinacion de color a
+     medida, no un token reusado) desaparecio con el rediseno; no se
+     reemplaza por uno equivalente sobre el select porque no aporta
+     cobertura nueva. */
 
   /* â”€â”€â”€ PROMPT 10: frascoâ†’WhatsApp, decants premium, precios, agrupacion â”€â”€â”€ */
 

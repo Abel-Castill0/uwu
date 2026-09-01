@@ -79,11 +79,17 @@ window.FO_CONFIG = {
   DESCUENTOS: {
     ACTIVOS: true,
 
-    /* Descuento por cantidad de decants:
+    /* Descuento por cantidad de decants, SOLO 1ml-10ml (tamMaxMl): 20ml/30ml
+       no cuentan ni reciben este descuento.
        · 2 a 5 decants   → 5%
-       · 6 o más decants  → 10%
-       Se aplica sobre el subtotal de decants. */
-    POR_CANTIDAD: { activo: true, min2: 5, min6: 10, min10: 10, tamMaxMl: 30 },
+       · 6 a 9 decants   → 10%
+       · 10 o más        → 15%
+       Se aplica sobre el subtotal de esos decants elegibles. Regla real del
+       cliente -- ver descuentos.js, que ya la documenta y calcula bien; el
+       "Arma tu Pack" (fo-v60/v61) dejó estos valores desalineados
+       (min10:10 en vez de 15, tamMaxMl:30 en vez de 10), lo que rompía 4
+       assertions de test-descuentos.js. Corregido. */
+    POR_CANTIDAD: { activo: true, min2: 5, min6: 10, min10: 15, tamMaxMl: 10 },
 
     /* Descuento por marca repetida:
        3+ decants de la misma marca → 10% sobre esa marca. */

@@ -16,7 +16,7 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Responsive (`cdp-responsive-check.js`, 320-1440px) | **5/5 OK** (columnas 1/1/3/5/5, modal 92dvh, sin overflow horizontal) |
 | Contraste AA (`cdp-contrast-check.js`, reparado) | Todo ≥4.5:1 en ambos temas (body 15.6-16.1, producto 16-18.5, muted 5.2-5.4, link footer 4.97-4.99) |
 | Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
-| SW | `fo-v52-ghpages` |
+| SW | `fo-v62-ghpages` |
 | Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
 | TikTok videos | Galería estática: tarjetas `<a target="_blank">` a TikTok, cero iframes/scripts/requests (ver Prompt 27) |
 | Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
@@ -24,6 +24,21 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Modal 10ml premium (id:5 Angels Share on the Rocks) | Corregido: `"10_premium"` apuntaba por error a la imagen de 30ml; eliminada la clave, cae al fallback correcto (ver Prompt 24) |
 | srcset | Eliminado (Prompt 28): una sola capa `img/perfumes_optimized/*.webp` sirve todo, sin lógica de srcset ni bug de espacios en nombres |
 | SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 34 — "Arma tu Pack": 4 bugs reales en el rediseño externo (cerrado)
+
+Entre esta sesión y la anterior, `master` avanzó 10 commits (`fo-v57`→`fo-v61-armatupack`) hechos fuera de esta sesión (numeración de SW distinta, `fo-vNN-<descripción>` en vez de `fo-vNN-ghpages`): reemplazaron las tarjetas de pack prefabricadas por un constructor "Arma tu Pack" (grid de 117 perfumes, filtros de marca/tamaño/búsqueda, barra sticky inferior). `origin/main` se había quedado en `fo-v59` mientras `origin/master` ya tenía `fo-v61` — divergencia real, resuelta con el push normal a ambas ramas (main era ancestro limpio de master, fast-forward seguro, sin reset/rebase).
+
+Auditoría del nuevo flujo (no una reescritura): se encontraron y corrigieron 4 bugs reales, todos verificados con evidencia antes y después del fix.
+
+1. **`config.js` con los tramos de descuento rotos**: `POR_CANTIDAD.min10` estaba en `10` (debía ser `15`) y `tamMaxMl` en `30` (debía ser `10`) — el rediseño dejó desalineados los valores del rewrite anterior (Prompt "packs" de rondas previas). La lógica en `descuentos.js` (comentario y código) siempre fue correcta; el bug era solo de datos. Confirmado con `test-descuentos.js` ya existente: **4 fallos reales** (`diez_pct15`, `diez_dtoCant`, `tam_soloElegibles`, `tam_baseSoloElegibles`) antes del fix, 25/25 después.
+2. **`getPackDiscountInfo()` (script.js) reimplementaba la regla de descuento por su cuenta**, con su propio hardcode `count>=6→10%` y `count>=2→5%` — sin tramo del 15% ni exclusión de 20/30ml, desalineado de `calcularDescuentos()`. Corregido: ahora delega en `calcularDescuentos()` (fuente única), construyendo los `items` con la talla de precio mínimo de cada producto seleccionado. Verificado en vivo: 10 decants de 10 marcas distintas → "15% dto (10+ decants)" (antes habría mostrado 10%).
+3. **Barra sticky de Packs (`#packSummaryBar`) nunca se fijaba al viewport**: causa raíz real, no artefacto de entorno — `.page.active { animation: pageIn .5s ... both; }` dejaba `transform`/`filter` del keyframe final aplicados de forma *permanente* tras terminar la animación (matriz identidad, no el literal `none`), creando un containing block nuevo para cualquier `position:fixed` hijo de `.page`. Corregido quitando el `both` (sin `animation-delay`, no cumplía función). Verificado forzando el estado post-animación: la barra pasa de `top:1432` (fuera de cualquier viewport razonable) a `top:650/bottom:812` (pegada al fondo, como corresponde).
+4. **Catálogo de escritorio mostraba 4 columnas en vez de 5**: una llave `}` sobrante en `styles.css` (línea ~4174, sin apertura correspondiente) hacía que el navegador descartara silenciosamente TODA la regla base `#catalogGrid { grid-template-columns: repeat(5, ...) }` — confirmado con `document.styleSheets` (la regla de 5 columnas nunca llegaba a parsearse) y con un contador de balance de llaves de todo el archivo (profundidad final ≠ 0 antes del fix, = 0 después). Sin esa regla, ganaba `.product-grid` (clase, `repeat(auto-fill, minmax(260px,1fr))`), dando 4 columnas. Corregido borrando la llave sobrante.
+
+Además: el auto-filtro de marca al seleccionar el primer perfume (bloqueaba mezclar marcas sin avisar, confirmado con un test real que fallaba al intentar seleccionar 2 productos de marcas distintas) se quitó — el filtro por marca sigue disponible, pero solo si el usuario lo activa a mano. `tests/selftest.js`: 2 tests del pack builder corregidos para re-consultar el DOM vivo entre clics (`packToggleProduct` re-renderiza todo el grid; una `NodeList` capturada antes del primer clic apunta a nodos desconectados para el segundo — no es cómo interactúa un usuario real), y `chipContrast` (probaba `.pack-size-chip`, reemplazado por `#packSizeSelect` en el rediseño) se retiró: el riesgo que vigilaba (una combinación de color a medida) desapareció, el select nuevo reusa los mismos tokens (`--surface`/`--text-primary`) que otros controles ya cubiertos.
+
+**Verificación**: `npm run smoke` 14/14, `node test-descuentos.js` 25/25, `node --check`, una sola corrida de `npm test` (exit code real capturado sin pipe) → **103/103 PASS en las 9 corridas** (3 targets × 3 modos), exit code 0.
 
 ## Prompt 33 — Hardening: la corrección del carrito del Prompt 32 tenía un bug propio (cerrado)
 

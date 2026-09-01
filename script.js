@@ -992,7 +992,9 @@
 
   /* ══════════════════════════════════════════════════════════════
      PACK BUILDER — inline on packs page
-     Rules: 2-5 → 5%, 6+ → 10%, 3+ same brand → 10% (best applies)
+     Reglas reales: calcularDescuentos() en descuentos.js (2-5→5%,
+     6-9→10%, 10+→15%, solo 1-10ml; 3+ misma marca→10%; gana la mayor).
+     getPackDiscountInfo() delega ahi -- ver nota en esa funcion.
   ══════════════════════════════════════════════════════════════ */
   function getPackEligibleProducts() {
     return products.filter((p) =>
@@ -1008,42 +1010,44 @@
     });
     return Array.from(brandMap.entries()).sort((a, b) => b[1] - a[1]).map(([brand, count]) => ({ brand, count }));
   }
+  /* Tamano de menor precio disponible para un producto (mismo criterio que
+     ya usaba el grid para el "Desde X" mostrado) -- devuelve [sizeKey,
+     price] o null. Se necesita la KEY (no solo el precio) para que
+     calcularDescuentos() pueda aplicar correctamente el filtro de 1-10ml. */
+  function packMinSizeEntry(prod) {
+    if (!prod || !prod.decantSizes) return null;
+    const entries = Object.entries(prod.decantSizes);
+    if (!entries.length) return null;
+    return entries.reduce((min, e) => (e[1] < min[1] ? e : min), entries[0]);
+  }
+  /* Unica fuente de verdad: delega en calcularDescuentos() (descuentos.js)
+     en vez de reimplementar los tramos aqui. Antes esta funcion tenia su
+     propia regla hardcodeada (2-5->5%, 6+->10%, sin tramo de 15% ni
+     exclusion de 20/30ml) que quedo desalineada de la regla real del
+     negocio -- bug real detectado en auditoria, corregido reusando la
+     misma funcion que ya usan carrito y checkout. */
   function getPackDiscountInfo() {
     if (packSelectedIds.length === 0) return null;
     const count = packSelectedIds.length;
-    let subtotal = 0;
-    packSelectedIds.forEach((pid) => {
+    const items = packSelectedIds.map((pid) => {
       const prod = getProductById(pid);
-      if (prod && prod.decantSizes) {
-        const prices = Object.values(prod.decantSizes);
-        if (prices.length > 0) subtotal += Math.min(...prices);
-      }
-    });
-    /* Rule 1: quantity discount */
-    let qtyPct = 0;
-    if (count >= 6) qtyPct = 10;
-    else if (count >= 2) qtyPct = 5;
-    /* Rule 2: brand discount (3+ same brand) */
-    const brandCounts = {};
-    packSelectedIds.forEach((pid) => {
-      const prod = getProductById(pid);
-      if (prod) brandCounts[prod.brand] = (brandCounts[prod.brand] || 0) + 1;
-    });
-    let brandPct = 0;
-    Object.values(brandCounts).forEach((c) => {
-      if (c >= 3 && 10 > brandPct) brandPct = 10;
-    });
-    /* Best discount wins (no stacking) */
-    const discountPct = Math.max(qtyPct, brandPct);
+      const entry = prod && packMinSizeEntry(prod);
+      if (!prod || !entry) return null;
+      return { type: "decant", brand: prod.brand, size: entry[0], price: entry[1], qty: 1 };
+    }).filter(Boolean);
+    const d = calcularDescuentos(items);
+    const subtotal = d.subtotalOriginal;
+    const discountAmount = d.descuentoTotal;
+    const total = d.subtotalFinal;
     const isValid = count >= 2;
-    const discountAmount = isValid ? Math.round(subtotal * discountPct / 100) : 0;
-    const total = subtotal - discountAmount;
-    /* Determine which rule triggered */
+    const discountPct = subtotal > 0 ? Math.round((discountAmount / subtotal) * 100) : 0;
     let ruleLabel = "";
-    if (brandPct >= qtyPct && brandPct > 0) ruleLabel = "3+ misma marca";
-    else if (qtyPct === 10) ruleLabel = "6+ decants";
-    else if (qtyPct === 5) ruleLabel = "2-5 decants";
-    return { count, discountPct, subtotal, discountAmount, total, isValid, ruleLabel, brandCounts };
+    if (d.descuentoMarca > 0 && d.detalleMarcas.length) {
+      ruleLabel = d.detalleMarcas[0].pct + "% en " + d.detalleMarcas[0].marca;
+    } else if (d.descuentoCantidad > 0 && d.detalleCantidad) {
+      ruleLabel = d.detalleCantidad.cant >= 10 ? "10+ decants" : d.detalleCantidad.cant >= 6 ? "6-9 decants" : "2-5 decants";
+    }
+    return { count, discountPct, subtotal, discountAmount, total, isValid, ruleLabel };
   }
   function packToggleProduct(productId) {
     const idx = packSelectedIds.indexOf(productId);
@@ -1051,18 +1055,12 @@
       packSelectedIds.splice(idx, 1);
     } else {
       packSelectedIds.push(productId);
-      /* Auto-set brand filter when selecting a product */
-      if (!packBrandFilter && packSelectedIds.length === 1) {
-        const prod = getProductById(productId);
-        if (prod) {
-          packBrandFilter = prod.brand;
-          const sel = $("packBrandSelect");
-          if (sel) {
-            const opt = Array.from(sel.options).find((o) => o.value === prod.brand);
-            if (opt) sel.value = prod.brand;
-          }
-        }
-      }
+      /* El auto-filtro de marca al elegir el primer producto se quito:
+         bloqueaba en la practica mezclar marcas (justo lo que la regla de
+         "2-5 -> 5%" permite y anima a hacer) -- confirmado real con un
+         test que selecciona 2 productos de marcas distintas y esperaba
+         verlos ambos. El filtro por marca sigue disponible, pero solo si
+         el usuario lo elige a mano en el select (packBrandSelect). */
     }
     renderPackBuilderGrid();
     renderPackSummary();
