@@ -16,7 +16,7 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Responsive (`cdp-responsive-check.js`, 320-1440px) | **5/5 OK** (columnas 1/1/3/5/5, modal 92dvh, sin overflow horizontal) |
 | Contraste AA (`cdp-contrast-check.js`, reparado) | Todo ≥4.5:1 en ambos temas (body 15.6-16.1, producto 16-18.5, muted 5.2-5.4, link footer 4.97-4.99) |
 | Auditoría cyber-neo | **0 críticos / 0 vulnerabilidades / 0 secretos** |
-| SW | `fo-v64-ghpages` |
+| SW | `fo-v65-ghpages` |
 | Redes sociales | Solo TikTok + WhatsApp + correo (Instagram eliminado) |
 | TikTok videos | Galería estática: tarjetas `<a target="_blank">` a TikTok, cero iframes/scripts/requests (ver Prompt 27) |
 | Angels Share 30ml | Corregido: id:5 "Angels Share on the Rocks" con sizeImages correcto |
@@ -24,6 +24,22 @@ Tienda online estática (HTML/CSS/JS puro, sin frameworks ni backend) de decants
 | Modal 10ml premium (id:5 Angels Share on the Rocks) | Corregido: `"10_premium"` apuntaba por error a la imagen de 30ml; eliminada la clave, cae al fallback correcto (ver Prompt 24) |
 | srcset | Eliminado (Prompt 28): una sola capa `img/perfumes_optimized/*.webp` sirve todo, sin lógica de srcset ni bug de espacios en nombres |
 | SPA navigation | Corregido: CSS `.page { display: none; }` / `.page.active { display: block; }` |
+
+## Prompt 37 — Limpieza mobile-first: header, dock de Combo, chips de Catálogo (cerrado)
+
+Pedido: ronda grande de simplificación mobile ("~30-40% del chrome visual"), con orden de prioridad explícito: 1) header/capas flotantes, 2) Combo mobile como dock+sheet, 3) Catálogo (bug de chips + escalera de descuentos), 4) cards/hero, 5) desktop/animaciones (deprioridado explícitamente por el propio pedido).
+
+- **Header móvil reducido de ~163px a ~96px** (medido en runtime, 375px viewport): `.promo-marquee` (cinta deslizante) y los iconos de WhatsApp/TikTok del topbar se ocultan en `≤767px` — ambos eran redundantes (el marquee repetía el mismo array `TOPBAR_BENEFITS` que ya rota en el topbar; los iconos ya están en el FAB, el CTA inferior y el footer). Queda: 1 línea de beneficio rotativo + logo/nav/acciones. **Trampa de cascada real encontrada**: la primera regla `.topbar-contact--right{display:none}` no aplicaba porque una regla incondicional posterior en el archivo (misma especificidad, más abajo) ganaba por orden de aparición — hubo que mover el override a después de esa regla.
+- **Regla "1 sola capa fija inferior" en móvil** (pedida explícitamente): `renderStickyCartVisibility()` ahora excluye `currentPage === "promos"` además de `"checkout"`, para que `#stickyCart` y el dock de Combo nunca coexistan. El FAB de WhatsApp (`.wa-fab`) se retira por completo en móvil (sigue disponible en menú/footer/checkout); en desktop cede paso vía `:has()` si el sticky-cart o el dock de combo están visibles.
+- **Combo móvil: dock compacto + bottom sheet.** Antes el panel completo (chips + total + botón) quedaba siempre desplegado ocupando hasta 55vh en cuanto había 1 selección. Ahora es un dock de 64px (`#comboDockTrigger`, fragancias + monto) que se expande a `.combo-panel--summary.expanded` (65vh) solo al tocarlo — `comboToggleSheet()`/`comboSetSheetExpanded()` nuevas en `script.js`, `aria-expanded` sincronizado. Se colapsa solo si el combo queda vacío (último item removido).
+- **Bug real de Catálogo confirmado y corregido**: los chips de categoría ("Diseñador"/"Completos") se veían cortados en móvil. Causa: `.cat-filter-bar__row` tenía `flex-wrap: nowrap`, forzando a `.cat-filter-pills` a compartir la fila con `#catalogResultsCount` (que ya pedía `width:100%` pero no podía tomarlo por el nowrap) — las pills quedaban comprimidas a ~170px de ancho real (verificado en runtime) en vez de la fila completa (~346px). Fix: `flex-wrap: wrap` en la fila + `flex:1 1 100%` en las pills.
+- **Escalera de descuentos del Catálogo compactada**: 4 tarjetas verticales (icono arriba, texto abajo) al 75% del ancho de pantalla → fila icono+texto horizontal al 58%, sin el subtítulo secundario (redundante con el título en negrita). Altura por tarjeta: de ~90-100px a 45.6px (medido).
+- **Contenido**: `"200+ Fragancias Disponibles"` (stat de home) era **falso** — `productos.js` tiene 147 productos reales, no 200+. Alineado al `"+135"` ya usado en el hero y el FAQ (mismo número, no uno inventado — sigue siendo conservador frente a los 147 reales).
+- **Investigado y NO tocado (evidencia insuficiente, no inventar)**: el copy de tiempo de entrega tiene 3 variantes en el sitio — hero "24-48h", `TOPBAR_BENEFITS` en `config.js` "1-2 días hábiles" (~equivalente), FAQ "24 a 72 horas" (con matiz "Lima/Callao: 24h" ya existente en el HTML). No hay un campo único de config que arbitre cuál es la SLA real del negocio — **queda como pendiente de negocio explícito**, igual que el email `contacto@` vs `cliente@` ya documentado en rondas previas.
+- **Combo vs. descuento del carrito**: confirmado (no es un bug, es diseño deliberado de una ronda anterior) que "Arma tu Combo" (3-6 items, tramos 3-5/6) y el descuento del carrito/checkout (`calcularDescuentos`, tramos 2-5/6-9/10+) son **dos promociones distintas a propósito** — no se unificaron porque hacerlo contradiría una decisión explícita ya tomada sin nueva autorización del cliente.
+- **No tocado esta ronda (deprioridado por el propio pedido)**: ratio de imagen de card (`4/5` global, `3/4` en `#catalogGrid` — revisado, no hay evidencia de bug, se dejó igual), simplificación de hero, toast del carrito, escala de z-index, pulido desktop/dark-mode/animaciones.
+
+**Verificación**: `node --check script.js` OK. `npm test` (exit real, sin pipe): **103/103 PASS** en las 9 corridas, exit code 0 (recordar: la baja desde 111 viene de Prompt 35-36, no de esta ronda — 13 aserciones las quitó el propio commit `cc432e0` del cliente al eliminar el pack builder viejo, 3 las retiré yo en la ronda anterior con justificación documentada, 2 fueron renombres). Verificación visual en vivo (375px y 799px) vía Browser pane: header, dock de combo, chips y escalera confirmados funcionando; desktop sin regresión (marquee/iconos siguen visibles ahí, solo se ocultan en mobile). SW bump a `fo-v65-ghpages` (CSS/HTML/JS cacheados cambiaron).
 
 ## Prompt 36 — Bug real en el combo (footer tapado) + UX/UI del combo y navbar (cerrado)
 
