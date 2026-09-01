@@ -1421,8 +1421,10 @@
 
     if (activeFilters.category === "tester") {
       filtered = filtered.filter((p) => p.tester === true);
+    } else if (activeFilters.category === "completos") {
+      filtered = filtered.filter((p) => p.sealed === true);
     } else {
-      filtered = filtered.filter((p) => !p.tester);
+      filtered = filtered.filter((p) => !p.tester && !p.sealed);
       if (cat) {
         filtered = filtered.filter((p) => p.category === cat);
       }

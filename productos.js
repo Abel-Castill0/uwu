@@ -151,6 +151,17 @@
        referencia que indicó el cliente por WhatsApp. */
     { id: 139, name: "Eden-Roc", brand: "Dior", category: "disenador", gender: "unisex", notes: "Bergamota, geranio y sándalo: la escapada mediterránea de la Maison Dior.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {2:29,3:45,5:69}, fullImage: "", decantImage: "", cardImage: "", featured: false, badge: null, badgeText: "" },
     { id: 140, name: "Fierezza", brand: "Tonino Lamborghini", category: "nicho", gender: "unisex", notes: "Cuero, especias y madera: la fuerza y el carácter del toro.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {1:35,2:59,3:85,5:135,10:269,30:675}, fullImage: "", decantImage: "", cardImage: "", featured: false, badge: null, badgeText: "" },
+    /* ══════════════════════════════════════════════════════════════
+       PERFUMES COMPLETOS — Frascos sellados / testers / parciales
+    ══════════════════════════════════════════════════════════════ */
+    { id: 141, name: "Burlington 1819", brand: "Clive Christian", category: "nicho", gender: "unisex", notes: "Lujo atemporal: iris, cuero y ámbar en una composición elegante de presencia magnética.", description: "Frasco sellado original 100ml. Incluye caja y empaque original. Envío con seguro.", fullSizes: {100:875}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "sellado", sealedSize: "100ml", featured: false, badge: null, badgeText: "" },
+    { id: 142, name: "Castley", brand: "Parfums de Marly", category: "nicho", gender: "unisex", notes: "Bergamota, lavanda y vainilla: el castillo francés, fresco y elegante.", description: "Frasco sellado original 125ml. Incluye caja y empaque original. Envío con seguro.", fullSizes: {125:870}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "sellado", sealedSize: "125ml", featured: false, badge: null, badgeText: "" },
+    { id: 143, name: "Erba Gold", brand: "Xerjoff", category: "nicho", gender: "unisex", notes: "Frutas dulces, bergamota y ámbar: la versión dorada y luminosa de Erba Pura.", description: "Frasco sellado original 100ml. Incluye caja y empaque original. Envío con seguro.", fullSizes: {100:825}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "sellado", sealedSize: "100ml", featured: false, badge: null, badgeText: "" },
+    { id: 144, name: "Narcotic Delight", brand: "Initio", category: "nicho", gender: "unisex", notes: "Cacao, rosa y canela: placer narcótico cálido y seductor.", description: "Frasco sellado original 90ml. Incluye caja y empaque original. Envío con seguro.", fullSizes: {90:860}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "sellado", sealedSize: "90ml", featured: false, badge: null, badgeText: "" },
+    { id: 145, name: "Paragon", brand: "Initio", category: "nicho", gender: "unisex", notes: "Mango, madera y cuero: el arquetipo dulce y oscuro.", description: "Frasco sellado original 90ml. Incluye caja y empaque original. Envío con seguro.", fullSizes: {90:860}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "sellado", sealedSize: "90ml", featured: false, badge: null, badgeText: "" },
+    { id: 146, name: "Dior Homme Sport", brand: "Dior", category: "disenador", gender: "masculino", notes: "Ginger, naranja y cedro: deportivo, fresco y elegante.", description: "Tester original nuevo 125ml. Sin empaque. Envío con seguro.", fullSizes: {125:390}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "tester", sealedSize: "125ml", featured: false, badge: null, badgeText: "" },
+    { id: 147, name: "Erba Pura", brand: "Xerjoff", category: "nicho", gender: "unisex", notes: "Frutas dulces, flor de azahar y ámbar: la fruta mágica y luminosa.", description: "Tester al 99% 100ml. Sin empaque. Envío con seguro.", fullSizes: {100:630}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "tester", sealedSize: "100ml", featured: false, badge: null, badgeText: "" },
+    { id: 148, name: "Lamar Kajal", brand: "Lamar", category: "nicho", gender: "unisex", notes: "Vainilla, ámbar y especias: cálido, envolvente y sensual.", description: "Parcial con caja al 99% 100ml. Envío con seguro.", fullSizes: {100:650}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "parcial", sealedSize: "100ml", featured: false, badge: null, badgeText: "" },
   ];
 
   w.FO_PROMOS = [
@@ -336,6 +347,14 @@
     138: { main: "img/perfumes_optimized/LOVERBIRD.webp", sizes: { "10_premium": "img/perfumes_optimized/LOVERBIRD decant premium 10 ml.webp", "20": "img/perfumes_optimized/LOVERBIRD 30ml.webp", "5_premium": "img/perfumes_optimized/LOVERBIRD decant premium 5ml.webp" } },
     139: { main: "img/perfumes_optimized/EDEN ROCK.webp", sizes: { "10_premium": "img/perfumes_optimized/EDEN ROCK decant premium 10 ml.webp", "30": "img/perfumes_optimized/EDEN ROCK 30ml.webp", "5_premium": "img/perfumes_optimized/EDEN ROCK decant premium 5ml.webp" } },
     140: { main: "img/perfumes_optimized/Fierezza.webp", sizes: { "10_premium": "img/perfumes_optimized/Fierezza decant premium 10 ml.webp", "30": "img/perfumes_optimized/Fierezza 30ml.webp", "5_premium": "img/perfumes_optimized/Fierezza decant premium 5ml.webp" } },
+    141: { main: "img/perfumes_optimized/BURLINGTON 1819 100ML SELLADO.webp", sizes: {} },
+    142: { main: "img/perfumes_optimized/CASTLEY 125ML SELLADO.webp", sizes: {} },
+    143: { main: "img/perfumes_optimized/ERBA GOLD 100ML SELLADO.webp", sizes: {} },
+    144: { main: "img/perfumes_optimized/NARCOTIC DELIGHT 90ML SELLADO.webp", sizes: {} },
+    145: { main: "img/perfumes_optimized/PARAGON 90ML SELLADO.webp", sizes: {} },
+    146: { main: "img/perfumes_optimized/DIOR HOMME SPORT 125ML TESTER.webp", sizes: {} },
+    147: { main: "img/perfumes_optimized/ERBA PURA 100ML TESTER.webp", sizes: {} },
+    148: { main: "img/perfumes_optimized/LAMAR KAJAL 100ML PARCIAL.webp", sizes: {} },
   };
   Object.entries(w.FO_PRODUCT_IMAGES).forEach(([id, imgs]) => {
     const p = w.FO_PRODUCTS.find((x) => x.id === Number(id));
