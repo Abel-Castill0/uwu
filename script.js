@@ -330,7 +330,7 @@
     return {
       fakeOriginal,
       pct,
-      html: `<span class="price-fake-original">${esc(formatPrice(fakeOriginal))}</span><span class="price-fake-pct">${pct}% OFF</span><span class="price-fake-real">${esc(formatPrice(realPrice))}</span>`,
+      html: `<span class="price-fake-block"><span class="price-fake-top"><span class="price-fake-original">${esc(formatPrice(fakeOriginal))}</span><span class="price-fake-pct">${pct}% OFF</span></span><span class="price-fake-real">${esc(formatPrice(realPrice))}</span><span class="price-fake-note">Precio real de oferta</span></span>`,
     };
   }
   // Escapa texto que se inyecta en HTML para prevenir roturas de markup
