@@ -320,6 +320,19 @@
   function formatPrice(p) {
     return "S/ " + p.toFixed(2);
   }
+  /* Fake discount: returns { fakeOriginal, pct, html } or null if disabled.
+     The "real" price stays the same; we just show a higher crossed-out price. */
+  function getFakeDiscount(realPrice) {
+    const cfg = FO.FAKE_DESCUENTO;
+    if (!cfg || !cfg.activo || typeof realPrice !== "number" || realPrice <= 0) return null;
+    const pct = cfg.porcentaje || 22;
+    const fakeOriginal = Math.round(realPrice / (1 - pct / 100));
+    return {
+      fakeOriginal,
+      pct,
+      html: `<span class="price-fake-original">${esc(formatPrice(fakeOriginal))}</span><span class="price-fake-pct">${pct}% OFF</span><span class="price-fake-real">${esc(formatPrice(realPrice))}</span>`,
+    };
+  }
   // Escapa texto que se inyecta en HTML para prevenir roturas de markup
   function esc(str) {
     return String(str == null ? "" : str)
@@ -860,8 +873,11 @@
       .join("");
     const price = currentModalSize ? sizes[currentModalSize] : null;
     const modalPromo = isFull ? productPromoInfo(product) : null;
+    const modalFake = !modalPromo && price ? getFakeDiscount(price) : null;
     $("modalPrice").innerHTML = modalPromo
       ? `<span class="price-regular">${esc(formatPrice(modalPromo.regularPrice))}</span><span class="price-pct">${modalPromo.pct}% menos</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
+      : modalFake
+      ? `${modalFake.html} <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : price
       ? `${esc(formatPrice(price))} <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : "Selecciona tamaño";
@@ -1127,7 +1143,11 @@
       const isSelected = comboSelectedIds.includes(prod.id);
       const hasSize = comboProductHasSize(prod, comboSize);
       const disabled = !hasSize || (!isSelected && comboSelectedIds.length >= COMBO_MAX);
-      const price = hasSize ? formatPrice(prod.decantSizes[comboSize]) : `Sin ${comboSize}ml`;
+      const realPrice = hasSize ? prod.decantSizes[comboSize] : null;
+      const fake = realPrice ? getFakeDiscount(realPrice) : null;
+      const priceHtml = realPrice
+        ? (fake ? fake.html : formatPrice(realPrice))
+        : `Sin ${comboSize}ml`;
       const imgSrc = prod.cardImage || cardImg(prod);
       return `<label class="combo-item${isSelected ? " selected" : ""}${disabled ? " disabled" : ""}">
         <input type="checkbox" data-product-id="${prod.id}"${isSelected ? " checked" : ""}${disabled ? " disabled" : ""} />
@@ -1138,7 +1158,7 @@
           <span class="combo-item__brand">${esc(prod.brand)}</span>
           <span class="combo-item__name">${esc(prod.name)}</span>
         </span>
-        <span class="combo-item__price">${price}</span>
+        <span class="combo-item__price">${priceHtml}</span>
       </label>`;
     }).join("");
   }
@@ -1350,13 +1370,12 @@
     const bestsellerHTML = bestseller
       ? `<span class="product-badge bestseller" data-tooltip="El favorito de nuestros clientes">${esc(product.bestsellerLabel || "Más Vendido")}</span>`
       : "";
-    // Precio promocional: solo si productos.js trae un regularPrice real
-    // (nunca inventado aquí, ver productPromoInfo). Precio final domina
-    // visualmente, el "antes" es pequeño y tachado -- nada de rojo/badge
-    // grande (quiet luxury, no marketplace).
+    // Precio: promo real (regularPrice de productos.js) o fake discount visual
     const promo = productPromoInfo(product);
+    const fake = !promo && minPrice ? getFakeDiscount(minPrice) : null;
     const priceText = promo
       ? `<span class="price-regular">${esc(formatPrice(promo.regularPrice))}</span><span class="price-final">${esc(formatPrice(promo.price))}</span><span class="price-pct">${promo.pct}% menos</span>`
+      : fake ? fake.html
       : minPrice ? `Desde ${formatPrice(minPrice)}` : "Consultar";
     const catLabel =
       product.category === "nicho" ? "Nicho"

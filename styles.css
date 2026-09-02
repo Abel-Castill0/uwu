@@ -5395,3 +5395,31 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
   .nav-backdrop { transition: none; }
   .nav { transition: none; }
 }
+
+/* ── Fake discount (precio visual con descuento ficticio) ── */
+.price-fake-original {
+  font-size: .72em; font-weight: 400; color: var(--text-muted);
+  text-decoration: line-through; opacity: .65; margin-right: .3rem;
+}
+.price-fake-pct {
+  display: inline-block; padding: .1rem .4rem; margin: 0 .25rem;
+  border-radius: var(--r-pill); font-size: .6rem; font-weight: 700;
+  background: var(--danger, #c0392b); color: #fff; letter-spacing: .03em;
+  vertical-align: middle;
+}
+.price-fake-real {
+  font-weight: 700; color: var(--gold-deep);
+}
+[data-theme="dark"] .price-fake-real { color: var(--gold-light); }
+/* Combo items: fake discount inline */
+.combo-item__price .price-fake-original { font-size: .6rem; }
+.combo-item__price .price-fake-pct { font-size: .5rem; padding: .05rem .3rem; }
+.combo-item__price .price-fake-real { font-size: .72rem; }
+/* Product card: fake discount row */
+.product-price .price-fake-original,
+.product-price .price-fake-pct,
+.product-price .price-fake-real { display: inline; }
+/* Modal: fake discount larger */
+.modal .price-fake-original { font-size: .8em; }
+.modal .price-fake-pct { font-size: .7em; padding: .15rem .5rem; }
+.modal .price-fake-real { font-size: 1.1em; }

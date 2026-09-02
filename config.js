@@ -103,6 +103,17 @@ window.FO_CONFIG = {
     ACUMULAR_DESCUENTOS: false,
   },
 
+  /* ── PRECIO CON DESCUENTO FICTICIO (visual) ──────────────────────
+     Muestra un "precio original" más alto cruzado + badge de % OFF.
+     El precio real NO cambia: el carrito y checkout usan el precio real.
+     Solo es marketing visual para dar sensación de oferta.
+     · activo: true/false
+     · porcentaje: entre 20 y 25 (se aplica al azar por producto) */
+  FAKE_DESCUENTO: {
+    activo: true,
+    porcentaje: 22,
+  },
+
   /* ── FRASCO COMPLETO → WHATSAPP DE COTIZACIÓN ──────────────────
      Al elegir "Frasco Completo" en el modal de producto ya NO se
      agrega al carrito: se abre WhatsApp con un mensaje de cotización.
