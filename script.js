@@ -320,6 +320,20 @@
   function formatPrice(p) {
     return "S/ " + p.toFixed(2);
   }
+  /* Fake discount: shows a higher "original" price crossed out + % OFF badge.
+     Only applies to bestseller/featured products. Real price stays the same. */
+  function getFakeDiscount(realPrice, product) {
+    const cfg = FO.FAKE_DESCUENTO;
+    if (!cfg || !cfg.activo || typeof realPrice !== "number" || realPrice <= 0) return null;
+    if (product && !product.bestseller && !product.featured) return null;
+    const pct = cfg.porcentaje || 22;
+    const fakeOriginal = Math.round(realPrice / (1 - pct / 100));
+    return {
+      fakeOriginal,
+      pct,
+      html: `<span class="price-fake-original">${esc(formatPrice(fakeOriginal))}</span><span class="price-fake-pct">${pct}% OFF</span><span class="price-fake-real">${esc(formatPrice(realPrice))}</span>`,
+    };
+  }
   // Escapa texto que se inyecta en HTML para prevenir roturas de markup
   function esc(str) {
     return String(str == null ? "" : str)
@@ -861,9 +875,12 @@
       .join("");
     const price = currentModalSize ? sizes[currentModalSize] : null;
     const modalPromo = isFull && !isComingSoon(product.id) ? productPromoInfo(product) : null;
+    const modalFake = !modalPromo && price ? getFakeDiscount(price, product) : null;
     const specialPrice = isFull && price && !isComingSoon(product.id);
     $("modalPrice").innerHTML = modalPromo
       ? `<span class="price-special-label">Precio especial</span><span class="price-regular">${esc(formatPrice(modalPromo.regularPrice))}</span><span class="price-pct">${modalPromo.pct}% menos</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
+      : modalFake
+      ? `${modalFake.html} <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : specialPrice
       ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : price
@@ -1132,7 +1149,8 @@
       const hasSize = comboProductHasSize(prod, comboSize);
       const disabled = !hasSize || (!isSelected && comboSelectedIds.length >= COMBO_MAX);
       const realPrice = hasSize ? prod.decantSizes[comboSize] : null;
-      const priceHtml = realPrice ? formatPrice(realPrice) : `Sin ${comboSize}ml`;
+      const fake = realPrice ? getFakeDiscount(realPrice, prod) : null;
+      const priceHtml = realPrice ? (fake ? fake.html : formatPrice(realPrice)) : `Sin ${comboSize}ml`;
       const imgSrc = prod.cardImage || cardImg(prod);
       return `<label class="combo-item${isSelected ? " selected" : ""}${disabled ? " disabled" : ""}">
         <input type="checkbox" data-product-id="${prod.id}"${isSelected ? " checked" : ""}${disabled ? " disabled" : ""} />
@@ -1353,10 +1371,12 @@
       ? `<span class="product-badge ${esc(badge.className)}">${esc(badge.label)}</span>`
       : "";
     const specialPrice = hasFull && !hasDecants && !soon;
-    // Precio: una promoción solo se comunica con regularPrice confirmado.
+    // Precio: promo real, fake discount visual, o precio normal
     const promo = soon ? null : productPromoInfo(product);
+    const fake = !promo && minPrice ? getFakeDiscount(minPrice, product) : null;
     const priceText = promo
       ? `<span class="price-special-label">Precio especial</span><span class="price-regular">${esc(formatPrice(promo.regularPrice))}</span><span class="price-pct">${promo.pct}% menos</span><span class="price-final">${esc(formatPrice(promo.price))}</span>`
+      : fake ? fake.html
       : specialPrice && minPrice
       ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(minPrice))}</span>`
       : minPrice ? `Desde ${formatPrice(minPrice)}` : "Consultar";

@@ -163,10 +163,32 @@
     { id: 148, name: "Lamar Kajal", brand: "Lamar", category: "nicho", gender: "unisex", notes: "Vainilla, ámbar y especias: cálido, envolvente y sensual.", description: "Parcial con caja al 99% 100ml. Envío con seguro.", fullSizes: {100:650}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "parcial", sealedSize: "100ml", contentPercent: 99, featured: false, badge: null, badgeText: "" },
   ];
 
-  // Solo los destacados configurados explícitamente tienen señal comercial.
-  // Las marcas heredadas sin etiqueta no son evidencia de ventas internas.
-  w.FO_PRODUCTS.forEach((product) => {
-    if (product.featured && !product.highlightLabel) product.featured = false;
+  /* ══════════════════════════════════════════════════════════════
+     BESTSELLERS — Los más vendidos / famosos
+     Marca bestseller=true + featured=true para fake discount visual.
+     ══════════════════════════════════════════════════════════════ */
+  w.FO_BESTSELLERS = {
+    6: "Más Vendido",
+    17: "Tendencia en TikTok",
+    33: "Más Vendido",
+    63: "Más Vendido",
+    64: "Más Vendido",
+    79: "Más Vendido",
+    92: "Tendencia en TikTok",
+    101: "Tendencia en TikTok",
+    125: "Más Vendido",
+    130: "Más Vendido",
+    132: "Tendencia en TikTok"
+  };
+
+  // Aplicar sellos de bestseller sobre FO_PRODUCTS
+  Object.entries(w.FO_BESTSELLERS).forEach(([id, label]) => {
+    const p = w.FO_PRODUCTS.find((x) => x.id === Number(id));
+    if (p) {
+      p.bestseller = true;
+      p.bestsellerLabel = label;
+      p.featured = true;
+    }
   });
 
   /* ════════════════════════════════════════════════════════════════
