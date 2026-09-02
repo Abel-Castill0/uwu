@@ -5399,27 +5399,34 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
 /* ── Fake discount (precio visual con descuento ficticio) ── */
 .price-fake-original {
   font-size: .72em; font-weight: 400; color: var(--text-muted);
-  text-decoration: line-through; opacity: .65; margin-right: .3rem;
+  text-decoration: line-through; opacity: .65; margin-right: .2rem;
 }
 .price-fake-pct {
-  display: inline-block; padding: .1rem .4rem; margin: 0 .25rem;
-  border-radius: var(--r-pill); font-size: .6rem; font-weight: 700;
+  display: inline-block; padding: .1rem .35rem; margin: 0 .2rem;
+  border-radius: var(--r-pill); font-size: .58rem; font-weight: 700;
   background: var(--danger, #c0392b); color: #fff; letter-spacing: .03em;
-  vertical-align: middle;
+  vertical-align: middle; line-height: 1.3;
 }
 .price-fake-real {
   font-weight: 700; color: var(--gold-deep);
 }
 [data-theme="dark"] .price-fake-real { color: var(--gold-light); }
-/* Combo items: fake discount inline */
-.combo-item__price .price-fake-original { font-size: .6rem; }
-.combo-item__price .price-fake-pct { font-size: .5rem; padding: .05rem .3rem; }
-.combo-item__price .price-fake-real { font-size: .72rem; }
-/* Product card: fake discount row */
-.product-price .price-fake-original,
-.product-price .price-fake-pct,
-.product-price .price-fake-real { display: inline; }
+/* Product card: make fake discount wrap nicely */
+.product-price:has(.price-fake-real) {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .3rem;
+  white-space: normal;
+}
+/* Combo items: fake discount inline, smaller */
+.combo-item__price .price-fake-original { font-size: .58rem; }
+.combo-item__price .price-fake-pct { font-size: .48rem; padding: .05rem .25rem; }
+.combo-item__price .price-fake-real { font-size: .7rem; }
 /* Modal: fake discount larger */
 .modal .price-fake-original { font-size: .8em; }
-.modal .price-fake-pct { font-size: .7em; padding: .15rem .5rem; }
-.modal .price-fake-real { font-size: 1.1em; }
+.modal .price-fake-pct { font-size: .65em; padding: .12rem .45rem; }
+.modal .price-fake-real { font-size: 1.05em; }
+/* Small screens: tighten up */
+@media (max-width: 560px) {
+  .product-price:has(.price-fake-real) { font-size: .88rem; }
+  .price-fake-pct { font-size: .5rem; padding: .08rem .3rem; }
+  .price-fake-original { font-size: .65em; }
+}

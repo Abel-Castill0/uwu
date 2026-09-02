@@ -320,11 +320,14 @@
   function formatPrice(p) {
     return "S/ " + p.toFixed(2);
   }
-  /* Fake discount: returns { fakeOriginal, pct, html } or null if disabled.
+  /* Fake discount: returns { fakeOriginal, pct, html } or null.
+     Only applies to bestseller/featured products for social proof.
      The "real" price stays the same; we just show a higher crossed-out price. */
-  function getFakeDiscount(realPrice) {
+  function getFakeDiscount(realPrice, product) {
     const cfg = FO.FAKE_DESCUENTO;
     if (!cfg || !cfg.activo || typeof realPrice !== "number" || realPrice <= 0) return null;
+    /* Only show fake discount on bestsellers or featured products */
+    if (product && !product.bestseller && !product.featured) return null;
     const pct = cfg.porcentaje || 22;
     const fakeOriginal = Math.round(realPrice / (1 - pct / 100));
     return {
@@ -873,7 +876,7 @@
       .join("");
     const price = currentModalSize ? sizes[currentModalSize] : null;
     const modalPromo = isFull ? productPromoInfo(product) : null;
-    const modalFake = !modalPromo && price ? getFakeDiscount(price) : null;
+    const modalFake = !modalPromo && price ? getFakeDiscount(price, product) : null;
     $("modalPrice").innerHTML = modalPromo
       ? `<span class="price-regular">${esc(formatPrice(modalPromo.regularPrice))}</span><span class="price-pct">${modalPromo.pct}% menos</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : modalFake
@@ -1144,7 +1147,7 @@
       const hasSize = comboProductHasSize(prod, comboSize);
       const disabled = !hasSize || (!isSelected && comboSelectedIds.length >= COMBO_MAX);
       const realPrice = hasSize ? prod.decantSizes[comboSize] : null;
-      const fake = realPrice ? getFakeDiscount(realPrice) : null;
+      const fake = realPrice ? getFakeDiscount(realPrice, prod) : null;
       const priceHtml = realPrice
         ? (fake ? fake.html : formatPrice(realPrice))
         : `Sin ${comboSize}ml`;
@@ -1250,12 +1253,13 @@
     }
     const includedProducts = comboSelectedIds.map((pid) => {
       const prod = getProductById(pid);
-      return prod ? { id: prod.id, name: prod.name, brand: prod.brand, size: comboSize + "ml" } : null;
+      return prod ? { id: prod.id, name: prod.name, brand: prod.brand, size: comboSize + "ml", image: prod.cardImage || cardImg(prod) } : null;
     }).filter(Boolean);
+    const mainImage = includedProducts.length > 0 ? includedProducts[0].image : "fondo_promos.webp";
     cart.push({
       productId: "combo-" + Date.now(), type: "pack", isPack: true,
       name: `Combo curado · ${info.count} fragancias`, brand: "FRAGRANCE OBSESSION",
-      image: "fondo_promos.webp", size: comboSize + "ml", price: info.total, qty: 1,
+      image: mainImage, size: comboSize + "ml", price: info.total, qty: 1,
       subtotal: info.subtotal, discount: info.discountAmount, discountPct: info.discountPct,
       discountLabel: info.ruleLabel, includedProducts,
     });
@@ -1372,7 +1376,7 @@
       : "";
     // Precio: promo real (regularPrice de productos.js) o fake discount visual
     const promo = productPromoInfo(product);
-    const fake = !promo && minPrice ? getFakeDiscount(minPrice) : null;
+    const fake = !promo && minPrice ? getFakeDiscount(minPrice, product) : null;
     const priceText = promo
       ? `<span class="price-regular">${esc(formatPrice(promo.regularPrice))}</span><span class="price-final">${esc(formatPrice(promo.price))}</span><span class="price-pct">${promo.pct}% menos</span>`
       : fake ? fake.html
