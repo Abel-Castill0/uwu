@@ -321,12 +321,11 @@
     return "S/ " + p.toFixed(2);
   }
   /* Fake discount: shows a higher "original" price crossed out + % OFF badge.
-     Only applies to bestseller/featured products. Real price stays the same. */
+     Reads product.fakeDiscount (e.g. 20 or 15). If absent, no discount. */
   function getFakeDiscount(realPrice, product) {
-    const cfg = FO.FAKE_DESCUENTO;
-    if (!cfg || !cfg.activo || typeof realPrice !== "number" || realPrice <= 0) return null;
-    if (product && !product.bestseller && !product.featured) return null;
-    const pct = cfg.porcentaje || 22;
+    if (!product || typeof product.fakeDiscount !== "number" || product.fakeDiscount <= 0) return null;
+    if (typeof realPrice !== "number" || realPrice <= 0) return null;
+    const pct = product.fakeDiscount;
     const fakeOriginal = Math.round(realPrice / (1 - pct / 100));
     return {
       fakeOriginal,
