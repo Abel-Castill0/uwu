@@ -1042,7 +1042,7 @@
   function getComboEligibleProducts() {
     return products.filter((p) =>
       !p.tester && !isComingSoon(p.id) && p.decantSizes &&
-      (p.decantSizes["3"] !== undefined || p.decantSizes["5"] !== undefined || p.decantSizes["10"] !== undefined)
+      (p.decantSizes["1"] !== undefined || p.decantSizes["2"] !== undefined || p.decantSizes["3"] !== undefined || p.decantSizes["5"] !== undefined || p.decantSizes["10"] !== undefined)
     );
   }
   function comboProductHasSize(prod, size) {

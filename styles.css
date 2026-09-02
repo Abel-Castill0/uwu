@@ -5312,6 +5312,10 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
   outline: 2px solid var(--gold-light);
   outline-offset: 3px;
 }
+/* Mobile: smaller font for 5 size buttons */
+@media (max-width: 560px) {
+  .combo-size-btn { font-size: .75rem; padding: .5rem .4rem; min-height: 38px; }
+}
 [data-theme="dark"] .combo-item { border-color: rgba(245,239,230,.08); }
 /* Bug real: esta regla es mas especifica que ".combo-item.selected" de
    mas arriba ([data-theme="dark"] le gana por especificidad, no por
