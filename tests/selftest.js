@@ -216,7 +216,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
   step(function () {
     for (var i = 0; i < 3; i++) { var b = firstUncheckedCombo(); if (b) checkCombo(b); }
     var count = document.getElementById("comboSummaryCount");
-    ok(count && count.textContent.indexOf("3/6") === 0, "comboCount3", "count=" + (count ? count.textContent.trim() : ""));
+    ok(count && count.textContent === "3 seleccionadas", "comboCount3", "count=" + (count ? count.textContent.trim() : ""));
     var totalWrap = document.getElementById("comboSummaryTotal");
     ok(totalWrap && totalWrap.style.display !== "none", "comboValidAt3", "display=" + (totalWrap ? totalWrap.style.display : "sin panel"));
   }, 400);
@@ -225,7 +225,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
   step(function () {
     for (var i = 0; i < 3; i++) { var b = firstUncheckedCombo(); if (b) checkCombo(b); }
     var count = document.getElementById("comboSummaryCount");
-    ok(count && count.textContent.indexOf("6/6") === 0, "comboCount6", "count=" + (count ? count.textContent.trim() : ""));
+    ok(count && count.textContent === "6 seleccionadas", "comboCount6", "count=" + (count ? count.textContent.trim() : ""));
     var selectable = document.querySelectorAll("#comboList .combo-item:not(.selected):not(.disabled)").length;
     ok(selectable === 0, "comboMaxCapsSelection", "seleccionables restantes=" + selectable);
   }, 400);
@@ -248,8 +248,12 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     var open = document.getElementById("btnCart") || document.querySelector("[onclick*='openCart'], .cart-toggle");
     ok(!!open, "cartOpenControl", "sin control de apertura");
     if (open) { open.click(); }
-    ok(document.getElementById("cartSidebar").classList.contains("active"), "cartOpens", "sidebar no activo");
-    ok(document.querySelectorAll("#cartItems .cart-item").length === 2, "cartItems2", "items=" + document.querySelectorAll("#cartItems .cart-item").length);
+    window.__chains += 1;
+    requestAnimationFrame(function () {
+      ok(document.getElementById("cartSidebar").classList.contains("active"), "cartOpens", "sidebar no activo");
+      ok(document.querySelectorAll("#cartItems .cart-item").length === 2, "cartItems2", "items=" + document.querySelectorAll("#cartItems .cart-item").length);
+      window.__chains -= 1;
+    });
   }, 400);
 
   /* 12. qty + total */
@@ -398,6 +402,16 @@ step(function () {
       var hs = cards.map(function (c) { return c.getBoundingClientRect().height; });
       var uniform = hs.length > 1 && Math.max.apply(null, hs) - Math.min.apply(null, hs) <= 1;
       ok(uniform, "catalogUniformHeights", "min=" + Math.min.apply(null, hs) + " max=" + Math.max.apply(null, hs));
+      var outside = cards.filter(function (card) {
+        var box = card.getBoundingClientRect();
+        if (card.scrollWidth > card.clientWidth + 1) return true;
+        return Array.prototype.some.call(card.querySelectorAll(".product-badge, .product-price-block, .product-price, .price-special-label, .price-final, .btn-add"), function (el) {
+          var rect = el.getBoundingClientRect();
+          return rect.left < box.left - 1 || rect.right > box.right + 1;
+        });
+      });
+      ok(outside.length === 0, "catalogCardBounds", "fuera=" + outside.map(function (card) { return card.dataset.productId; }).join(","));
+      ok(!document.querySelector(".stock-chip") && !/Quedan \d|Últimas unidades/.test(document.getElementById("catalogGrid").textContent), "catalogNoSimulatedStock", "stock simulado visible");
       var loadMoreBtn = document.getElementById("loadMoreCatalog");
       ok(!!loadMoreBtn, "catalogLoadMoreExists", "botón Mostrar más presente");
       var maxClicks = 10;

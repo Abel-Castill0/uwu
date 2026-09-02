@@ -597,7 +597,7 @@ test.describe('Combo', () => {
       });
       await page.waitForTimeout(200);
     }
-    await expect(page.locator('#comboSummaryCount')).toContainText('3/6');
+    await expect(page.locator('#comboSummaryCount')).toHaveText('3 seleccionadas');
     const confirmBtn = page.locator('#comboConfirmBtn');
     await expect(confirmBtn).toBeEnabled();
     await confirmBtn.click();

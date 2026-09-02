@@ -33,6 +33,9 @@ const run = (url, runIndex) => new Promise((resolve) => {
     if (!passed) passed = await run(targets[index], index + 10);
     checks.push(passed);
   }
+  // Edge puede conservar un socket keep-alive tras cerrar el CDP. Cerrarlo
+  // explícitamente evita que la suite quede viva pese a haber terminado.
+  if (typeof app.closeAllConnections === "function") app.closeAllConnections();
   await new Promise((resolve) => app.close(resolve));
   if (!checks.every(Boolean)) process.exitCode = 1;
 })();

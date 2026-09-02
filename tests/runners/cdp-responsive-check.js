@@ -59,11 +59,12 @@ function createServer() {
     await new Promise((r) => { ws.onopen = r; });
 
     const cases = [
-      { w: 320, h: 568, expCols: 1, touch: true },
-      { w: 390, h: 844, expCols: 2, touch: true },
-      { w: 768, h: 1024, expCols: 3, touch: false },
-      { w: 1280, h: 900, expCols: 5, touch: false },
-      { w: 1440, h: 900, expCols: 5, touch: false },
+      { w: 320, h: 568, touch: true }, { w: 360, h: 800, touch: true },
+      { w: 390, h: 844, touch: true }, { w: 412, h: 915, touch: true },
+      { w: 768, h: 1024, touch: false }, { w: 1024, h: 900, touch: false },
+      { w: 1280, h: 900, touch: false }, { w: 1366, h: 900, touch: false },
+      { w: 1440, h: 900, touch: false }, { w: 1600, h: 900, touch: false },
+      { w: 1920, h: 1080, touch: false },
     ];
     let fails = 0;
     for (const c of cases) {
@@ -74,6 +75,34 @@ function createServer() {
       await evalv("window.navigateTo('catalogo')");
       await delay(800);
       const cols = await evalv("getComputedStyle(document.getElementById('catalogGrid')).gridTemplateColumns.split(' ').length");
+      const cardBounds = await evalv(`(() => {
+        const cards = Array.from(document.querySelectorAll('#catalogGrid .product-card'));
+        const leak = (card) => {
+          const box = card.getBoundingClientRect();
+          if (card.scrollWidth > card.clientWidth + 1) return true;
+          return Array.from(card.querySelectorAll('.product-badge, .product-price-block, .product-price, .price-special-label, .price-final, .btn-add')).some((el) => {
+            const rect = el.getBoundingClientRect();
+            return rect.left < box.left - 1 || rect.right > box.right + 1;
+          });
+        };
+        return { count: cards.length, leaks: cards.filter(leak).map((card) => card.dataset.productId), stock: document.querySelectorAll('.stock-chip').length, simulatedCopy: /Quedan \\d|Últimas unidades/.test(document.getElementById('catalogGrid').textContent) };
+      })()`);
+      await evalv("var __full=document.querySelector('[data-filter=\"completos\"]'); if(__full) __full.click();");
+      await delay(500);
+      const fullBounds = await evalv(`(() => {
+        const cards = Array.from(document.querySelectorAll('#catalogGrid .product-card'));
+        const leak = (card) => {
+          const box = card.getBoundingClientRect();
+          if (card.scrollWidth > card.clientWidth + 1) return true;
+          return Array.from(card.querySelectorAll('.product-badge, .product-price-block, .product-price, .price-special-label, .price-final, .btn-add')).some((el) => {
+            const rect = el.getBoundingClientRect();
+            return rect.left < box.left - 1 || rect.right > box.right + 1;
+          });
+        };
+        return { count: cards.length, leaks: cards.filter(leak).map((card) => card.dataset.productId), special: cards.filter((card) => card.querySelector('.price-special-label')).length };
+      })()`);
+      await evalv("window.navigateTo('catalogo')");
+      await delay(500);
       await evalv("var __b=document.querySelector('#catalogGrid .product-card .btn-add[data-add-id]'); if(__b) __b.click();");
       await delay(400);
       const modalActive = await evalv("document.getElementById('modalOverlay').classList.contains('active')");
@@ -88,17 +117,17 @@ function createServer() {
       await evalv("var __cl=document.querySelector('.cart-close'); if(__cl) __cl.click();");
       await delay(300);
 
-      const colOk = cols === c.expCols;
       // maxHeight en px debe ser ≈ 92% del alto del viewport (92vh/92dvh)
       const ratio = parseFloat(modalMaxH) / c.h;
       const modalOk = modalActive && Math.abs(ratio - 0.92) < 0.02;
       const cartOk = cartActive;
       const overOk = !overX;
       const closeOk = (c.touch && closeH >= 44) || (!c.touch && closeH >= 34);
-      console.log(`${c.w}x${c.h}: cols=${cols}(esp ${c.expCols}) modal=${modalActive} maxH=${modalMaxH}(ratio ${ratio.toFixed(2)}) cart=${cartActive} closeH=${closeH} overX=${overX}`);
-      if (!colOk || !modalOk || !cartOk || !overOk || !closeOk) { fails += 1; console.log("  >>> FALLO"); }
+      const cardsOk = cardBounds.leaks.length === 0 && fullBounds.leaks.length === 0 && cardBounds.stock === 0 && !cardBounds.simulatedCopy && fullBounds.count === 8 && fullBounds.special === 8;
+      console.log(`${c.w}x${c.h}: cols=${cols} normal=${cardBounds.count}/leaks:${cardBounds.leaks.length} full=${fullBounds.count}/leaks:${fullBounds.leaks.length}/special:${fullBounds.special} modal=${modalActive} maxH=${modalMaxH}(ratio ${ratio.toFixed(2)}) cart=${cartActive} closeH=${closeH} overX=${overX}`);
+      if (!modalOk || !cartOk || !overOk || !closeOk || !cardsOk) { fails += 1; console.log("  >>> FALLO"); }
     }
-    console.log(fails ? `RESPONSIVE: ${cases.length - fails}/${cases.length} OK (${fails} fallos)` : "RESPONSIVE: 5/5 OK");
+    console.log(fails ? `RESPONSIVE: ${cases.length - fails}/${cases.length} OK (${fails} fallos)` : `RESPONSIVE: ${cases.length}/${cases.length} OK`);
     process.exitCode = fails ? 1 : 0;
     ws.close();
   } finally {

@@ -700,7 +700,8 @@
     const cartSidebar = $("cartSidebar");
     $("cartOverlay").classList.add("active");
     cartSidebar.classList.add("mounted");
-    requestAnimationFrame(() => cartSidebar.classList.add("active"));
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) cartSidebar.classList.add("active");
+    else requestAnimationFrame(() => cartSidebar.classList.add("active"));
     document.body.style.overflow = "hidden";
     document.body.classList.add("modal-open");
     document.documentElement.classList.add("modal-open");
@@ -1167,13 +1168,14 @@
     /* Si el combo se vacia (ultimo item quitado), colapsa el sheet: no
        tiene sentido dejarlo "abierto" mostrando un panel vacio. */
     if (summaryEl && comboSelectedIds.length === 0) comboSetSheetExpanded(false);
-    countEl.textContent = `${comboSelectedIds.length}/${COMBO_MAX} fragancias`;
+    countEl.textContent = `${comboSelectedIds.length} seleccionada${comboSelectedIds.length === 1 ? "" : "s"}`;
     const info = getComboDiscountInfo();
     if (dockText) {
-      if (comboSelectedIds.length >= COMBO_MIN) dockText.textContent = `${info.count} fragancias · ${formatPrice(info.total)}`;
+      if (comboSelectedIds.length === 0) dockText.textContent = "0 seleccionadas";
+      else if (comboSelectedIds.length >= COMBO_MIN) dockText.textContent = `${info.count} seleccionadas · ${formatPrice(info.total)}`;
       else {
         const falta = COMBO_MIN - comboSelectedIds.length;
-        dockText.textContent = `${comboSelectedIds.length} fragancia${comboSelectedIds.length === 1 ? "" : "s"} · Te falta${falta === 1 ? "" : "n"} ${falta} para continuar`;
+        dockText.textContent = `${comboSelectedIds.length} seleccionada${comboSelectedIds.length === 1 ? "" : "s"} · Te falta${falta === 1 ? "" : "n"} ${falta} para continuar`;
       }
     }
     chipsEl.innerHTML = comboSelectedIds.map((pid) => {
@@ -1182,7 +1184,8 @@
       return `<span class="combo-chip">${esc(prod.name)} <button type="button" class="combo-chip-x" onclick="comboToggleProduct(${pid})" aria-label="Quitar ${esc(prod.name)}">&times;</button></span>`;
     }).join("");
     if (info.isValid) {
-      hintEl.style.display = "none";
+      hintEl.style.display = "block";
+      hintEl.textContent = "Tu combo está listo";
       totalWrap.style.display = "flex";
       discountLabelEl.textContent = info.discountPct > 0 ? `${info.discountPct}% dto (${info.ruleLabel})` : "Sin descuento aún";
       totalAmountEl.textContent = info.discountPct > 0 ? `${formatPrice(info.subtotal)} → ${formatPrice(info.total)}` : formatPrice(info.subtotal);
@@ -1192,7 +1195,9 @@
       totalWrap.style.display = "none";
       hintEl.style.display = "block";
       const falta = COMBO_MIN - info.count;
-      hintEl.textContent = info.count === 0 ? `Elige al menos ${COMBO_MIN} fragancias` : `Te falta${falta === 1 ? "" : "n"} ${falta} más para armar tu combo`;
+      hintEl.textContent = info.count === 0
+        ? `Elige entre ${COMBO_MIN} y ${COMBO_MAX} fragancias`
+        : `Te falta${falta === 1 ? "" : "n"} ${falta} para continuar`;
       confirmBtn.disabled = true;
       if (dockAmount) dockAmount.textContent = info.count > 0 ? formatPrice(info.subtotal) : "";
     }
@@ -1360,7 +1365,7 @@
       : product.category === "arabe" ? "Árabe"
       : product.category === "deluxe" ? "Deluxe"
       : "Diseñador";
-    const stockHTML = product.tester ? "" : `<span class="stock-chip">${stockLabel(product.id)}</span>`;
+    const stockText = Number.isFinite(product.stock) && product.stock > 0 ? `Stock: ${product.stock}` : "";
     return `
       <div class="product-card reveal-item" data-product-id="${product.id}">
         <div class="img-wrapper">
@@ -1371,20 +1376,14 @@
           <div class="product-category">${catLabel} · ${esc(product.gender)}</div>
           <div class="product-name">${esc(product.name)}</div>
           <div class="product-brand">${esc(product.brand)}</div>
-          <div class="product-price-row">
+          <div class="product-price-block">
             <span class="product-price">${priceText}</span>
-            ${stockHTML}
+            ${stockText ? `<span class="product-stock">${esc(stockText)}</span>` : ""}
           </div>
           <button class="btn-add${soon ? " btn-soon" : ""}" data-add-id="${product.id}"${soon ? " disabled" : ""}>${soon ? "Próximamente" : hasDecants ? "Ver y Comprar" : "Comprar Sellado"}</button>
         </div>
       </div>`;
   }
-  // Stock simulado, determinista por id (no cambia al recargar).
-  function stockLabel(id) {
-    const opts = ["Quedan 2", "Quedan 3", "Quedan 5", "Quedan 8", "Últimas unidades"];
-    return opts[id % opts.length];
-  }
-
   /* ══════════════════════════════════════════════════════════════
      RENDER — FEATURED
   ══════════════════════════════════════════════════════════════ */
