@@ -320,22 +320,6 @@
   function formatPrice(p) {
     return "S/ " + p.toFixed(2);
   }
-  /* Fake discount: returns { fakeOriginal, pct, html } or null.
-     Only applies to bestseller/featured products for social proof.
-     The "real" price stays the same; we just show a higher crossed-out price. */
-  function getFakeDiscount(realPrice, product) {
-    const cfg = FO.FAKE_DESCUENTO;
-    if (!cfg || !cfg.activo || typeof realPrice !== "number" || realPrice <= 0) return null;
-    /* Only show fake discount on bestsellers or featured products */
-    if (product && !product.bestseller && !product.featured) return null;
-    const pct = cfg.porcentaje || 22;
-    const fakeOriginal = Math.round(realPrice / (1 - pct / 100));
-    return {
-      fakeOriginal,
-      pct,
-      html: `<span class="price-fake-original">${esc(formatPrice(fakeOriginal))}</span><span class="price-fake-pct">${pct}% OFF</span><span class="price-fake-real">${esc(formatPrice(realPrice))}</span>`,
-    };
-  }
   // Escapa texto que se inyecta en HTML para prevenir roturas de markup
   function esc(str) {
     return String(str == null ? "" : str)
@@ -840,7 +824,7 @@
     // escondida dentro del párrafo de descripción (pedido explícito).
     const modalConditionEl = $("modalCondition");
     if (modalConditionEl) {
-      const condition = sealedConditionLabel(product);
+      const condition = isFull ? fullPresentationLabel(product) : sealedConditionLabel(product);
       modalConditionEl.textContent = condition;
       modalConditionEl.style.display = condition ? "block" : "none";
     }
@@ -875,12 +859,12 @@
       })
       .join("");
     const price = currentModalSize ? sizes[currentModalSize] : null;
-    const modalPromo = isFull ? productPromoInfo(product) : null;
-    const modalFake = !modalPromo && price ? getFakeDiscount(price, product) : null;
+    const modalPromo = isFull && !isComingSoon(product.id) ? productPromoInfo(product) : null;
+    const specialPrice = isFull && price && !isComingSoon(product.id);
     $("modalPrice").innerHTML = modalPromo
-      ? `<span class="price-regular">${esc(formatPrice(modalPromo.regularPrice))}</span><span class="price-pct">${modalPromo.pct}% menos</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
-      : modalFake
-      ? `${modalFake.html} <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
+      ? `<span class="price-special-label">Precio especial</span><span class="price-regular">${esc(formatPrice(modalPromo.regularPrice))}</span><span class="price-pct">${modalPromo.pct}% menos</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
+      : specialPrice
+      ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : price
       ? `${esc(formatPrice(price))} <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : "Selecciona tamaño";
@@ -1147,10 +1131,7 @@
       const hasSize = comboProductHasSize(prod, comboSize);
       const disabled = !hasSize || (!isSelected && comboSelectedIds.length >= COMBO_MAX);
       const realPrice = hasSize ? prod.decantSizes[comboSize] : null;
-      const fake = realPrice ? getFakeDiscount(realPrice, prod) : null;
-      const priceHtml = realPrice
-        ? (fake ? fake.html : formatPrice(realPrice))
-        : `Sin ${comboSize}ml`;
+      const priceHtml = realPrice ? formatPrice(realPrice) : `Sin ${comboSize}ml`;
       const imgSrc = prod.cardImage || cardImg(prod);
       return `<label class="combo-item${isSelected ? " selected" : ""}${disabled ? " disabled" : ""}">
         <input type="checkbox" data-product-id="${prod.id}"${isSelected ? " checked" : ""}${disabled ? " disabled" : ""} />
@@ -1323,6 +1304,21 @@
     return "";
   }
 
+  function fullPresentationLabel(product) {
+    return sealedConditionLabel(product) || "Frasco completo";
+  }
+
+  /* Una card comunica una sola señal comercial, en orden de prioridad.
+     Los datos son la fuente de verdad: `featured` nunca altera el precio. */
+  function merchandisingBadge(product, soon, hasFull, hasDecants) {
+    if (soon) return { className: "soon", label: "Próximamente" };
+    if (hasFull && !hasDecants) return { className: "condition", label: fullPresentationLabel(product) };
+    if (product.bestseller === true) return { className: "bestseller", label: product.bestsellerLabel || "Más vendido" };
+    if (product.featured && product.highlightLabel) return { className: "highlight", label: product.highlightLabel };
+    if (product.badge && product.badgeText) return { className: product.badge, label: product.badgeText };
+    return null;
+  }
+
   /* Precio promocional de un frasco completo (1 sola talla): envoltorio
      de window.calcularPrecioPromo (descuentos.js) para que la card/modal
      nunca calculen el % a mano. Sin regularPrice en productos.js -> null,
@@ -1343,43 +1339,21 @@
     const fullSizes = Object.keys(product.fullSizes || {});
     const hasDecants = !product.tester && decantSizes.length > 0;
     const hasFull = fullSizes.length > 0;
-    const condition = sealedConditionLabel(product);
-    // Presentación: condición real (Tester / Parcial) si aplica; si no,
-    // "Caja Sellada" para cualquier frasco completo sin decants.
-    const presentation =
-      condition ? condition
-      : product.tester ? "Tester"
-      : !hasDecants ? "Caja Sellada"
-      : "";
     const minPrice = hasDecants
       ? Math.min(...Object.values(product.decantSizes))
       : hasFull ? Math.min(...Object.values(product.fullSizes)) : null;
-    const BADGE_TOOLTIPS = {
-      new: "Producto recién agregado",
-      top: "Más vendido",
-      tester: "Versión de prueba",
-      nicho: "Fragancia nicho",
-      deluxe: "Colección Deluxe de alta gama",
-    };
-    // Los perfumes Deluxe muestran siempre su badge dorado "Deluxe".
-    const effectiveBadge = product.category === "deluxe" ? "deluxe" : product.badge;
-    const effectiveBadgeText = product.category === "deluxe" ? "Deluxe" : product.badgeText;
-    const badgeTip = effectiveBadge ? BADGE_TOOLTIPS[effectiveBadge] : "";
-    // Badge principal; si hay bestseller, el badge regular se desplaza a la derecha
-    const bestseller = product.bestseller === true;
-    const badgeClass = bestseller ? `${esc(effectiveBadge)} product-badge--right` : esc(effectiveBadge);
-    const badgeHTML = effectiveBadge
-      ? `<span class="product-badge ${badgeClass}"${badgeTip ? ` data-tooltip="${esc(badgeTip)}"` : ""}>${esc(effectiveBadgeText)}</span>`
+    const soon = isComingSoon(product.id);
+    const badge = merchandisingBadge(product, soon, hasFull, hasDecants);
+    const badgeHTML = badge
+      ? `<span class="product-badge ${esc(badge.className)}">${esc(badge.label)}</span>`
       : "";
-    const bestsellerHTML = bestseller
-      ? `<span class="product-badge bestseller" data-tooltip="El favorito de nuestros clientes">${esc(product.bestsellerLabel || "Más Vendido")}</span>`
-      : "";
-    // Precio: promo real (regularPrice de productos.js) o fake discount visual
-    const promo = productPromoInfo(product);
-    const fake = !promo && minPrice ? getFakeDiscount(minPrice, product) : null;
+    const specialPrice = hasFull && !hasDecants && !soon;
+    // Precio: una promoción solo se comunica con regularPrice confirmado.
+    const promo = soon ? null : productPromoInfo(product);
     const priceText = promo
-      ? `<span class="price-regular">${esc(formatPrice(promo.regularPrice))}</span><span class="price-final">${esc(formatPrice(promo.price))}</span><span class="price-pct">${promo.pct}% menos</span>`
-      : fake ? fake.html
+      ? `<span class="price-special-label">Precio especial</span><span class="price-regular">${esc(formatPrice(promo.regularPrice))}</span><span class="price-pct">${promo.pct}% menos</span><span class="price-final">${esc(formatPrice(promo.price))}</span>`
+      : specialPrice && minPrice
+      ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(minPrice))}</span>`
       : minPrice ? `Desde ${formatPrice(minPrice)}` : "Consultar";
     const catLabel =
       product.category === "nicho" ? "Nicho"
@@ -1387,18 +1361,10 @@
       : product.category === "deluxe" ? "Deluxe"
       : "Diseñador";
     const stockHTML = product.tester ? "" : `<span class="stock-chip">${stockLabel(product.id)}</span>`;
-    // Chip de presentación (solo para sellados/testers: los decants no necesitan etiqueta)
-    const presentationHTML = presentation
-      ? `<span class="presentation-chip">${esc(presentation)}</span>`
-      : "";
-    const soon = isComingSoon(product.id);
     return `
       <div class="product-card reveal-item" data-product-id="${product.id}">
         <div class="img-wrapper">
           ${badgeHTML}
-          ${soon ? `<span class="product-badge soon">Próximamente</span>` : ""}
-          ${bestsellerHTML}
-          ${presentationHTML}
           <img src="${esc(product.cardImage || cardImg(product))}" alt="${esc(product.name)} - ${esc(product.brand)}" loading="lazy" decoding="async" onload="this.classList.add('img-loaded'); this.closest('.img-wrapper').classList.add('skeleton-done');" onerror="if(this.src!=='${PLACEHOLDER_IMG}'){this.src='${PLACEHOLDER_IMG}';}else{this.style.display='none'; this.closest('.img-wrapper').classList.add('skeleton-done');}" />
         </div>
         <div class="product-info">
@@ -1425,14 +1391,8 @@
   function renderFeatured() {
     const grid = $("featuredGrid");
     if (!grid) return;
-    /* Grid 2×5: 10 destacados, priorizando "Más Vendido" sobre
-       "Tendencia en TikTok" (estable: el resto conserva el orden). */
-    const rank = (p) =>
-      p.bestsellerLabel === "Más Vendido" ? 0 : p.bestsellerLabel ? 1 : 2;
     const featured = products
-      .filter((p) => p.featured)
-      .sort((a, b) => rank(a) - rank(b))
-      .slice(0, 10);
+      .filter((p) => p.featured);
     grid.innerHTML = featured.map(createProductCard).join("");
     observeRevealElements();
     window.FraganceAnimations?.refresh?.();

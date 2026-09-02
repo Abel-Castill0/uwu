@@ -148,19 +148,35 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     if (t && after === "dark") { t.click(); }
   }, 250);
 
-  /* 7. home: 10 destacados (2 filas x 5) con badges de bestseller + logo */
+  /* 7. Home: los destacados son datos de merchandising, no una afirmación
+     de ventas ni un cambio de precio. */
   step(function () {
     window.navigateTo("home");
     var cards = document.querySelectorAll("#featuredGrid .product-card");
-    ok(cards.length === 10, "featured10", "featuredGrid=" + cards.length);
-    var badges = document.querySelectorAll("#featuredGrid .product-badge.bestseller");
-    ok(badges.length === 10, "badge10", "badges=" + badges.length);
-    var labels = {};
-    badges.forEach(function (b) { labels[b.textContent.trim()] = 1; });
-    ok(labels["Más Vendido"] && labels["Tendencia en TikTok"], "badgeLabels", Object.keys(labels).join("/"));
+    var ids = Array.prototype.map.call(cards, function (card) { return Number(card.dataset.productId); });
+    ok(ids.join(",") === "6,33,130,133", "featuredConfigured", "ids=" + ids.join(","));
+    ok(Array.prototype.every.call(cards, function (card) {
+      return card.querySelectorAll(".product-badge").length === 1 &&
+        card.querySelector(".product-badge").textContent.trim() === "Destacado";
+    }), "featuredOneBadge", "badges=" + document.querySelectorAll("#featuredGrid .product-badge").length);
+    ok(Array.prototype.every.call(cards, function (card) {
+      return !card.querySelector(".price-regular, .price-pct") && /^Desde S\/ /.test(card.querySelector(".product-price").textContent.trim());
+    }), "featuredKeepsRealPrice", "precios=" + Array.prototype.map.call(cards, function (card) { return card.querySelector(".product-price").textContent.trim(); }).join("|"));
     var img = document.querySelector(".logo-img");
     ok(img && img.complete && img.naturalWidth > 0, "logoOk", "naturalWidth=" + (img ? img.naturalWidth : "sin img"));
   }, 500);
+
+  /* 7b. Próximamente conserva disponibilidad y no se presenta como oferta. */
+  step(function () { window.navigateTo("catalogo"); }, 250);
+  step(function () {
+    var soonCard = document.querySelector('#catalogGrid .product-card[data-product-id="9"]');
+    if (soonCard) soonCard.click();
+    ok(!!soonCard, "soonCardRendered", "id=9 ausente");
+    ok(soonCard && soonCard.querySelectorAll(".product-badge").length === 1 && soonCard.querySelector(".product-badge").textContent.trim() === "Próximamente", "soonOneBadge", "badge=" + (soonCard && soonCard.querySelector(".product-badge") ? soonCard.querySelector(".product-badge").textContent : ""));
+    ok(soonCard && !soonCard.querySelector(".price-regular, .price-pct"), "soonNoPromoMarkup", "precio=" + (soonCard ? soonCard.querySelector(".product-price").textContent.trim() : ""));
+    ok(!document.querySelector("#modalPrice .price-regular, #modalPrice .price-pct"), "soonModalNoPromoMarkup", "modal=" + document.getElementById("modalPrice").textContent.trim());
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  }, 350);
 
   /* 8. Combo builder: navigate, verify list renders (perfumes elegibles
      con 3/5/10ml; "SWY Amber" ya no esta en el catalogo -- ver Prompt 35).
@@ -172,6 +188,10 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(!!list, "comboListExists", "sin comboList");
     var items = document.querySelectorAll("#comboList .combo-item");
     ok(items.length > 0, "comboItemsRendered", "items=" + items.length);
+    ok(Array.prototype.every.call(items, function (item) {
+      var price = item.querySelector(".combo-item__price");
+      return price && price.children.length === 0 && /^(S\/ |Sin \d+ml$)/.test(price.textContent.trim());
+    }), "comboRowsOnlyCurrentPrice", "filas=" + items.length);
   }, 500);
 
   /* comboToggleProduct() re-renderiza toda la lista (innerHTML) en cada
@@ -635,15 +655,18 @@ step(function () {
     if (completos) completos.click();
   }, 400);
   step(function () {
-    var chip = function (id) {
+    var badge = function (id) {
       var card = document.querySelector('#catalogGrid .product-card[data-product-id="' + id + '"]');
-      var el = card && card.querySelector(".presentation-chip");
+      var el = card && card.querySelector(".product-badge");
       return el ? el.textContent.trim() : null;
     };
-    ok(chip(146) === "Tester", "condTester146", "chip=" + chip(146));
-    ok(chip(147) === "Parcial · 99% de contenido", "condParcial147", "chip=" + chip(147));
-    ok(chip(148) === "Parcial · 99% de contenido", "condParcial148", "chip=" + chip(148));
-    ok(chip(141) === "Caja Sellada", "condSelladoNormal141", "chip=" + chip(141));
+    ok(badge(146) === "Tester", "condTester146", "badge=" + badge(146));
+    ok(badge(147) === "Parcial · 99% de contenido", "condParcial147", "badge=" + badge(147));
+    ok(badge(148) === "Parcial · 99% de contenido", "condParcial148", "badge=" + badge(148));
+    ok(badge(141) === "Frasco completo", "condSelladoNormal141", "badge=" + badge(141));
+    ok(Array.prototype.every.call(document.querySelectorAll('#catalogGrid .product-card[data-product-id="141"], #catalogGrid .product-card[data-product-id="142"], #catalogGrid .product-card[data-product-id="143"], #catalogGrid .product-card[data-product-id="144"], #catalogGrid .product-card[data-product-id="145"], #catalogGrid .product-card[data-product-id="146"], #catalogGrid .product-card[data-product-id="147"], #catalogGrid .product-card[data-product-id="148"]'), function (card) {
+      return card.querySelectorAll(".product-badge").length === 1 && card.querySelector(".price-special-label").textContent.trim() === "Precio especial";
+    }), "fullBottlesSpecialPrice", "completos=" + document.querySelectorAll('#catalogGrid .product-card[data-product-id]').length);
     // WhatsApp: la condición y el precio no deben perderse al cotizar
     window.openModal(147);
   }, 300);

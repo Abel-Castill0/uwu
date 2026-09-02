@@ -557,6 +557,10 @@
     font-size: 1.1rem; font-weight: 700; color: var(--gold-deep);
     order: 3; flex-basis: 100%;
   }
+  .price-special-label {
+    order: 0; flex-basis: 100%; font-size: .62rem; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted);
+  }
   .btn-add {
     width: 100%; margin-top: .8rem; padding: .7rem; background: transparent; border: 1.5px solid var(--border);
     color: var(--text-secondary); border-radius: var(--r-pill); font-weight: 600; font-size: .72rem;
@@ -920,6 +924,7 @@
      precio final restaurado al tamaño dominante propio del modal. */
   .modal-price-display .price-final { font-size: 1.6rem; }
   .modal-price-display .price-regular { font-family: var(--font-body); }
+  .modal-price-display .price-special-label { font-family: var(--font-body); }
   .price-size-badge {
     font-family: var(--font-body); font-size: .72rem; font-weight: 700; letter-spacing: .04em;
     color: #fff; background: var(--color-black);
@@ -5394,39 +5399,4 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .nav-backdrop { transition: none; }
   .nav { transition: none; }
-}
-
-/* ── Fake discount (precio visual con descuento ficticio) ── */
-.price-fake-original {
-  font-size: .72em; font-weight: 400; color: var(--text-muted);
-  text-decoration: line-through; opacity: .65; margin-right: .2rem;
-}
-.price-fake-pct {
-  display: inline-block; padding: .1rem .35rem; margin: 0 .2rem;
-  border-radius: var(--r-pill); font-size: .58rem; font-weight: 700;
-  background: var(--danger, #c0392b); color: #fff; letter-spacing: .03em;
-  vertical-align: middle; line-height: 1.3;
-}
-.price-fake-real {
-  font-weight: 700; color: var(--gold-deep);
-}
-[data-theme="dark"] .price-fake-real { color: var(--gold-light); }
-/* Product card: make fake discount wrap nicely */
-.product-price:has(.price-fake-real) {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .3rem;
-  white-space: normal;
-}
-/* Combo items: fake discount inline, smaller */
-.combo-item__price .price-fake-original { font-size: .58rem; }
-.combo-item__price .price-fake-pct { font-size: .48rem; padding: .05rem .25rem; }
-.combo-item__price .price-fake-real { font-size: .7rem; }
-/* Modal: fake discount larger */
-.modal .price-fake-original { font-size: .8em; }
-.modal .price-fake-pct { font-size: .65em; padding: .12rem .45rem; }
-.modal .price-fake-real { font-size: 1.05em; }
-/* Small screens: tighten up */
-@media (max-width: 560px) {
-  .product-price:has(.price-fake-real) { font-size: .88rem; }
-  .price-fake-pct { font-size: .5rem; padding: .08rem .3rem; }
-  .price-fake-original { font-size: .65em; }
 }
