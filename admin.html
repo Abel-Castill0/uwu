@@ -13,7 +13,7 @@
     href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600;700&display=swap" />
   <script>
     (function () {
-      try { var t = localStorage.getItem("fo_theme") || localStorage.getItem("paco_theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); document.documentElement.setAttribute("data-theme", t); }
+      try { var t = localStorage.getItem("fo_theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); document.documentElement.setAttribute("data-theme", t); }
       catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
     })();
   </script>

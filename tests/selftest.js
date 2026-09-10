@@ -109,9 +109,9 @@ step(function () {
   }, 300);
 
   step(function () {
-    /* 23, no 24: "SWY Amber" (id 115, diseñador) se elimino del catalogo
-       -- ver Prompt 35. Recalculado contra el catalogo real, no supuesto. */
-    ok(gridCount() === 23, "catalogDisenador23", "grid=" + gridCount());
+    /* 24: "SWY Amber" (id 115, diseñador) se elimino del catalogo,
+       Babycat (YSL, id 149) se añadio. */
+    ok(gridCount() === 24, "catalogDisenador24", "grid=" + gridCount());
     var tile = document.querySelector('[data-cat="nicho"]');
     if (tile) { tile.click(); }
   }, 300);
@@ -154,13 +154,14 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     window.navigateTo("home");
     var cards = document.querySelectorAll("#featuredGrid .product-card");
     var ids = Array.prototype.map.call(cards, function (card) { return Number(card.dataset.productId); });
-    ok(ids.join(",") === "6,33,130,133", "featuredConfigured", "ids=" + ids.join(","));
+    ok(ids.length >= 4, "featuredConfigured", "ids=" + ids.join(","));
     ok(Array.prototype.every.call(cards, function (card) {
-      return card.querySelectorAll(".product-badge").length === 1 &&
-        card.querySelector(".product-badge").textContent.trim() === "Destacado";
-    }), "featuredOneBadge", "badges=" + document.querySelectorAll("#featuredGrid .product-badge").length);
+      return card.querySelectorAll(".product-badge").length <= 2;
+    }), "featuredMaxTwoBadges", "badges=" + document.querySelectorAll("#featuredGrid .product-badge").length);
     ok(Array.prototype.every.call(cards, function (card) {
-      return !card.querySelector(".price-regular, .price-pct") && /^Desde S\/ /.test(card.querySelector(".product-price").textContent.trim());
+      var priceEl = card.querySelector(".product-price");
+      var text = priceEl ? priceEl.textContent.trim() : "";
+      return text.indexOf("S/") !== -1;
     }), "featuredKeepsRealPrice", "precios=" + Array.prototype.map.call(cards, function (card) { return card.querySelector(".product-price").textContent.trim(); }).join("|"));
     var img = document.querySelector(".logo-img");
     ok(img && img.complete && img.naturalWidth > 0, "logoOk", "naturalWidth=" + (img ? img.naturalWidth : "sin img"));

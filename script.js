@@ -8,7 +8,8 @@
      DATA — productos y packs viven en productos.js
      (edita ese archivo para agregar/quitar perfumes, no este)
   ══════════════════════════════════════════════════════════════ */
-  const products = window.FO_PRODUCTS || window.PACO_PRODUCTS || [];
+  if (!window.FO_PRODUCTS) { console.error("FO_PRODUCTS not loaded"); }
+  const products = window.FO_PRODUCTS || [];
   // Única fuente de verdad para rutas de la SPA. Las vistas auxiliares se
   // conservan porque los modales informativos las usan internamente.
   const VALID_PAGES = new Set([
@@ -138,9 +139,10 @@
     set('link[rel="canonical"]', "href", map.canonical);
   }
   function setProductMeta(product) {
-    const sizes = Object.values(product.decantSizes || {});
-    const min = sizes.length ? Math.min(...sizes) : (Object.values(product.fullSizes || {})[0] || null);
-    const desde = min ? `Desde ${formatPrice(min)}. ` : "";
+    const decantVals = Object.values(product.decantSizes || {});
+    const hasDecants = decantVals.length > 0;
+    const min = hasDecants ? Math.min(...decantVals) : (Object.values(product.fullSizes || {})[0] || null);
+    const desde = hasDecants && min ? `Desde ${formatPrice(min)}. ` : min ? `${formatPrice(min)}. ` : "";
     const img = product.cardImage ? SITE_URL + product.cardImage : META.ogImage;
     const url = SITE_URL + "?producto=" + product.id;
     setMeta({
@@ -198,7 +200,7 @@
   /* currentSearchTerm eliminado — búsqueda removida */
 
   try {
-    const saved = localStorage.getItem("fo_cart_v4") || localStorage.getItem("paco_cart_v4");
+    const saved = localStorage.getItem("fo_cart_v4");
     if (saved) cart = JSON.parse(saved);
   } catch (e) {
     cart = [];
@@ -2029,7 +2031,7 @@
   }
   setupPayMethods();
 
-  // Guarda el pedido en localStorage (paco_pedidos) para el panel admin.
+  // Guarda el pedido en localStorage (fo_pedidos) para el panel admin.
   function saveOrderRecord(datos) {
     try {
       const now = new Date();
@@ -2057,7 +2059,7 @@
         estado: "Pendiente",
       };
       let arr = [];
-      try { arr = JSON.parse(localStorage.getItem("fo_pedidos")) || JSON.parse(localStorage.getItem("paco_pedidos")) || []; } catch (e) { arr = []; }
+      try { arr = JSON.parse(localStorage.getItem("fo_pedidos")) || []; } catch (e) { arr = []; }
       if (!Array.isArray(arr)) arr = [];
       arr.unshift(pedido);
       localStorage.setItem("fo_pedidos", JSON.stringify(arr));
@@ -2555,9 +2557,12 @@
     if (stepEl) stepEl.innerHTML = `<h3 class="quiz-q quiz-result-title">Tus fragancias ideales</h3>`;
     grid.classList.remove("reco-fade-in"); void grid.offsetWidth;
     grid.innerHTML = items.map((p, i) => {
-      const sizes = Object.values(p.decantSizes || {});
-      const min = sizes.length ? Math.min(...sizes) : null;
-      const price = min ? `Desde ${formatPrice(min)}` : "Consultar";
+      const dSizes = Object.values(p.decantSizes || {});
+      const fSizes = Object.values(p.fullSizes || {});
+      const hasDecants = dSizes.length > 0;
+      const minD = hasDecants ? Math.min(...dSizes) : null;
+      const minF = !hasDecants && fSizes.length ? Math.min(...fSizes) : null;
+      const price = minD ? `Desde ${formatPrice(minD)}` : minF ? formatPrice(minF) : "Consultar";
       return `
         <div class="reco-card" data-product-id="${p.id}" role="button" tabindex="0" aria-label="Ver ${esc(p.name)}" style="animation-delay:${(i * 0.05).toFixed(2)}s">
           <div class="reco-img"><img src="${esc(p.cardImage)}" alt="${esc(p.name)}" loading="lazy" decoding="async" onerror="if(this.src!=='${PLACEHOLDER_IMG}'){this.src='${PLACEHOLDER_IMG}';}else{this.style.display='none';}" /></div>

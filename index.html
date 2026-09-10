@@ -129,7 +129,7 @@
   <script>
     (function () {
       try {
-        var saved = localStorage.getItem("fo_theme") || localStorage.getItem("paco_theme");
+        var saved = localStorage.getItem("fo_theme");
         var theme = saved || "dark";
         document.documentElement.setAttribute("data-theme", theme);
       } catch (e) {
@@ -555,7 +555,7 @@
       <section class="promo-strip" aria-label="Promociones del catálogo">
         <div class="discount-summary">
           <div class="discount-summary__heading">
-            <span class="discount-summary__eyebrow">Beneficio automático</span>
+            <span class="discount-summary__eyebrow">Beneficios automáticos</span>
             <strong>Descuentos por cantidad</strong>
             <span>Decants de 1 a 10 ml · nicho y diseñador combinables</span>
           </div>
@@ -563,6 +563,14 @@
             <div><strong>2–5</strong><span>5%</span></div>
             <div><strong>6–9</strong><span>10%</span></div>
             <div><strong>10+</strong><span>15%</span></div>
+          </div>
+          <div class="discount-summary__extra">
+            <span><strong>3+ misma marca</strong> → 10%</span>
+            <span class="discount-summary__sep">·</span>
+            <span>Excluyente: se aplica el mayor beneficio</span>
+          </div>
+          <div class="discount-summary__threshold">
+            <strong>Desde S/ 199</strong> · envío gratis + vial de nicho de regalo
           </div>
           <button type="button" class="discount-summary__more" onclick="openInfoModal('beneficios')">Ver beneficios</button>
         </div>
