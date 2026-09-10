@@ -82,9 +82,24 @@ console.log("\n=== MEFISTO ===");
 const m = findProduct(150);
 const mProx = proxArr.includes(150);
 check("Mefisto(150) exists", !!m, "");
-check("Mefisto in PROXIMAMENTE (BLOCKER)", mProx, "");
+check("Mefisto NOT in PROXIMAMENTE", !mProx, "prox=" + mProx);
+check("Mefisto brand=Xerjoff", m && m.brand === "Xerjoff", "brand=" + (m ? m.brand : "?"));
+check("Mefisto has decants", m && m.hasDecants, "");
 const hasGentiluomo = src.includes("Mefisto Gentiluomo");
 check("Mefisto Gentiluomo does NOT exist", !hasGentiluomo, "");
+// Verify exact prices
+if (m) {
+  const mefRaw = m.raw || "";
+  check("Mefisto 1ml=19", mefRaw.includes("1:19"), mefRaw.substring(0, 300));
+  check("Mefisto 2ml=25", mefRaw.includes("2:25"), "");
+  check("Mefisto 3ml=35", mefRaw.includes("3:35"), "");
+  check("Mefisto 5ml=49", mefRaw.includes("5:49"), "");
+  check("Mefisto 10ml=99", mefRaw.includes("10:99"), "");
+  check("Mefisto 30ml=249", mefRaw.includes("30:249"), "");
+  check("Mefisto NO 5ml_premium", !mefRaw.includes("5_premium"), "");
+  check("Mefisto NO 10ml_premium", !mefRaw.includes("10_premium"), "");
+  check("Mefisto NO 20ml", !mefRaw.includes("20:"), "");
+}
 
 // 5. Images
 console.log("\n=== IMAGES ===");

@@ -164,9 +164,8 @@
        NUEVOS PRODUCTOS — Babycat (YSL) + Mefisto (Xerjoff)
     ══════════════════════════════════════════════════════════════ */
     { id: 149, name: "Babycat", brand: "Yves Saint Laurent", category: "disenador", gender: "unisex", notes: "Vainilla ahumada, pimienta negra y sándalo: sensual, cálido y adictivo.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {2:35,3:55,5:79,10:159,30:399}, fullImage: "", decantImage: "", cardImage: "", featured: false, badge: null, badgeText: "" },
-    /* BLOCKER: Mefisto (Xerjoff) — precios de decants NO proporcionados
-       por el cliente. NO publicar como comprable sin precios confirmados. */
-    { id: 150, name: "Mefisto", brand: "Xerjoff", category: "nicho", gender: "unisex", notes: "Bergamota, lavanda y almizcle: fresco, elegante y atemporal.", description: "BLOCKER — Precios de decants pendientes. No disponible para compra.", fullSizes: {}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", featured: false, badge: null, badgeText: "" },
+    /* Mefisto (Xerjoff) — precios confirmados por cliente */
+    { id: 150, name: "Mefisto", brand: "Xerjoff", category: "nicho", gender: "unisex", notes: "Bergamota, lavanda y almizcle: fresco, elegante y atemporal.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {1:19,2:25,3:35,5:49,10:99,30:249}, fullImage: "", decantImage: "", cardImage: "", featured: false, badge: null, badgeText: "" },
   ];
 
   /* ══════════════════════════════════════════════════════════════
