@@ -1,6 +1,8 @@
 node_modules/
 .agents/
 .claude/settings.local.json
+.env
+.vscode/
 *.log
 .DS_Store
 Thumbs.db
