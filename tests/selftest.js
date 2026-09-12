@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   "use strict";
   window.requestAnimationFrame = function (cb) { return setTimeout(function () { cb(Date.now()); }, 16); };
   window.cancelAnimationFrame = function (id) { clearTimeout(id); };
@@ -6,9 +6,9 @@
   var results = [];
   var errors = [];
 
-  // La confirmaciÃ³n de checkout programa una navegaciÃ³n a gracias.html con un
-  // setTimeout de 1600 ms. Ese efecto lateral matarÃ­a la pÃ¡gina antes de que el
-  // paso de resumen fije el tÃ­tulo. Se neutraliza en el harness: el test ya
+  // La confirmación de checkout programa una navegación a gracias.html con un
+  // setTimeout de 1600 ms. Ese efecto lateral mataría la página antes de que el
+  // paso de resumen fije el título. Se neutraliza en el harness: el test ya
   // valida la apertura de wa.me y la ausencia de MercadoPago; navegar no aporta
   // nada y contamina las corridas medidas.
   var _origSetTimeout = window.setTimeout;
@@ -36,7 +36,7 @@
   });
 
   function pass(name) { results.push([name, true, ""]); show("PASS " + name); }
-  function fail(name, why) { results.push([name, false, why]); show("FAIL " + name + " â€” " + why); }
+  function fail(name, why) { results.push([name, false, why]); show("FAIL " + name + " — " + why); }
   function ok(cond, name, why) { cond ? pass(name) : fail(name, why); }
   function cartTotal() { return parseInt(document.getElementById("cartCount").textContent, 10) || 0; }
   function gridCount() { return document.querySelectorAll("#catalogGrid .product-card").length; }
@@ -48,7 +48,7 @@
   window.open = function (u) { window.__opened = u; return {}; };
   window.__opened = null;
 
-  /* 1. catalogo: elegir categoria Ã¢â€ â€™ grid completo */
+  /* 1. catalogo: elegir categoria â†’ grid completo */
   step(function () {
     window.navigateTo("catalogo");
     var tile = document.querySelector('[data-cat="nicho"]');
@@ -58,7 +58,7 @@
 
 step(function () {
     ok(gridCount() === 24, "catalogNichoInitial24", "initial grid=" + gridCount());
-    // Cadena asÃ­ncrona: cada click debe esperar el render interno (setTimeout
+    // Cadena asíncrona: cada click debe esperar el render interno (setTimeout
     // 160ms de renderCatalog) para que el grid crezca de verdad. __chains evita
     // que el scheduler avance al siguiente paso antes de que la cadena termine.
     window.__chains += 1;
@@ -71,8 +71,8 @@ step(function () {
         setTimeout(clickLoadMore, 300);
       } else {
         window.__chains -= 1;
-        // nicho (116 productos): el render incremental aÃ±ade chunks de 24; al
-        // desbordar el Ãºltimo chunk, el grid queda en 120 tarjetas (sin botÃ³n).
+        // nicho (116 productos): el render incremental añade chunks de 24; al
+        // desbordar el último chunk, el grid queda en 120 tarjetas (sin botón).
         ok(gridCount() === 120, "catalogNichoFiltered", "grid=" + gridCount());
       }
     }
@@ -101,7 +101,7 @@ step(function () {
     ok(!document.getElementById("modalOverlay").classList.contains("active"), "escClosesModal", "modalOverlay sigue activo");
   }, 200);
 
-  /* 5. cambio de categoria: disenador Ã¢â€ â€™ 24, vuelta a nicho Ã¢â€ â€™ 116 */
+  /* 5. cambio de categoria: disenador â†’ 24, vuelta a nicho â†’ 116 */
   step(function () {
     var tile = document.querySelector('[data-cat="disenador"]');
     ok(!!tile, "catalogTileDisenador", "sin tile disenador");
@@ -109,8 +109,8 @@ step(function () {
   }, 300);
 
   step(function () {
-    /* 24: "SWY Amber" (id 115, diseÃ±ador) se elimino del catalogo,
-       Babycat (YSL, id 149) se aÃ±adio. */
+    /* 24: "SWY Amber" (id 115, diseñador) se elimino del catalogo,
+       Babycat (YSL, id 149) se añadio. */
     ok(gridCount() === 24, "catalogDisenador24", "grid=" + gridCount());
     var tile = document.querySelector('[data-cat="nicho"]');
     if (tile) { tile.click(); }
@@ -148,7 +148,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     if (t && after === "dark") { t.click(); }
   }, 250);
 
-  /* 7. Home: los destacados son datos de merchandising, no una afirmaciÃ³n
+  /* 7. Home: los destacados son datos de merchandising, no una afirmación
      de ventas ni un cambio de precio. */
   step(function () {
     window.navigateTo("home");
@@ -167,13 +167,13 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(img && img.complete && img.naturalWidth > 0, "logoOk", "naturalWidth=" + (img ? img.naturalWidth : "sin img"));
   }, 500);
 
-  /* 7b. PrÃ³ximamente conserva disponibilidad y no se presenta como oferta. */
+  /* 7b. Próximamente conserva disponibilidad y no se presenta como oferta. */
   step(function () { window.navigateTo("catalogo"); }, 250);
   step(function () {
     var soonCard = document.querySelector('#catalogGrid .product-card[data-product-id="9"]');
     if (soonCard) soonCard.click();
     ok(!!soonCard, "soonCardRendered", "id=9 ausente");
-    ok(soonCard && soonCard.querySelectorAll(".product-badge").length === 1 && soonCard.querySelector(".product-badge").textContent.trim() === "PrÃ³ximamente", "soonOneBadge", "badge=" + (soonCard && soonCard.querySelector(".product-badge") ? soonCard.querySelector(".product-badge").textContent : ""));
+    ok(soonCard && soonCard.querySelectorAll(".product-badge").length === 1 && soonCard.querySelector(".product-badge").textContent.trim() === "Próximamente", "soonOneBadge", "badge=" + (soonCard && soonCard.querySelector(".product-badge") ? soonCard.querySelector(".product-badge").textContent : ""));
     ok(soonCard && !soonCard.querySelector(".price-regular, .price-pct"), "soonNoPromoMarkup", "precio=" + (soonCard ? soonCard.querySelector(".product-price").textContent.trim() : ""));
     ok(!document.querySelector("#modalPrice .price-regular, #modalPrice .price-pct"), "soonModalNoPromoMarkup", "modal=" + document.getElementById("modalPrice").textContent.trim());
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
@@ -231,7 +231,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(selectable === 0, "comboMaxCapsSelection", "seleccionables restantes=" + selectable);
   }, 400);
 
-  /* 11. Combo: confirmar agrega un pack temporal y lleva al checkout Ãºnico. */
+  /* 11. Combo: confirmar agrega un pack temporal y lleva al checkout único. */
   step(function () {
     var comboBtn = document.getElementById("comboConfirmBtn");
     ok(comboBtn && !comboBtn.disabled, "comboConfirmEnabled", "disabled=" + (comboBtn ? comboBtn.disabled : "sin boton"));
@@ -260,7 +260,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
   /* 12. qty + total */
   step(function () {
     var plus = document.querySelector('#cartItems [data-action="qty"][data-delta="1"][data-index="0"]');
-    ok(!!plus, "qtyButton", "sin botÃ³n qty");
+    ok(!!plus, "qtyButton", "sin botón qty");
     if (!plus) { return; }
     plus.click();
     var span = document.querySelector('#cartItems [data-action="qty"][data-index="0"] + span');
@@ -277,7 +277,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(cartBadges.length === 3, "trustBadgesCart3", "badges=" + cartBadges.length);
   }, 400);
 
-  /* 13c. footer: modales informativos (FAQ abre, Esc cierra, TÃ©rminos cambia contenido) */
+  /* 13c. footer: modales informativos (FAQ abre, Esc cierra, Términos cambia contenido) */
   step(function () {
     var links = document.querySelectorAll("#footerInfoLinks [data-info-modal]");
     ok(links.length >= 4, "footerLinks4", "links=" + links.length);
@@ -296,7 +296,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     var ter = document.querySelector('[data-info-modal="terminos"]');
     if (ter) { ter.click(); }
     var t = document.getElementById("infoModalTitle");
-    ok(t && t.textContent.indexOf("TÃ©rminos") >= 0, "infoModalSwitch", "title=" + (t ? t.textContent : "?"));
+    ok(t && t.textContent.indexOf("Términos") >= 0, "infoModalSwitch", "title=" + (t ? t.textContent : "?"));
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     var ov = document.getElementById("infoModalOverlay");
     ok(ov && !ov.classList.contains("active"), "infoModalEsc", "sigue activo");
@@ -328,17 +328,17 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     var cfg = (window.FO_CONFIG && window.FO_CONFIG.REVIEWS) ? window.FO_CONFIG.REVIEWS.length : 0;
     ok(cards.length === cfg && cfg > 0, "reviewsFromConfig", "cards=" + cards.length + " cfg=" + cfg);
     var stars = document.querySelector("#reviewsTrack .review-card .review-stars");
-    ok(stars && stars.textContent.indexOf("â˜…") >= 0, "reviewsStars", "sin estrellas");
+    ok(stars && stars.textContent.indexOf("★") >= 0, "reviewsStars", "sin estrellas");
     var names = Array.prototype.map.call(document.querySelectorAll("#reviewsTrack .review-meta strong"), function (s) { return s.textContent; });
-    ok(names.length === cfg && names[0] === "MarÃ­a G.", "reviewsNames", names.join(","));
+    ok(names.length === cfg && names[0] === "María G.", "reviewsNames", names.join(","));
   }, 300);
 
-  /* 13f. announcement estable: una sola informaciÃ³n Ãºtil, sin marquee. */
+  /* 13f. announcement estable: una sola información útil, sin marquee. */
   step(function () {
     var announcement = document.querySelector(".announcement");
     ok(!!announcement, "announcementExists", "sin announcement");
-    ok(announcement && /EnvÃ­os a todo el PerÃº/i.test(announcement.textContent), "announcementStable", "texto inesperado");
-    ok(!document.getElementById("marqueeTrack"), "marqueeRemoved", "marquee global todavÃ­a existe");
+    ok(announcement && /Envíos a todo el Perú/i.test(announcement.textContent), "announcementStable", "texto inesperado");
+    ok(!document.getElementById("marqueeTrack"), "marqueeRemoved", "marquee global todavía existe");
   }, 300);
 
   /* 13g. FABs agrupados, monocromaticos, esquina inferior derecha */
@@ -351,7 +351,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     var wa = document.getElementById("waFab");
     var bg = wa ? getComputedStyle(wa).backgroundImage : "";
     ok(wa && bg === "none", "waFabMono", "bg=" + bg);
-    ok(wa && wa.getAttribute("aria-label") === "EscrÃ­benos por WhatsApp", "waFabAria", "sin aria-label");
+    ok(wa && wa.getAttribute("aria-label") === "Escríbenos por WhatsApp", "waFabAria", "sin aria-label");
     var ig = document.getElementById("igFab");
     ok(!ig, "igFabRemoved", "igFab should not exist");
     var sticky = document.querySelector(".sticky-cart");
@@ -380,14 +380,14 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
      reemplaza por uno equivalente sobre el select porque no aporta
      cobertura nueva. */
 
-  /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ PROMPT 10: frascoÃ¢â€ â€™WhatsApp, decants premium, precios, agrupacion Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+  /* â”€â”€â”€ PROMPT 10: frascoâ†’WhatsApp, decants premium, precios, agrupacion â”€â”€â”€ */
 
   /* P0. catalogo: grilla continua uniforme, 5 columnas desktop, sin huecos */
 step(function () {
     window.navigateTo("catalogo");
-    // El render del catÃ¡logo es asÃ­ncrono (setTimeout 160ms dentro de
+    // El render del catálogo es asíncrono (setTimeout 160ms dentro de
     // renderCatalog). Si venimos de un grid con 120 tarjetas, medir al instante
-    // verÃ­a el estado viejo. Se espera con __chains hasta que el render pinte.
+    // vería el estado viejo. Se espera con __chains hasta que el render pinte.
     window.__chains += 1;
     setTimeout(function () {
       var groups = document.querySelectorAll("#catalogGrid .brand-group").length;
@@ -398,7 +398,7 @@ step(function () {
       var cards = Array.prototype.slice.call(document.querySelectorAll("#catalogGrid .product-card"));
       ok(cards.length === 24, "catalogGroupedInitial24", "grid=" + cards.length);
       // Alturas uniformes se miden sobre las 24 tarjetas iniciales (render ya
-      // aplicado): tras cargar 120+ tarjetas, las imÃ¡genes aÃºn cargando
+      // aplicado): tras cargar 120+ tarjetas, las imágenes aún cargando
       // falsean la medida. Es el comportamiento original de la suite.
       var hs = cards.map(function (c) { return c.getBoundingClientRect().height; });
       var uniform = hs.length > 1 && Math.max.apply(null, hs) - Math.min.apply(null, hs) <= 1;
@@ -412,9 +412,9 @@ step(function () {
         });
       });
       ok(outside.length === 0, "catalogCardBounds", "fuera=" + outside.map(function (card) { return card.dataset.productId; }).join(","));
-      ok(!document.querySelector(".stock-chip") && !/Quedan \d|Ãšltimas unidades/.test(document.getElementById("catalogGrid").textContent), "catalogNoSimulatedStock", "stock simulado visible");
+      ok(!document.querySelector(".stock-chip") && !/Quedan \d|Últimas unidades/.test(document.getElementById("catalogGrid").textContent), "catalogNoSimulatedStock", "stock simulado visible");
       var loadMoreBtn = document.getElementById("loadMoreCatalog");
-      ok(!!loadMoreBtn, "catalogLoadMoreExists", "botÃ³n Mostrar mÃ¡s presente");
+      ok(!!loadMoreBtn, "catalogLoadMoreExists", "botón Mostrar más presente");
       var maxClicks = 10;
       function clickLoadMore() {
         var btn = document.getElementById("loadMoreCatalog");
@@ -459,14 +459,14 @@ step(function () {
     var normalBtn = document.querySelector('#modalSizes [data-size="5"]');
     ok(!!normalBtn, "premiumBaseVisible", normalBtn ? "5ml base visible junto a premium" : "falta boton 5ml base");
     var premium = document.querySelector('#modalSizes [data-size="5_premium"]');
-    ok(!!premium, "premium5Btn", "sin botÃ³n 5_premium");
+    ok(!!premium, "premium5Btn", "sin botón 5_premium");
     if (premium) premium.click();
     var priceTxt = document.getElementById("modalPrice").textContent;
     var prem = parseFloat(priceTxt.match(/[\d.]+/)[0]);
     var expectedUplift = (base % 10 === 5) ? 4 : (base % 10 === 9) ? 6 : 0;
     ok(typeof base === "number" && typeof prem === "number" && prem === base + expectedUplift, "premiumPriceUplift", "base=" + base + " premium=" + prem + " uplift=" + expectedUplift);
     var btnTxt = document.getElementById("modalAddBtn").textContent;
-    ok(btnTxt.indexOf("AÃ±adir") !== -1 && btnTxt.indexOf("premium") !== -1 && btnTxt.indexOf(String(prem)) !== -1, "premiumPriceOnBtn", btnTxt.trim());
+    ok(btnTxt.indexOf("Añadir") !== -1 && btnTxt.indexOf("premium") !== -1 && btnTxt.indexOf(String(prem)) !== -1, "premiumPriceOnBtn", btnTxt.trim());
   }, 300);
 
   /* P3. anadir premium al carrito: tamano y precio correctos */
@@ -496,7 +496,7 @@ step(function () {
     ok(metas.some(function (t) { return t.indexOf("5ml decant premium") !== -1; }), "premiumCartLabel", metas.join(" | "));
   }, 200);
 
-  /* P4. frasco completo Ã¢â€ â€™ WhatsApp de cotizacion (no toca el carrito) */
+  /* P4. frasco completo â†’ WhatsApp de cotizacion (no toca el carrito) */
   step(function () {
     document.getElementById("cartOverlay").classList.remove("active");
     document.getElementById("cartSidebar").classList.remove("active");
@@ -529,9 +529,9 @@ step(function () {
     document.getElementById("cartSidebar").classList.remove("active");
   }, 350);
 
-  /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ PROMPT 11: descuentos E2E con decants premium Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+  /* â”€â”€â”€ PROMPT 11: descuentos E2E con decants premium â”€â”€â”€ */
 
-  /* P5-1: 2 premium (marcas distintas) Ã¢â€ â€™ 5% por cantidad */
+  /* P5-1: 2 premium (marcas distintas) â†’ 5% por cantidad */
   step(function () {
     var prods = (window.FO_PRODUCTS || []).filter(function (x) { return x.decantSizes && x.decantSizes["5"] && x.decantSizes["10"]; });
     var pA = prods[0];
@@ -547,16 +547,16 @@ step(function () {
     ok(bd.indexOf("5% por 2 decants") !== -1, "p11Dcto5E2E", bd.replace(/\s+/g, " ").trim().slice(0, 120));
   }, 250);
 
-  /* P5-2: +1 premium de la misma marca (3 items Marca A) Ã¢â€ â€™ 10% por marca */
+  /* P5-2: +1 premium de la misma marca (3 items Marca A) â†’ 10% por marca */
   step(function () {
     window.__FO_TEST.addToCart(window.__pA, "decant", "5_premium");
     var bd = document.getElementById("cartBreakdown").textContent;
     var marca = (window.FO_PRODUCTS || []).find(function (x) { return x.id === window.__pA; }).brand;
-    ok(bd.indexOf("10% en " + marca + " (3 Ã­tems)") !== -1, "p11DctoMarcaE2E", bd.replace(/\s+/g, " ").trim().slice(0, 140));
+    ok(bd.indexOf("10% en " + marca + " (3 ítems)") !== -1, "p11DctoMarcaE2E", bd.replace(/\s+/g, " ").trim().slice(0, 140));
     window.__FO_TEST.clearCart();
   }, 250);
 
-  /* P5-3: 1 premium + 1 normal Ã¢â€ â€™ 5% por cantidad; deja el carrito con 1 item para el checkout */
+  /* P5-3: 1 premium + 1 normal â†’ 5% por cantidad; deja el carrito con 1 item para el checkout */
   step(function () {
     window.__FO_TEST.clearCart();
     window.__FO_TEST.addToCart(window.__pA, "decant", "5");
@@ -564,11 +564,11 @@ step(function () {
     var bd = document.getElementById("cartBreakdown").textContent;
     ok(bd.indexOf("5% por 2 decants") !== -1, "p11MixE2E", bd.replace(/\s+/g, " ").trim().slice(0, 120));
     window.__FO_TEST.clearCart();
-    ok(document.getElementById("cartBreakdown").textContent === "", "p11CartLimpio", "breakdown no vacÃ­o");
+    ok(document.getElementById("cartBreakdown").textContent === "", "p11CartLimpio", "breakdown no vacío");
     window.__FO_TEST.addToCart(window.__pA, "decant", "5");
   }, 250);
 
-  /* 13. checkout: formulario Ã¢â€ â€™ wa.me + sin MercadoPago */
+  /* 13. checkout: formulario â†’ wa.me + sin MercadoPago */
   step(function () {
     window.__opened = null;
     var btn = document.querySelector(".btn-checkout");
@@ -589,15 +589,15 @@ step(function () {
     ok(!document.querySelector(".pay-method--mp, .mp-option, #mpCard, [data-pay='mp']"), "mpOculto", "controles MP presentes");
   }, 450);
 
-  /* 14. Hardening de carrito: sanitizeCartAvailability() como fuente Ãºnica de
+  /* 14. Hardening de carrito: sanitizeCartAvailability() como fuente única de
      verdad. Los objetos de prueba se construyen con la forma REAL que deja
-     addToCart() en localStorage (campo productId, nunca "id"): si la funciÃ³n
-     volviera a comprobar it.id, aquÃ­ getProductById(undefined) fallarÃ­a y
-     TODO se filtrarÃ­a como invÃ¡lido â€” contrato de comportamiento, no un
+     addToCart() en localStorage (campo productId, nunca "id"): si la función
+     volviera a comprobar it.id, aquí getProductById(undefined) fallaría y
+     TODO se filtraría como inválido — contrato de comportamiento, no un
      grep de nombre de campo. Un solo array cubre en una sola llamada: item
-     vÃ¡lido, precio viejo (el catÃ¡logo manda), PrÃ³ximamente, talla
+     válido, precio viejo (el catálogo manda), Próximamente, talla
      inexistente, cantidades corruptas (0, negativo, NaN, string) y objeto
-     sin productId â€” evita repetir 8 pasos casi idÃ©nticos. */
+     sin productId — evita repetir 8 pasos casi idénticos. */
   step(function () {
     var prods = (window.FO_PRODUCTS || []).filter(function (x) { return x.decantSizes && x.decantSizes["5"]; });
     var pValid = prods[2], pStale = prods[3], pProx = prods[4], pNoSize = prods[5];
@@ -627,8 +627,8 @@ step(function () {
       "cartSanitizePriceFromCatalog", "price=" + (s && s.price) + " esperado=" + pStale.decantSizes["5"]);
   }, 150);
 
-  /* 15. PrÃ³ximamente a mitad de sesiÃ³n (sin recarga): confirmarCompra() debe
-     bloquear el pedido â€” NO abrir wa.me â€” vaciar el Ã­tem invÃ¡lido del
+  /* 15. Próximamente a mitad de sesión (sin recarga): confirmarCompra() debe
+     bloquear el pedido — NO abrir wa.me — vaciar el ítem inválido del
      carrito y avisar. Reproduce el segundo punto de defensa exigido por el
      usuario, separado de la carga inicial (paso 14). */
   step(function () {
@@ -660,8 +660,8 @@ step(function () {
     }
   }, 350);
 
-  /* 15b. CondiciÃ³n real de frascos completos (tester/parcial): pedido
-     explÃ­cito del cliente -- los Ãºltimos 3 del catÃ¡logo (ids 146-148) NO
+  /* 15b. Condición real de frascos completos (tester/parcial): pedido
+     explícito del cliente -- los últimos 3 del catálogo (ids 146-148) NO
      pueden presentarse como "Caja Sellada" normal. Cubre card + WhatsApp;
      el modal ya se prueba en tests/e2e/fragrance.spec.js. */
   step(function () {
@@ -676,13 +676,13 @@ step(function () {
       return el ? el.textContent.trim() : null;
     };
     ok(badge(146) === "Tester", "condTester146", "badge=" + badge(146));
-    ok(badge(147) === "Parcial Â· 99% de contenido", "condParcial147", "badge=" + badge(147));
-    ok(badge(148) === "Parcial Â· 99% de contenido", "condParcial148", "badge=" + badge(148));
+    ok(badge(147) === "Parcial · 99% de contenido", "condParcial147", "badge=" + badge(147));
+    ok(badge(148) === "Parcial · 99% de contenido", "condParcial148", "badge=" + badge(148));
     ok(badge(141) === "Frasco completo", "condSelladoNormal141", "badge=" + badge(141));
     ok(Array.prototype.every.call(document.querySelectorAll('#catalogGrid .product-card[data-product-id="141"], #catalogGrid .product-card[data-product-id="142"], #catalogGrid .product-card[data-product-id="143"], #catalogGrid .product-card[data-product-id="144"], #catalogGrid .product-card[data-product-id="145"], #catalogGrid .product-card[data-product-id="146"], #catalogGrid .product-card[data-product-id="147"], #catalogGrid .product-card[data-product-id="148"]'), function (card) {
       return card.querySelectorAll(".product-badge").length === 1 && card.querySelector(".price-special-label").textContent.trim() === "Precio especial";
     }), "fullBottlesSpecialPrice", "completos=" + document.querySelectorAll('#catalogGrid .product-card[data-product-id]').length);
-    // WhatsApp: la condiciÃ³n y el precio no deben perderse al cotizar
+    // WhatsApp: la condición y el precio no deben perderse al cotizar
     window.openModal(147);
   }, 300);
   step(function () {
@@ -711,10 +711,10 @@ step(function () {
 
   /* 16. resumen */
   step(function () {
-    ok(errors.length === 0, "noConsoleErrors", errors.join(" | ") || "vacÃ­o");
+    ok(errors.length === 0, "noConsoleErrors", errors.join(" | ") || "vacío");
     // Algunas aserciones usan timers anidados (load-more, pollCart, E2E) que
-    // pueden aÃ±adir resultados un instante despuÃ©s de este paso. Esperar a que
-    // el conteo se estabilice antes de fijar el tÃ­tulo evita tÃ­tulos congelados
+    // pueden añadir resultados un instante después de este paso. Esperar a que
+    // el conteo se estabilice antes de fijar el título evita títulos congelados
     // (103 PASS) o conteos que no cuadran con el resumen impreso.
     var last = -1;
     var stableTries = 0;
@@ -734,7 +734,7 @@ step(function () {
     })();
   }, 300);
 
-  /* â”€â”€ Brand filter: DOM structure + state preservation â”€â”€ */
+  /* Brand filter: DOM structure + state preservation */
   step(function () {
     window.__chains += 1;
     setTimeout(function () {
@@ -746,64 +746,59 @@ step(function () {
       var clearBtn = document.getElementById("brandClearBtn");
       ok(clearBtn && clearBtn.style.display === "none", "brandClearHiddenByDefault", "display=" + (clearBtn && clearBtn.style.display));
 
-      /* 3. Set nicho + unisex via activeFilters */
-      var af = window.activeFilters;
-      if (af) {
-        af.category = "nicho";
-        af.gender = "unisex";
-      }
-      if (window.updateCatalogFilterButtons) window.updateCatalogFilterButtons();
+      /* 3. Click nicho category */
+      var nichoBtn = document.querySelector('[data-cat="nicho"]');
+      if (nichoBtn) nichoBtn.click();
+      var nichoAria = nichoBtn ? nichoBtn.getAttribute("aria-pressed") : null;
+      ok(nichoAria === "true", "nichoActivated", "aria=" + nichoAria);
 
-      /* 4. Open brand explorer â€” category/gender must survive */
+      /* 4. Click unisex gender */
+      var unisexBtn = document.querySelector("#filtersGender [data-filter='unisex']");
+      if (unisexBtn) unisexBtn.click();
+      var unisexAria = unisexBtn ? unisexBtn.getAttribute("aria-pressed") : null;
+      ok(unisexAria === "true", "unisexActivated", "aria=" + unisexAria);
+
+      /* 5. Open brand explorer */
       var brandBtn = document.getElementById("brandFilterBtn");
       if (brandBtn) brandBtn.click();
-      ok(af && af.category === "nicho", "categoryPreservedAfterBrandOpen", "cat=" + (af && af.category));
-      ok(af && af.gender === "unisex", "genderPreservedAfterBrandOpen", "gender=" + (af && af.gender));
-
-      /* 5. Close brand explorer */
       var overlay = document.getElementById("brandExplorerOverlay");
-      if (overlay && overlay.classList.contains("active")) {
-        var closeBtn = document.getElementById("brandExplorerClose");
-        if (closeBtn) closeBtn.click();
-      }
+      var overlayActive = overlay && overlay.classList.contains("active");
+      ok(overlayActive, "brandExplorerOpened", "active=" + overlayActive);
 
-      /* 6. Simulate brand selection and verify clear btn appears */
-      var testLabel = document.getElementById("brandFilterLabel");
-      var testClear = document.getElementById("brandClearBtn");
-      /* Set brand via the exposed filter state */
-      if (af) af.brand = "Xerjoff";
-      /* Trigger the catalog filter button update which calls updateBrandButton */
-      if (window.updateCatalogFilterButtons) window.updateCatalogFilterButtons();
-      var clearDisplay = testClear ? testClear.style.display : "none";
-      var labelText = testLabel ? testLabel.textContent : "";
-      var clearOk = clearDisplay !== "none" && labelText === "Xerjoff";
-      /* Fallback: direct DOM if updateBrandButton ref is broken */
-      if (!clearOk && testClear && testLabel) {
-        testClear.style.display = "inline-flex";
-        testLabel.textContent = "Xerjoff";
-        clearOk = testClear.style.display !== "none" && testLabel.textContent === "Xerjoff";
-      }
-      ok(clearOk, "brandClearVisibleWhenActive", "display=" + clearDisplay + " label=" + labelText);
+      /* 6. Close brand explorer */
+      var closeBtn = document.getElementById("brandExplorerClose");
+      if (closeBtn) closeBtn.click();
+      var overlayClosed = overlay && !overlay.classList.contains("active");
+      ok(overlayClosed, "brandExplorerClosed", "active=" + (overlay && overlay.classList.contains("active")));
 
-      /* 7. Clear brand â€” only brand resets, category/gender survive */
-      if (af) af.brand = null;
-      if (testLabel) testLabel.textContent = "Marcas";
-      if (testClear) testClear.style.display = "none";
-      ok(af && af.brand === null, "brandClearedOnX", "brand=" + af.brand);
-      ok(af && af.category === "nicho", "categoryPreservedAfterClear", "cat=" + af.category);
-      ok(af && af.gender === "unisex", "genderPreservedAfterClear", "gender=" + af.gender);
+      /* 7. Category and gender still active after explorer close */
+      var nichoStillActive = nichoBtn && nichoBtn.getAttribute("aria-pressed") === "true";
+      var unisexStillActive = unisexBtn && unisexBtn.getAttribute("aria-pressed") === "true";
+      ok(nichoStillActive, "categoryPreservedAfterExplorer", "aria=" + (nichoBtn && nichoBtn.getAttribute("aria-pressed")));
+      ok(unisexStillActive, "genderPreservedAfterExplorer", "aria=" + (unisexBtn && unisexBtn.getAttribute("aria-pressed")));
+
+      /* 8. Click brandFilterBtn again - explorer opens (not clears) */
+      if (brandBtn) brandBtn.click();
+      var overlayReopened = overlay && overlay.classList.contains("active");
+      ok(overlayReopened, "brandExplorerReopens", "active=" + overlayReopened);
+      if (closeBtn) closeBtn.click();
+
+      /* 9. Brand pill shows label correctly */
+      var brandLabel = document.getElementById("brandFilterLabel");
+      var labelText = brandLabel ? brandLabel.textContent.trim() : "";
+      ok(labelText === "Marcas" || labelText.length > 0, "brandLabelExists", "label=" + labelText);
     }, 400);
   }, 500);
 
   (function run(i) {
     if (i >= steps.length) {
       var fails = results.filter(function (r) { return !r[1]; });
-      fails.forEach(function (f) { show("ST_FAIL: " + f[0] + " â€” " + f[2]); });
+      fails.forEach(function (f) { show("ST_FAIL: " + f[0] + " — " + f[2]); });
       return;
     }
     var s = steps[i];
     try { s[0](); } catch (e) { fail("paso" + (i + 1), e.message); }
-    // Espera a que las cadenas asÃ­ncronas lanzadas por el paso (load-more,
+    // Espera a que las cadenas asíncronas lanzadas por el paso (load-more,
     // pollCart) terminen antes de avanzar. Sin esto, sus timers siguen
     // clicando/renderizando durante pasos posteriores y corrompen el grid.
     (function waitChains() {

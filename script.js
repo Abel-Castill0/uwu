@@ -1340,9 +1340,6 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   window.navigateTo = navigateTo;
-  window.activeFilters = activeFilters;
-  window.updateCatalogFilterButtons = updateCatalogFilterButtons;
-  window._updateBrandButton = updateBrandButton;
 
   /* Condición real de un frasco completo (sellado/tester/parcial): dato
      de negocio en productos.js (product.sealedStatus + contentPercent),
