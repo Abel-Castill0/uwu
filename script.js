@@ -2293,13 +2293,23 @@
     const grid = $("payMethods");
     if (!grid) return;
 
-    // Si no hay link real de Mercado Pago configurado, la opción por tarjeta
-    // se deshabilita visualmente (sin eliminar el HTML) y se fuerza WhatsApp.
+    // Sin link real de Mercado Pago configurado, la opción por tarjeta no
+    // solo se deshabilita: se OCULTA por completo (junto con los logos
+    // Visa/Mastercard/Amex y el mpNote) para no anunciar un medio de pago
+    // que hoy no está activo. Yape/Plin queda como único método visible.
+    // Si en el futuro MERCADOPAGO_LINK tiene valor, vuelve a mostrarse.
     const cardBtn = grid.querySelector('[data-pay="card"]');
-    if (cardBtn && !MERCADOPAGO_LINK) {
-      cardBtn.classList.add("is-disabled");
-      cardBtn.setAttribute("aria-disabled", "true");
-      if (selectedPayMethod === "card") {
+    const mpNote = $("mpNote");
+    const mpAvailable = !!MERCADOPAGO_LINK;
+    if (cardBtn) {
+      cardBtn.hidden = !mpAvailable;
+      // ".pay-method { display:flex }" en styles.css tiene la misma
+      // especificidad que la regla UA "[hidden]{display:none}" y gana por
+      // orden de cascada, así que el atributo `hidden` por sí solo NO
+      // oculta visualmente el botón: hay que forzar el display inline.
+      cardBtn.style.display = mpAvailable ? "" : "none";
+      cardBtn.setAttribute("aria-disabled", String(!mpAvailable));
+      if (!mpAvailable && selectedPayMethod === "card") {
         selectedPayMethod = "whatsapp";
         cardBtn.setAttribute("aria-checked", "false");
         const waBtn = grid.querySelector('[data-pay="whatsapp"]');
@@ -2311,15 +2321,14 @@
         if (confirmBtn) {
           confirmBtn.innerHTML = `<i class="fab fa-whatsapp" aria-hidden="true"></i><span>Confirmar Pedido</span>`;
         }
-        const mpNote = $("mpNote");
-        if (mpNote) mpNote.style.display = "none";
       }
     }
+    if (mpNote && !mpAvailable) mpNote.style.display = "none";
 
     grid.addEventListener("click", function (e) {
       const btn = e.target.closest(".pay-method");
       if (!btn) return;
-      if (btn.classList.contains("is-disabled")) return;
+      if (btn.hidden || btn.getAttribute("aria-disabled") === "true") return;
       selectedPayMethod = btn.dataset.pay;
       grid.querySelectorAll(".pay-method").forEach((b) => {
         const active = b === btn;
@@ -3045,7 +3054,7 @@
       title: "Nosotros",
       html: `<p><strong>FRAGRANCE OBSESSION</strong> nació con una idea simple: que puedas disfrutar de las mejores fragancias del mundo sin tener que comprar un frasco completo.</p>
         <p>Seleccionamos cuidadosamente perfumes árabes, de diseñador y nicho, y los ofrecemos en decants premium con <strong>extracción con jeringa</strong> desde el frasco original.</p>
-        <p>Más de 1,000 clientes en todo el Perú ya confían en nosotros. Somos una tienda peruana, con despacho en Lima Metropolitana y envíos a todo el país.</p>`,
+        <p>Somos una tienda peruana, con despacho en Lima Metropolitana y envíos a todo el país.</p>`,
     },
   };
 

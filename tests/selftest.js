@@ -179,6 +179,8 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     }), "featuredKeepsRealPrice", "precios=" + Array.prototype.map.call(cards, function (card) { return card.querySelector(".product-price").textContent.trim(); }).join("|"));
     var img = document.querySelector(".logo-img");
     ok(img && img.complete && img.naturalWidth > 0, "logoOk", "naturalWidth=" + (img ? img.naturalWidth : "sin img"));
+    var logoLink = document.querySelector("a.logo");
+    ok(!!logoLink && logoLink.getAttribute("href") === "#home", "logoHasHrefHome", "href=" + (logoLink ? logoLink.getAttribute("href") : "sin logo"));
   }, 500);
 
   /* 7b. Próximamente conserva disponibilidad y no se presenta como oferta. */
@@ -334,6 +336,16 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     var visibles = Array.prototype.filter.call(document.querySelectorAll("h1, .logo-name, .footer-logo-name"), function (el) { return el.offsetParent !== null; });
     var fraganceVisible = visibles.some(function (el) { return /FRAGRANCE\s*OBSESSION/i.test(el.textContent.replace(/\s+/g, " ").trim()); });
     ok(fraganceVisible, "seoVisibleBrand", "marca visible no encontrada");
+    // Sin evidencia empresarial de una cifra de clientes: no debe aparecer
+    // ningún claim cuantitativo de "1,000+"/"1000 clientes" en la página
+    // pública ni en los modales informativos del footer (Nosotros, etc).
+    var bodyText = document.body.textContent;
+    ok(!/1[.,]000\+?\s*clientes/i.test(bodyText), "noFabricatedClientCountVisible", "encontrado en body");
+    var nosotrosBtn = document.querySelector('#footerInfoLinks [data-info-modal="nosotros"]');
+    if (nosotrosBtn) { nosotrosBtn.click(); }
+    var modalText = document.getElementById("infoModalBody") ? document.getElementById("infoModalBody").textContent : document.body.textContent;
+    ok(!/1[.,]000\+?\s*clientes/i.test(modalText), "noFabricatedClientCountNosotros", modalText.slice(0, 200));
+    if (nosotrosBtn) { document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); }
   }, 300);
 
   /* 13e. resenas desde config.js */
@@ -633,6 +645,13 @@ step(function () {
   step(function () {
     var confirm = document.getElementById("payConfirmBtn");
     ok(!!confirm, "checkoutPage", "sin #payConfirmBtn");
+    // MERCADOPAGO_LINK vacío en config actual: la opción de tarjeta debe
+    // estar oculta por completo (no solo deshabilitada) y Yape/Plin debe
+    // quedar como único método de pago visible.
+    var cardPayBtn = document.querySelector('#payMethods [data-pay="card"]');
+    ok(!!cardPayBtn && cardPayBtn.hidden === true && getComputedStyle(cardPayBtn).display === "none", "mpHiddenWhenLinkEmpty", "hidden=" + (cardPayBtn ? cardPayBtn.hidden : "sin botón card") + " display=" + (cardPayBtn ? getComputedStyle(cardPayBtn).display : "?"));
+    var waPayBtn = document.querySelector('#payMethods [data-pay="whatsapp"]');
+    ok(!!waPayBtn && !waPayBtn.hidden && waPayBtn.classList.contains("active"), "yapePlinOnlyVisibleMethod", "active=" + (waPayBtn ? waPayBtn.classList.contains("active") : "sin botón whatsapp"));
     var checkoutText = document.getElementById("checkoutBreakdown").textContent.replace(/\s+/g, " ").trim();
     var state = window.__FO_TEST.getCartPromoUXState([
       { type: "decant", brand: (window.FO_PRODUCTS || []).find(function (p) { return p.id === window.__pA; }).brand, size: "5", price: (window.FO_PRODUCTS || []).find(function (p) { return p.id === window.__pA; }).decantSizes[5], qty: 1 },
