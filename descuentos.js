@@ -8,8 +8,8 @@
    1) Por cantidad (solo decants de 1ml a 10ml, ver POR_CANTIDAD.tamMaxMl):
       2-5 decants → 5% · 6-9 decants → 10% · 10+ decants → 15% (sobre el
       subtotal de esos decants elegibles). Excluyente: solo el mayor.
-   2) Por marca: 3+ unidades de la misma marca → 10% sobre el
-      subtotal de los productos de esa marca (decants y sellados).
+   2) Por marca: 3+ decants elegibles de la misma marca → 10% sobre el
+      subtotal de esos decants (los sellados no participan).
    3) Umbral: subtotal final >= S/199 → vial de regalo + envío gratis.
    4) ACUMULAR_DESCUENTOS: false = se aplica SOLO la regla que dé
       mayor descuento (cantidad o marca), nunca ambas.
@@ -23,6 +23,15 @@
     return Math.round(n * 100) / 100;
   }
 
+  function isDiscountEligibleSize(size) {
+    var cfg = (w.FO_CONFIG && w.FO_CONFIG.DESCUENTOS) || {};
+    var pc = cfg.POR_CANTIDAD;
+    if (!cfg.ACTIVOS || !pc || pc.activo !== true) return false;
+    var ml = parseInt(String(size).replace("_premium", ""), 10);
+    var tamMax = pc.tamMaxMl || 10;
+    return !isNaN(ml) && ml >= 1 && ml <= tamMax;
+  }
+
   function calcularDescuentos(items) {
     var cfg = (w.FO_CONFIG && w.FO_CONFIG.DESCUENTOS) || {};
     var out = {
@@ -34,6 +43,7 @@
       aplicaEnvioGratis: false,
       vialGratisAgregado: false,
       cantDecants: 0,
+      cantDecantsElegibles: 0,
       detalleCantidad: null,
       detalleMarcas: [],
     };
@@ -63,10 +73,10 @@
     if (cfg.POR_CANTIDAD && cfg.POR_CANTIDAD.activo) {
       var tamMax = cfg.POR_CANTIDAD.tamMaxMl;
       var decantsElegibles = !tamMax ? decants : decants.filter(function (it) {
-        var ml = parseInt(String(it.size).replace("_premium", ""), 10);
-        return !isNaN(ml) && ml <= tamMax;
+        return isDiscountEligibleSize(it.size);
       });
       var cantElegible = decantsElegibles.reduce(function (s, it) { return s + it.qty; }, 0);
+      out.cantDecantsElegibles = cantElegible;
       if (cantElegible >= 2) {
         var pctCant = cantElegible >= 10 ? cfg.POR_CANTIDAD.min10
           : cantElegible >= 6 ? cfg.POR_CANTIDAD.min6
@@ -90,7 +100,7 @@
       var decantsMarca = pagables.filter(function (it) {
         if (it.type !== "decant") return false;
         var ml = parseInt(String(it.size).replace("_premium", ""), 10);
-        return !isNaN(ml) && ml <= tamMaxMarca;
+        return !isNaN(ml) && ml >= 1 && ml <= tamMaxMarca;
       });
       var porMarca = {};
       decantsMarca.forEach(function (it) {
@@ -137,6 +147,53 @@
     return out;
   }
 
+  /* Estado exclusivamente de presentación. Todos los importes y la regla
+     ganadora vienen de calcularDescuentos(); aquí solo se traducen a hitos
+     comprensibles para card, carrito, sticky y checkout. */
+  function getCartPromoUXState(items) {
+    var cfg = (w.FO_CONFIG && w.FO_CONFIG.DESCUENTOS) || {};
+    var pc = cfg.POR_CANTIDAD || {};
+    var umbral = cfg.UMBRAL || {};
+    var d = calcularDescuentos(items);
+    var appliedRule = null;
+    var appliedPct = 0;
+    var appliedDetail = null;
+
+    if (d.detalleCantidad) {
+      appliedRule = "quantity";
+      appliedPct = d.detalleCantidad.pct;
+      appliedDetail = d.detalleCantidad;
+    } else if (d.detalleMarcas.length) {
+      appliedRule = "brand";
+      appliedPct = d.detalleMarcas[0].pct;
+      appliedDetail = d.detalleMarcas[0];
+    }
+
+    var tiers = [
+      { count: 2, pct: pc.min2 },
+      { count: 6, pct: pc.min6 },
+      { count: 10, pct: pc.min10 },
+    ].filter(function (tier) {
+      return typeof tier.pct === "number" && tier.pct > appliedPct && tier.count > d.cantDecantsElegibles;
+    });
+    var nextTier = tiers.length ? tiers[0] : null;
+    var thresholdAmount = umbral.activo ? Number(umbral.monto) || 0 : 0;
+
+    return {
+      eligibleCount: d.cantDecantsElegibles,
+      appliedPct: appliedPct,
+      appliedRule: appliedRule,
+      appliedDetail: appliedDetail,
+      savings: d.descuentoTotal,
+      nextTier: nextTier,
+      itemsToNextTier: nextTier ? nextTier.count - d.cantDecantsElegibles : 0,
+      thresholdAmount: thresholdAmount,
+      thresholdRemaining: thresholdAmount ? redondear(Math.max(0, thresholdAmount - d.subtotalFinal)) : 0,
+      freeShippingUnlocked: d.aplicaEnvioGratis,
+      discounts: d,
+    };
+  }
+
   /* ── Precio promocional de un producto individual (frasco completo) ──
      NUNCA fabrica un precio de referencia: solo calcula el % real a
      partir de un `regularPrice` que el negocio confirmó como precio
@@ -156,5 +213,7 @@
 
   w.calcularDescuentos = calcularDescuentos;
   w.FO_CALCULAR_DESCUENTOS = calcularDescuentos;
+  w.isDiscountEligibleSize = isDiscountEligibleSize;
+  w.getCartPromoUXState = getCartPromoUXState;
   w.calcularPrecioPromo = calcularPrecioPromo;
 })(window);

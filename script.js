@@ -264,34 +264,54 @@
   function getCartTotal() {
     return calcularDescuentos(cart).subtotalFinal;
   }
-  /* Desglose visual del carrito/checkout: subtotal, descuentos, envío y vial. */
-  function breakdownHTML(d) {
+  function cartBenefitCopy(state) {
+    if (state.appliedRule === "brand") {
+      return state.appliedPct + "% aplicado · " + state.appliedDetail.cant + " decants de " + state.appliedDetail.marca;
+    }
+    if (state.appliedPct >= 15) return "15% aplicado · mejor beneficio por cantidad";
+    if (state.appliedPct > 0) return state.appliedPct + "% aplicado";
+    if (state.nextTier) return "Agrega " + state.itemsToNextTier + " decant" + (state.itemsToNextTier === 1 ? "" : "s") + " más para obtener " + state.nextTier.pct + "%";
+    return "Tus descuentos se aplican automáticamente";
+  }
+  function nextTierCopy(state) {
+    if (!state.nextTier || state.appliedPct === 0) return "";
+    return "Agrega " + state.itemsToNextTier + " más para llegar al " + state.nextTier.pct + "%";
+  }
+  function thresholdHTML(state) {
+    if (!state.thresholdAmount) return "";
+    if (state.freeShippingUnlocked) {
+      return '<div class="cart-threshold cart-threshold--unlocked"><span>✓ Envío gratis desbloqueado</span><span>✓ Vial nicho incluido</span></div>';
+    }
+    var current = Math.max(0, state.thresholdAmount - state.thresholdRemaining);
+    var progress = Math.min(100, Math.max(0, current / state.thresholdAmount * 100));
+    return '<div class="cart-threshold"><p>Te faltan <strong>' + formatPrice(state.thresholdRemaining) + '</strong> para desbloquear envío gratis + vial nicho.</p>' +
+      '<div class="cart-threshold__track" role="progressbar" aria-label="' + esc(formatPrice(current)) + ' de ' + esc(formatPrice(state.thresholdAmount)) + ' para envío gratis" aria-valuemin="0" aria-valuemax="' + esc(state.thresholdAmount) + '" aria-valuenow="' + esc(current) + '"><span style="width:' + progress.toFixed(2) + '%"></span></div></div>';
+  }
+  /* Desglose contextual: el carrito orienta; el checkout solo confirma. */
+  function breakdownHTML(state, context) {
+    var d = state.discounts;
     var rows = [];
+    if (context === "cart") {
+      rows.push('<div class="cart-benefit"><span class="cart-benefit__eyebrow">Beneficio automático</span><strong>' + esc(cartBenefitCopy(state)) + '</strong>' + (nextTierCopy(state) ? '<span>' + esc(nextTierCopy(state)) + '</span>' : '') + '</div>');
+    }
     rows.push(
       '<div class="bd-row"><span>Subtotal</span><span>' + formatPrice(d.subtotalOriginal) + "</span></div>",
     );
-    if (d.detalleCantidad) {
+    if (d.descuentoTotal > 0) {
       rows.push(
-        '<div class="bd-row bd-disc"><span>' + esc(d.detalleCantidad.pct) + "% por " + esc(d.detalleCantidad.cant) + " decants</span><span>−" + formatPrice(d.detalleCantidad.monto) + "</span></div>",
+        '<div class="bd-row bd-disc"><span>Descuento automático ' + esc(state.appliedPct) + "%</span><span>−" + formatPrice(d.descuentoTotal) + "</span></div>",
       );
     }
-    d.detalleMarcas.forEach(function (m) {
-      rows.push(
-        '<div class="bd-row bd-disc"><span>' + esc(m.pct) + "% en " + esc(m.marca) + " (" + esc(m.cant) + " ítems)</span><span>−" + formatPrice(m.monto) + "</span></div>",
-      );
-    });
-    if (d.aplicaEnvioGratis) {
-      rows.push('<div class="bd-row bd-good"><span>Envío</span><span>GRATIS</span></div>');
-    }
-    if (d.vialGratisAgregado) {
-      rows.push('<div class="bd-row bd-good"><span><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="13" rx="2"/><path d="M12 7.5V20.5M3.5 12.5h17M12 7.5c-2.8 0-4.6-1-4.6-2.7S9.2 2 12 2s4.6 1 4.6 2.8-1.8 2.7-4.6 2.7z"/></svg> Vial de regalo</span><span>S/ 0.00</span></div>');
-    }
+    rows.push('<div class="bd-row' + (d.aplicaEnvioGratis ? ' bd-good' : '') + '"><span>Envío</span><span>' + (d.aplicaEnvioGratis ? 'GRATIS' : 'A coordinar') + '</span></div>');
+    rows.push('<div class="bd-row' + (d.vialGratisAgregado ? ' bd-good' : '') + '"><span>Vial nicho</span><span>' + (d.vialGratisAgregado ? 'INCLUIDO' : 'No incluido') + '</span></div>');
+    if (d.descuentoTotal > 0) rows.push('<div class="promo-savings"><span>Ahorras</span><strong>' + formatPrice(d.descuentoTotal) + '</strong></div>');
+    if (context === "cart") rows.push(thresholdHTML(state));
     return rows.join("");
   }
-  function renderBreakdown(containerId) {
+  function renderBreakdown(containerId, context) {
     var el = $(containerId);
     if (!el) return;
-    el.innerHTML = cart.length ? breakdownHTML(calcularDescuentos(cart)) : "";
+    el.innerHTML = cart.length ? breakdownHTML(getCartPromoUXState(cart), context) : "";
   }
   function getCartCount() {
     return cart.reduce((sum, i) => sum + i.qty, 0);
@@ -576,11 +596,11 @@
     if (!footer || !total) return;
     if (cart.length === 0) {
       footer.style.display = "none";
-      renderBreakdown("cartBreakdown");
+      renderBreakdown("cartBreakdown", "cart");
     } else {
       footer.style.display = "block";
       total.textContent = formatPrice(getCartTotal());
-      renderBreakdown("cartBreakdown");
+      renderBreakdown("cartBreakdown", "cart");
     }
     updateStickyCart();
   }
@@ -588,6 +608,13 @@
   /* Upselling: 3 muestras 2ml aleatorias que no estén en el carrito.
      Se re-renderiza en cada actualización para que las ya agregadas
      desaparezcan de las sugerencias. */
+  function getUpsellCandidates(items) {
+    const cartItems = items || cart;
+    const inCart = new Set(cartItems.filter((i) => i.type === "decant").map((i) => i.productId));
+    return products.filter(
+      (p) => !p.tester && !isComingSoon(p.id) && resolveCurrentPrice(p, "decant", "2") !== undefined && !inCart.has(p.id),
+    );
+  }
   function renderUpsell() {
     const strip = $("upsellStrip");
     const wrap = $("upsellItems");
@@ -597,10 +624,7 @@
       wrap.innerHTML = "";
       return;
     }
-    const inCart = new Set(cart.filter((i) => i.type === "decant").map((i) => i.productId));
-    const candidates = products.filter(
-      (p) => !p.tester && p.decantSizes && p.decantSizes["2ml"] && !inCart.has(p.id),
-    );
+    const candidates = getUpsellCandidates(cart);
     if (candidates.length === 0) {
       strip.style.display = "none";
       wrap.innerHTML = "";
@@ -612,10 +636,17 @@
     for (let i = 0; i < want; i++) {
       picks.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
     }
+    const currentPromo = getCartPromoUXState(cart);
+    const unlock = picks.map(function (p) {
+      const candidate = cart.concat([{ productId: p.id, type: "decant", brand: p.brand, size: "2", price: resolveCurrentPrice(p, "decant", "2"), qty: 1 }]);
+      return getCartPromoUXState(candidate);
+    }).find(function (state) { return state.appliedPct > currentPromo.appliedPct; });
+    const title = strip.querySelector(".upsell-strip__title");
+    if (title) title.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3.8-1.8 5.4-3 7.2C7.4 11.4 6.5 13.6 6.5 16a5.5 5.5 0 0 0 11 0c0-2.2-.8-4-2-5.5-.4 1.2-1 2-2 2.6.6-3.4.7-8-1.5-11z"/></svg> ' + (unlock ? 'Agrega una muestra 2 ml y activa tu ' + esc(unlock.appliedPct) + '%' : 'Agrega una muestra y descubre tu próximo favorito');
     strip.style.display = "block";
     wrap.innerHTML = picks
       .map((p) => {
-        const price = p.decantSizes["2ml"];
+        const price = resolveCurrentPrice(p, "decant", "2");
         return `
           <div class="upsell-item">
             <img src="${esc(p.cardImage || p.decantImage || cardImg(p))}" alt="${esc(p.name)}" loading="lazy" decoding="async" onerror="if(this.src!=='${PLACEHOLDER_IMG}'){this.src='${PLACEHOLDER_IMG}';}else{this.style.display='none';}" />
@@ -636,9 +667,15 @@
     if (!bar) return;
     const countEl = $("stickyCartCount");
     const totalEl = $("stickyCartTotal");
+    const savingsEl = $("stickyCartSavings");
     const count = getCartCount();
+    const state = getCartPromoUXState(cart);
     if (countEl) countEl.textContent = count;
-    if (totalEl) totalEl.textContent = formatPrice(getCartTotal());
+    if (totalEl) totalEl.textContent = formatPrice(state.discounts.subtotalFinal);
+    if (savingsEl) {
+      savingsEl.textContent = state.savings > 0 ? "Ahorras " + formatPrice(state.savings) : "";
+      savingsEl.hidden = state.savings <= 0;
+    }
     renderStickyCartVisibility();
   }
   function renderStickyCartVisibility() {
@@ -683,7 +720,7 @@
         if (!btn) return;
         const productId = parseInt(btn.dataset.upsellId, 10);
         if (!productId) return;
-        addToCart(productId, "decant", "2ml", 1);
+        addToCart(productId, "decant", "2", 1);
       });
     }
 
@@ -894,7 +931,7 @@
     const modalPromo = isFull && !isComingSoon(product.id) ? productPromoInfo(product) : null;
     const specialPrice = isFull && price && !isComingSoon(product.id);
     $("modalPrice").innerHTML = modalPromo
-      ? `<span class="price-special-label">Precio especial</span><span class="price-regular">${esc(formatPrice(modalPromo.regularPrice))}</span><span class="price-pct">${modalPromo.pct}% menos</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
+      ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span><span class="price-pct">−${esc(modalPromo.pct)}%</span><span class="price-regular">Antes ${esc(formatPrice(modalPromo.regularPrice))}</span><span class="price-product-savings">Ahorras ${esc(formatPrice(modalPromo.ahorro))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : specialPrice
       ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : price
@@ -929,19 +966,26 @@
       addBtn.classList.remove("btn-soon");
       if (soonNote) soonNote.remove();
     }
-    // Badge informativo de descuento por cantidad para decants elegibles
+    // Educación promocional sensible a la presentación seleccionada.
     let promoNote = document.getElementById("modalPromoNote");
     if (!promoNote) {
-      promoNote = document.createElement("p");
+      promoNote = document.createElement("div");
       promoNote.id = "modalPromoNote";
       promoNote.className = "modal-promo-note";
       var priceEl2 = $("modalPrice");
       if (priceEl2) priceEl2.parentNode.insertBefore(promoNote, priceEl2.nextSibling);
     }
-    if (hasDecantPromoEligible(product) && !isFull && !soon) {
+    if (hasDecantPromoEligible(product) && !isFull && !soon && isDiscountEligibleSize(currentModalSize)) {
       var pc2 = FO_CONFIG.DESCUENTOS && FO_CONFIG.DESCUENTOS.POR_CANTIDAD;
       var pctMax = (pc2 && pc2.activo === true && pc2.min10) || 15;
-      promoNote.textContent = "Hasta " + pctMax + "% OFF por cantidad en presentaciones de 1–10 ml";
+      promoNote.classList.remove("modal-promo-note--excluded");
+      promoNote.innerHTML = '<div class="modal-promo-note__head"><span class="price-promo-badge">HASTA -' + esc(pctMax) + '%</span><strong>Descuento automático por cantidad</strong></div>' +
+        '<div class="modal-promo-tiers"><span>2–5 <strong>' + esc(pc2.min2) + '%</strong></span><span>6–9 <strong>' + esc(pc2.min6) + '%</strong></span><span>10+ <strong>' + esc(pc2.min10) + '%</strong></span></div>' +
+        '<p>3+ misma marca → ' + esc(FO_CONFIG.DESCUENTOS.POR_MARCA.porcentaje) + '%<br>Se aplica automáticamente el mejor beneficio.</p>';
+      promoNote.style.display = "";
+    } else if (!isFull && !soon && currentModalSize && !isDiscountEligibleSize(currentModalSize)) {
+      promoNote.classList.add("modal-promo-note--excluded");
+      promoNote.textContent = "Esta presentación no participa en descuentos por cantidad.";
       promoNote.style.display = "";
     } else {
       promoNote.style.display = "none";
@@ -962,9 +1006,13 @@
       : Object.keys(product.fullSizes || {})[0];
     const price = sizeForPrice ? product.fullSizes[sizeForPrice] : null;
     const priceText = typeof price === "number" ? formatPrice(price) : "";
-    const msg = typeof FO.WHATSAPP_COTIZAR_MSG === "function"
+    let msg = typeof FO.WHATSAPP_COTIZAR_MSG === "function"
       ? FO.WHATSAPP_COTIZAR_MSG(product.name, product.brand, condition, priceText)
       : `Hola, quiero cotizar el frasco completo de ${product.name} (${product.brand}). ¿Me pueden dar más información?`;
+    const promo = productPromoInfo(product);
+    if (promo) {
+      msg += `\n\nPrecio especial: ${formatPrice(promo.price)}\nPrecio anterior: ${formatPrice(promo.regularPrice)}\nDescuento real: ${promo.pct}%\nAhorro: ${formatPrice(promo.ahorro)}`;
+    }
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
     const win = window.open(url, "_blank");
     if (!win) location.href = url;
@@ -1392,22 +1440,20 @@
     var pc = FO_CONFIG.DESCUENTOS.POR_CANTIDAD;
     if (!pc || pc.activo !== true) return false;
     if (!product.decantSizes) return false;
-    var tamMax = pc.tamMaxMl || 10;
     var keys = Object.keys(product.decantSizes);
     return keys.some(function (k) {
-      var ml = parseInt(String(k).replace("_premium", ""), 10);
-      return !isNaN(ml) && ml >= 1 && ml <= tamMax;
+      return isDiscountEligibleSize(k);
     });
   }
 
-  /* Badge visual de descuento para decants: "HASTA 15% OFF" */
+  /* Badge compacto: informa disponibilidad, no un descuento ya aplicado. */
   function decantPromoBadgeHTML(product) {
     if (!hasDecantPromoEligible(product)) return "";
     var cfg = FO_CONFIG.DESCUENTOS || {};
     var pc = cfg.POR_CANTIDAD;
     if (!pc || pc.activo !== true) return "";
     var pctMax = pc.min10 || 15;
-    return '<span class="price-promo-badge">HASTA ' + pctMax + '% OFF</span><span class="price-promo-note">por cantidad · 1–10 ml</span>';
+    return '<span class="price-promo-wrap"><span class="price-promo-badge">HASTA -' + pctMax + '%</span><span class="price-promo-note">por cantidad</span></span>';
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -1712,7 +1758,7 @@
 
     if (totalEl) {
       totalEl.textContent = formatPrice(getCartTotal());
-      renderBreakdown("checkoutBreakdown");
+      renderBreakdown("checkoutBreakdown", "checkout");
     }
   }
 
@@ -2140,7 +2186,7 @@
         mensaje += `  ✦ ${d.detalleCantidad.pct}% por ${d.detalleCantidad.cant} decants: −${formatPrice(d.detalleCantidad.monto)}\n`;
       }
       d.detalleMarcas.forEach((m) => {
-        mensaje += `  ✦ ${m.pct}% en ${m.marca} (${m.cant} ítems): −${formatPrice(m.monto)}\n`;
+        mensaje += `  ✦ ${m.pct}% · ${m.cant} decants de ${m.marca}: −${formatPrice(m.monto)}\n`;
       });
     }
     mensaje += `\n🚚 *Envío:* ${d.aplicaEnvioGratis ? "GRATIS" : "A coordinar (Lima Metropolitana)"}\n`;
@@ -2421,6 +2467,10 @@
     addToCart: addToCart,
     clearCart: function () { cart = []; saveCart(); updateCartUI(); },
     sanitizeCartAvailability: sanitizeCartAvailability,
+    getCartPromoUXState: getCartPromoUXState,
+    isDiscountEligibleSize: isDiscountEligibleSize,
+    getUpsellCandidates: getUpsellCandidates,
+    buildOrderMessage: buildOrderMessage,
   };
 
   /* ══════════════════════════════════════════════════════════════

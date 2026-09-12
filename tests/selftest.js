@@ -544,7 +544,7 @@ step(function () {
     window.__FO_TEST.addToCart(pA.id, "decant", "5_premium");
     window.__FO_TEST.addToCart(pB.id, "decant", "5_premium");
     var bd = document.getElementById("cartBreakdown").textContent;
-    ok(bd.indexOf("5% por 2 decants") !== -1, "p11Dcto5E2E", bd.replace(/\s+/g, " ").trim().slice(0, 120));
+    ok(bd.indexOf("5% aplicado") !== -1 && bd.indexOf("Descuento automático 5%") !== -1, "p11Dcto5E2E", bd.replace(/\s+/g, " ").trim().slice(0, 180));
   }, 250);
 
   /* P5-2: +1 premium de la misma marca (3 items Marca A) â†’ 10% por marca */
@@ -552,7 +552,7 @@ step(function () {
     window.__FO_TEST.addToCart(window.__pA, "decant", "5_premium");
     var bd = document.getElementById("cartBreakdown").textContent;
     var marca = (window.FO_PRODUCTS || []).find(function (x) { return x.id === window.__pA; }).brand;
-    ok(bd.indexOf("10% en " + marca + " (3 ítems)") !== -1, "p11DctoMarcaE2E", bd.replace(/\s+/g, " ").trim().slice(0, 140));
+    ok(bd.indexOf("10% aplicado · 3 decants de " + marca) !== -1, "p11DctoMarcaE2E", bd.replace(/\s+/g, " ").trim().slice(0, 180));
     window.__FO_TEST.clearCart();
   }, 250);
 
@@ -562,10 +562,49 @@ step(function () {
     window.__FO_TEST.addToCart(window.__pA, "decant", "5");
     window.__FO_TEST.addToCart(window.__pB, "decant", "5_premium");
     var bd = document.getElementById("cartBreakdown").textContent;
-    ok(bd.indexOf("5% por 2 decants") !== -1, "p11MixE2E", bd.replace(/\s+/g, " ").trim().slice(0, 120));
+    ok(bd.indexOf("5% aplicado") !== -1, "p11MixE2E", bd.replace(/\s+/g, " ").trim().slice(0, 160));
     window.__FO_TEST.clearCart();
     ok(document.getElementById("cartBreakdown").textContent === "", "p11CartLimpio", "breakdown no vacío");
     window.__FO_TEST.addToCart(window.__pA, "decant", "5");
+    window.__FO_TEST.addToCart(window.__pB, "decant", "5_premium");
+  }, 250);
+
+  /* Promo modal: la elegibilidad depende de la talla seleccionada, no solo
+     de que el producto tenga algún decant elegible. */
+  step(function () {
+    ["5", "10", "20", "30"].forEach(function (size) {
+      var p = (window.FO_PRODUCTS || []).find(function (x) { return x.decantSizes && x.decantSizes[size]; });
+      ok(!!p, "modalPromoProduct" + size, "sin producto " + size + "ml");
+      if (!p) return;
+      window.openModal(p.id);
+      var tab = document.getElementById("tabDecant");
+      if (tab) tab.click();
+      var option = document.querySelector('#modalSizes [data-size="' + size + '"]');
+      if (option) option.click();
+      var note = document.getElementById("modalPromoNote");
+      var text = note ? note.textContent.replace(/\s+/g, " ").trim() : "";
+      if (size === "5" || size === "10") ok(text.indexOf("HASTA -15%") !== -1, "modalPromoEligible" + size, text);
+      else ok(text.indexOf("no participa") !== -1 && text.indexOf("HASTA -15%") === -1, "modalPromoExcluded" + size, text);
+      window.closeModal(true);
+    });
+  }, 250);
+
+  /* Upsell: clave numérica 2 detectada; excluye carrito y Próximamente. */
+  step(function () {
+    var numeric2 = (window.FO_PRODUCTS || []).find(function (p) { return p.decantSizes && p.decantSizes[2] && window.FO_CONFIG.PROXIMAMENTE.indexOf(p.id) === -1; });
+    ok(!!numeric2, "upsellNumeric2Setup", "sin decantSizes[2]");
+    if (!numeric2) return;
+    window.__FO_TEST.clearCart();
+    var candidates = window.__FO_TEST.getUpsellCandidates();
+    ok(candidates.some(function (p) { return p.id === numeric2.id; }), "upsellDetectsNumeric2", "id=" + numeric2.id);
+    window.__FO_TEST.addToCart(numeric2.id, "decant", "2");
+    ok(!window.__FO_TEST.getUpsellCandidates().some(function (p) { return p.id === numeric2.id; }), "upsellExcludesInCart", "id=" + numeric2.id);
+    window.__FO_TEST.clearCart();
+    window.FO_CONFIG.PROXIMAMENTE.push(numeric2.id);
+    ok(!window.__FO_TEST.getUpsellCandidates().some(function (p) { return p.id === numeric2.id; }), "upsellExcludesComingSoon", "id=" + numeric2.id);
+    window.FO_CONFIG.PROXIMAMENTE.pop();
+    window.__FO_TEST.addToCart(window.__pA, "decant", "5");
+    window.__FO_TEST.addToCart(window.__pB, "decant", "5_premium");
   }, 250);
 
   /* 13. checkout: formulario â†’ wa.me + sin MercadoPago */
@@ -580,6 +619,17 @@ step(function () {
   step(function () {
     var confirm = document.getElementById("payConfirmBtn");
     ok(!!confirm, "checkoutPage", "sin #payConfirmBtn");
+    var checkoutText = document.getElementById("checkoutBreakdown").textContent.replace(/\s+/g, " ").trim();
+    var state = window.__FO_TEST.getCartPromoUXState([
+      { type: "decant", brand: (window.FO_PRODUCTS || []).find(function (p) { return p.id === window.__pA; }).brand, size: "5", price: (window.FO_PRODUCTS || []).find(function (p) { return p.id === window.__pA; }).decantSizes[5], qty: 1 },
+      { type: "decant", brand: (window.FO_PRODUCTS || []).find(function (p) { return p.id === window.__pB; }).brand, size: "5_premium", price: (window.FO_PRODUCTS || []).find(function (p) { return p.id === window.__pB; }).decantSizes[5] + 6, qty: 1 }
+    ]);
+    ok((checkoutText.match(/Descuento automático/g) || []).length === 1, "checkoutDiscountOnce", checkoutText);
+    ok(checkoutText.indexOf("HASTA -15%") === -1, "checkoutNoMarketingBadge", checkoutText);
+    ok(document.getElementById("checkoutTotal").textContent === "S/ " + state.discounts.subtotalFinal.toFixed(2), "checkoutPromoTotal", document.getElementById("checkoutTotal").textContent + " expected=" + state.discounts.subtotalFinal);
+    var waPreview = window.__FO_TEST.buildOrderMessage();
+    ok(waPreview.indexOf("decants") !== -1 && waPreview.indexOf("ítems") === -1, "whatsappDecantsCopy", waPreview.slice(-350));
+    ok(waPreview.indexOf("TOTAL: S/ " + state.discounts.subtotalFinal.toFixed(2)) !== -1, "whatsappMatchesCheckout", waPreview.slice(-220));
     ["chNombre", "chApellido", "chTelefono", "chDireccion", "chDistrito"].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) { el.value = id === "chTelefono" ? "999888777" : "Test"; }

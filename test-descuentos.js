@@ -14,6 +14,7 @@ require(path.join(ROOT, "config.js"));
 require(path.join(ROOT, "descuentos.js"));
 
 const calcular = window.FO_CALCULAR_DESCUENTOS;
+const promoState = window.getCartPromoUXState;
 const cfg = window.FO_CONFIG.DESCUENTOS;
 
 let passed = 0;
@@ -221,18 +222,13 @@ const promo = window.calcularPrecioPromo;
    TEST DECANT PROMO BADGE (hasDecantPromoEligible logic)
    ════════════════════════════════════════════════════════════════ */
 
-/* Simula hasDecantPromoEligible — misma lógica que script.js */
+/* Consume el helper compartido de elegibilidad; no replica su lógica. */
 function hasDecantPromoEligible(product) {
   if (!product || !window.FO_CONFIG.DESCUENTOS || !window.FO_CONFIG.DESCUENTOS.ACTIVOS) return false;
   var pc = window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD;
   if (!pc || pc.activo !== true) return false;
   if (!product.decantSizes) return false;
-  var tamMax = pc.tamMaxMl || 10;
-  var keys = Object.keys(product.decantSizes);
-  return keys.some(function (k) {
-    var ml = parseInt(String(k).replace("_premium", ""), 10);
-    return !isNaN(ml) && ml >= 1 && ml <= tamMax;
-  });
+  return Object.keys(product.decantSizes).some(window.isDiscountEligibleSize);
 }
 
 /* ── Caso 16: decant 1–10ml → eligible ── */
@@ -279,7 +275,7 @@ function hasDecantPromoEligible(product) {
   window.FO_CONFIG.DESCUENTOS.ACTIVOS = saved;
 }
 
-/* ── Caso 23: config POR_CANTIDAD.min10 = 15 → badge shows "HASTA 15% OFF" ── */
+/* ── Caso 23: config POR_CANTIDAD.min10 = 15 → badge informa hasta -15% ── */
 {
   const pctMax = (window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD && window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD.min10) || 15;
   check("badgeMaxPct_is15", pctMax === 15, "pctMax=" + pctMax);
@@ -308,6 +304,48 @@ function hasDecantPromoEligible(product) {
   const p = { decantSizes: { "3": 28, "5_premium": 120 } };
   check("bothActive_eligible", hasDecantPromoEligible(p) === true, "");
 }
+
+/* ── Casos UX: próximos tramos, regla ganadora, ahorro y umbral ── */
+function decants(qty, brand, price, size) {
+  return [{ type: "decant", brand: brand || "MarcaUX", size: size || "5", price: price || 20, qty }];
+}
+{
+  const s = promoState(decants(1));
+  check("ux_next_1_to_2", s.nextTier && s.nextTier.count === 2 && s.itemsToNextTier === 1 && s.nextTier.pct === 5, JSON.stringify(s));
+}
+{
+  const s = promoState(decants(5));
+  check("ux_next_5_to_6", s.nextTier && s.nextTier.count === 10 && s.nextTier.pct === 15, JSON.stringify(s));
+}
+{
+  const s = promoState(decants(9));
+  check("ux_next_9_to_10", s.nextTier && s.nextTier.count === 10 && s.itemsToNextTier === 1 && s.nextTier.pct === 15, JSON.stringify(s));
+}
+{
+  const s = promoState(decants(10));
+  check("ux_10_no_next", s.appliedPct === 15 && s.nextTier === null && s.itemsToNextTier === 0, JSON.stringify(s));
+}
+{
+  const s = promoState(decants(3, "Xerjoff", 100));
+  check("ux_brand10_beats_qty5", s.appliedRule === "brand" && s.appliedPct === 10 && s.savings === 30, JSON.stringify(s));
+}
+{
+  const s = promoState(decants(10, "Xerjoff", 20));
+  check("ux_qty15_beats_brand10", s.appliedRule === "quantity" && s.appliedPct === 15 && s.savings === 30, JSON.stringify(s));
+}
+{
+  const below = promoState(decants(2, "A", 100)); // 200 - 5% = 190
+  const exact = promoState([{ type: "decant", brand: "A", size: "5", price: 104.74, qty: 2 }]); // 209.48 - 5% = 199.01
+  check("ux_savings_exact", below.savings === 10 && below.discounts.subtotalFinal === 190, JSON.stringify(below));
+  check("ux_threshold_uses_final", below.thresholdRemaining === 9 && below.freeShippingUnlocked === false, JSON.stringify(below));
+  check("ux_threshold_199_unlocks", exact.discounts.subtotalFinal >= 199 && exact.thresholdRemaining === 0 && exact.freeShippingUnlocked === true, JSON.stringify(exact));
+}
+
+/* Elegibilidad del modal por talla seleccionada. */
+check("modal_5ml_eligible", window.isDiscountEligibleSize("5") === true, "");
+check("modal_10ml_eligible", window.isDiscountEligibleSize("10") === true, "");
+check("modal_20ml_notEligible", window.isDiscountEligibleSize("20") === false, "");
+check("modal_30ml_notEligible", window.isDiscountEligibleSize("30") === false, "");
 
 console.log("RESULTADO: " + passed + " PASS | " + failed + " FAIL");
 process.exit(failed ? 1 : 0);
