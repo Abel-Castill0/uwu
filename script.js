@@ -191,6 +191,7 @@
   let currentModalSize = null;
   let currentPage = "home";
   let catalogVisibleCount = 24;
+  let catalogPrevVisibleCount = 0;
   /* ── Brand explorer state ── */
   let _catalogBrandsCache = null;
   let _brandExplorerSearch = "";
@@ -1607,8 +1608,13 @@
           }
         } else {
           if (isLoadMore) {
-            // Añadir solo las nuevas tarjetas (incremental)
-            const newCards = visible.slice(catalogVisibleCount - 24, catalogVisibleCount);
+            // Añadir solo las nuevas tarjetas (incremental).
+            // catalogPrevVisibleCount se captura ANTES de incrementar el
+            // límite (ver click handler de #loadMoreCatalog); clamparlo a
+            // filtered.length evita duplicar tarjetas cuando el chunk
+            // anterior ya cubría el total filtrado (p.ej. 96 -> 116).
+            const previousVisibleCount = Math.min(catalogPrevVisibleCount, filtered.length);
+            const newCards = visible.slice(previousVisibleCount);
             if (newCards.length > 0) {
               grid.insertAdjacentHTML("beforeend", newCards.map(createProductCard).join(""));
             }
@@ -2143,6 +2149,8 @@
     const apellido = $("chApellido")?.value.trim() ?? "";
     const telefono = $("chTelefono")?.value.trim() ?? "";
     const dni = $("chDNI")?.value.trim() ?? "";
+    const departamento = $("chDepartamento")?.value.trim() ?? "";
+    const provincia = $("chProvincia")?.value.trim() ?? "";
     const direccion = $("chDireccion")?.value.trim() ?? "";
     const distrito = $("chDistrito")?.value.trim() ?? "";
     const referencia = $("chReferencia")?.value.trim() ?? "";
@@ -2158,7 +2166,7 @@
     mensaje += `👤 *Cliente:* ${nombre} ${apellido}\n`;
     mensaje += `📞 *Teléfono:* ${telefono}\n`;
     if (dni) mensaje += `🪪 *DNI:* ${dni}\n`;
-    mensaje += `📍 *Dirección:* ${direccion}\n🏙️ *Distrito:* ${distrito}\n`;
+    mensaje += `📍 *Dirección:* ${direccion}\n🏙️ *Distrito:* ${distrito}\n🗺️ *Provincia:* ${provincia}\n🌎 *Departamento:* ${departamento}\n`;
     if (referencia) mensaje += `📝 *Referencia:* ${referencia}\n`;
     mensaje += `\n📦 *PRODUCTOS:*\n`;
 
@@ -2204,10 +2212,12 @@
     const nombre = $("chNombre")?.value.trim() ?? "";
     const apellido = $("chApellido")?.value.trim() ?? "";
     const telefono = $("chTelefono")?.value.trim() ?? "";
+    const departamento = $("chDepartamento")?.value.trim() ?? "";
+    const provincia = $("chProvincia")?.value.trim() ?? "";
     const direccion = $("chDireccion")?.value.trim() ?? "";
     const distrito = $("chDistrito")?.value.trim() ?? "";
 
-    if (!nombre || !apellido || !telefono || !direccion || !distrito) {
+    if (!nombre || !apellido || !telefono || !departamento || !provincia || !direccion || !distrito) {
       showToast("⚠️ Completa todos los campos obligatorios");
       return;
     }
@@ -2238,12 +2248,11 @@
     }
 
     const mensaje = buildOrderMessage();
-    const dni = $("chDNI")?.value.trim() ?? "";
-    const referencia = $("chReferencia")?.value.trim() ?? "";
+    // No se registra "purchase": abrir WhatsApp no confirma que el cliente
+    // haya enviado el mensaje. Se registra solo la intención (pedido armado
+    // y listo para enviar), sin guardar datos personales del cliente.
     const guardarPedido = () => {
-      saveOrderRecord({ nombre, apellido, telefono, dni, direccion, distrito, referencia });
-      track("purchase", {
-        transaction_id: "T-" + Date.now(),
+      track("whatsapp_order_ready", {
         currency: "PEN",
         value: getCartTotal(),
         items: cart.map((it) => ({ item_id: it.productId, item_name: it.name, price: it.price, quantity: it.qty })),
@@ -2329,49 +2338,20 @@
   }
   setupPayMethods();
 
-  // Guarda una copia local del pedido para la utilidad demo del mismo navegador.
-  function saveOrderRecord(datos) {
-    try {
-      const now = new Date();
-      const pad = (n) => String(n).padStart(2, "0");
-      const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-      const fecha = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-      const productos = cart.map((item) => ({
-        nombre: item.name,
-        cantidad: item.qty,
-        precio: item.price,
-        size: item.size || "",
-      }));
-      const pedido = {
-        id: "pedido-" + stamp,
-        fecha,
-        nombre: datos.nombre,
-        apellido: datos.apellido,
-        telefono: datos.telefono,
-        dni: datos.dni,
-        direccion: datos.direccion,
-        distrito: datos.distrito,
-        referencia: datos.referencia,
-        productos,
-        total: getCartTotal(),
-        estado: "Pendiente",
-      };
-      let arr = [];
-      try { arr = JSON.parse(localStorage.getItem("fo_pedidos")) || []; } catch (e) { arr = []; }
-      if (!Array.isArray(arr)) arr = [];
-      arr.unshift(pedido);
-      localStorage.setItem("fo_pedidos", JSON.stringify(arr));
-    } catch (e) { /* almacenamiento no disponible */ }
-  }
+  // No hay backend de pedidos ni panel admin productivo: no se persisten
+  // datos personales del cliente (nombre, teléfono, DNI, dirección...) en
+  // localStorage. El mensaje de WhatsApp se arma en memoria y solo el
+  // carrito (productos/cantidades) se guarda localmente.
 
-  // Notificación del navegador tras enviar el pedido. Pide permiso en la
-  // primera compra exitosa; en las siguientes muestra la notificación si está concedido.
+  // Notificación del navegador cuando el pedido queda listo para enviar por
+  // WhatsApp. Abrir wa.me NO significa que el cliente haya enviado el
+  // mensaje, así que el texto no afirma un envío ni una compra confirmada.
   function notifyOrderSent() {
     if (!("Notification" in window)) return;
     const show = () => {
       try {
         new Notification("FRAGRANCE OBSESSION", {
-          body: "✅ Pedido enviado a WhatsApp. Te contactaremos pronto.",
+          body: "Tu pedido está listo. Envía el mensaje en WhatsApp para confirmarlo.",
           icon: "logo.webp",
           badge: "logo.webp",
         });
@@ -2693,6 +2673,8 @@
       chApellido: (v) => v.trim().length >= 3,
       chTelefono: (v) => /^9\d{8}$/.test(v.trim()),
       chDNI: (v) => !v.trim() || /^\d{8}$/.test(v.trim()) || /^[A-Za-z0-9]{9,12}$/.test(v.trim()),
+      chDepartamento: (v) => v.trim().length >= 3,
+      chProvincia: (v) => v.trim().length >= 3,
       chDireccion: (v) => v.trim().length >= 3,
       chDistrito: (v) => v.trim().length >= 3,
     };
@@ -3284,6 +3266,7 @@
     // Load More catálogo (delegado para contenido dinámico)
     document.addEventListener("click", e => {
       if (e.target.id === "loadMoreCatalog") {
+        catalogPrevVisibleCount = catalogVisibleCount;
         catalogVisibleCount += 24;
         if (catalogVisibleCount > products.length) catalogVisibleCount = products.length;
         renderCatalog(true); // carga incremental

@@ -130,9 +130,10 @@ window.FO_CONFIG = {
       `basePrice % 10` para determinar el recargo: si el precio base
       termina en 5 → +4; si termina en 9 → +6; otro dígito → 0.
       El ejemplo del cliente fue 5ml S/25→S/29 (+4) y 10ml S/39→S/45 (+6).
-      Si se desactiva `PREMIUM_DECANTS: false`, no se añaden variantes. */
+      Si se desactiva `PREMIUM_DECANTS: false`, no se añaden variantes.
+      (No existe una config PREMIUM_UPLIFT: la regla vive únicamente
+      en getPremiumUplift(basePrice), en script.js.) */
   PREMIUM_DECANTS: true,
-  PREMIUM_UPLIFT: { "5": 4, "10": 5 },
 
   /* ── CATÁLOGO: GRID CONTINUO (Prompt 19) ────────────────────────
      true  = cada marca se muestra con su encabezado (heading) y su grilla.

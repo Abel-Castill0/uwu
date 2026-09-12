@@ -1,13 +1,14 @@
 /*
  * Fragrance Obsession — Catálogo oficial (PDF real del cliente).
- * Generado con node gen-productos.js — NO editar a mano.
+ * Fuente de datos mantenida a mano directamente en este archivo
+ * (no existe un script generador en el repo — editar aquí).
  * Catálogo oficial: nicho + diseñador. Precios en soles (S/).
  * Promos: 2-5 decants 5% / 6-9 decants 10% / 10+ decants 15% / 3 misma marca 10% / >S/199 vial+delivery.
  */
 (function (w) {
   w.FO_PRODUCTS = [
     { id: 1, name: "Contemporary", brand: "Clive Christian", category: "nicho", gender: "unisex", notes: "Lujo atemporal: iris, cuero y ámbar en una composición elegante de presencia magnética.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {1:35,2:65,3:95,5:149,10:299,20:529}, fullImage: "", decantImage: "", cardImage: "", featured: false, badge: null, badgeText: "" },
-    { id: 2, name: "Crap Apple", brand: "Clive Christian", category: "nicho", gender: "unisex", notes: "Manzana fresca y madera de roble sobre un fondo ambarado y cremoso.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {1:35,2:65,3:95,5:149,10:299,20:529}, fullImage: "", decantImage: "", cardImage: "", featured: false, badge: null, badgeText: "" },
+    { id: 2, name: "Crab Apple Blossom", brand: "Clive Christian", category: "nicho", gender: "unisex", notes: "Manzana fresca y madera de roble sobre un fondo ambarado y cremoso.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {1:35,2:65,3:95,5:149,10:299,20:529}, fullImage: "", decantImage: "", cardImage: "", featured: false, badge: null, badgeText: "" },
     { id: 3, name: "Rock Rose", brand: "Clive Christian", category: "nicho", gender: "unisex", notes: "Rosa silvestre, incienso y vetiver: una rosa profunda con carácter de cuero.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {1:35,2:65,3:95,5:149,10:299,20:529}, fullImage: "", decantImage: "", cardImage: "", featured: false, badge: null, badgeText: "" },
     { id: 4, name: "Angels Share Paradis", brand: "Kilian", category: "nicho", gender: "unisex", notes: "Manzana, canela y haba tonka con un toque de coñac: la edición más gourmand.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {1:35,2:59,3:89,5:139,10:279,20:499}, fullImage: "", decantImage: "", cardImage: "", featured: false, badge: null, badgeText: "" },
     { id: 5, name: "Angels Share on the Rocks", brand: "Kilian", category: "nicho", gender: "unisex", notes: "Vainilla y coñac sobre hielo, con notas de canela y madera tostada.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {1:35,2:55,3:75,5:119,10:239,30:599}, fullImage: "", decantImage: "", cardImage: "img/perfumes_optimized/Angel Share on the Rocks.webp", sizeImages: {"5": "img/perfumes_optimized/Angel Share on the Rocks decant premium 5ml.webp", "5_premium": "img/perfumes_optimized/Angel Share on the Rocks decant premium 5ml.webp", "30": "img/perfumes_optimized/Angel Share on the Rocks decant premium 30 ml.webp"}, featured: false, badge: null, badgeText: "" },
@@ -351,8 +352,8 @@
     146: { main: "img/perfumes_optimized/DIOR HOMME SPORT 125ML TESTER.webp", sizes: {} },
     147: { main: "img/perfumes_optimized/ERBA PURA 100ML TESTER.webp", sizes: {} },
     148: { main: "img/perfumes_optimized/LAMAR KAJAL 100ML PARCIAL.webp", sizes: {} },
-    149: { main: "img/perfumes_optimized/Babycat Yves Saint Laurent.webp", sizes: {} },
-    150: { main: "img/perfumes_optimized/Mefisto Xerjoff.webp", sizes: {} },
+    149: { main: "img/perfumes_optimized/Babycat Yves Saint Laurent.webp", sizes: { "5": "img/perfumes_optimized/Babycat Yves Saint Laurent  decant premium 5ml.webp", "5_premium": "img/perfumes_optimized/Babycat Yves Saint Laurent  decant premium 5ml.webp", "10": "img/perfumes_optimized/Babycat Yves Saint Laurent  decant premium 10ml.webp", "10_premium": "img/perfumes_optimized/Babycat Yves Saint Laurent  decant premium 10ml.webp", "30": "img/perfumes_optimized/Babycat Yves Saint Laurent  decant 30ml.webp" } },
+    150: { main: "img/perfumes_optimized/Mefisto Xerjoff.webp", sizes: { "5": "img/perfumes_optimized/Mefisto Xerjoff decant premium 5ml.webp", "5_premium": "img/perfumes_optimized/Mefisto Xerjoff decant premium 5ml.webp", "10": "img/perfumes_optimized/Mefisto Xerjoff decant premium 10ml.webp", "10_premium": "img/perfumes_optimized/Mefisto Xerjoff decant premium 10ml.webp", "30": "img/perfumes_optimized/Mefisto Xerjoff decant 30ml.webp" } },
   };
   Object.entries(w.FO_PRODUCT_IMAGES).forEach(([id, imgs]) => {
     const p = w.FO_PRODUCTS.find((x) => x.id === Number(id));

@@ -86,7 +86,7 @@
       { "@type": "Question", "name": "¿Cuánto duran los decants?", "acceptedAnswer": { "@type": "Answer", "text": "Un decant de 5ml dura aproximadamente 2-3 meses con uso diario. Las fragancias de niche tienden a ser más concentradas y duran más." } },
       { "@type": "Question", "name": "¿Hacen envíos a todo el Perú?", "acceptedAnswer": { "@type": "Answer", "text": "Sí, realizamos envíos a todo el territorio peruano. El tiempo de entrega es de 24 a 72 horas dependiendo de tu ubicación." } },
       { "@type": "Question", "name": "¿Puedo pedir una fragancia que no está en el catálogo?", "acceptedAnswer": { "@type": "Answer", "text": "¡Claro! Contáctanos por WhatsApp y te consignamos la fragancia que buscas. Trabajamos con más de 135 fragancias." } },
-      { "@type": "Question", "name": "¿Cuáles son los métodos de pago?", "acceptedAnswer": { "@type": "Answer", "text": "Aceptamos Yape, Plin, Visa, Mastercard y efectivo." } }
+      { "@type": "Question", "name": "¿Cuáles son los métodos de pago?", "acceptedAnswer": { "@type": "Answer", "text": "Aceptamos Yape y Plin. También ofrecemos la opción de pagar al momento de confirmar el pedido por WhatsApp." } }
     ]
   }
   </script>
@@ -195,9 +195,9 @@
           </button>
         </div>
         <div class="nav-links">
-          <a onclick="navigateTo('home')" class="active" data-page="home">Inicio</a>
-          <a onclick="navigateTo('catalogo')" data-page="catalogo">Catálogo</a>
-          <a onclick="navigateTo('promos')" data-page="promos">Combos</a>
+          <a href="#home" class="active" data-page="home" onclick="navigateTo('home')">Inicio</a>
+          <a href="#catalogo" data-page="catalogo" onclick="navigateTo('catalogo')">Catálogo</a>
+          <a href="#promos" data-page="promos" onclick="navigateTo('promos')">Combos</a>
         </div>
         <!-- Utilidades: trasladadas aqui desde el header (WhatsApp, TikTok,
              tema). Solo visibles dentro del drawer movil; en desktop el
@@ -363,7 +363,7 @@
         <div class="trust-card">
           <div class="trust-icon-wrap"><span class="trust-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l7.5 3v5.6c0 4.6-3.2 8.1-7.5 10.4-4.3-2.3-7.5-5.8-7.5-10.4V5.5l7.5-3z"/><path d="M8.8 12l2.2 2.2 4.2-4.4"/></svg></span></div>
           <h4>Confianza y Experiencia</h4>
-          <p>Más de 1000 clientes satisfechos avalan nuestra calidad y compromiso.</p>
+          <p>Clientes satisfechos avalan nuestra calidad y compromiso.</p>
         </div>
         <div class="trust-card">
           <div class="trust-icon-wrap"><span class="trust-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5L4.5 13.5H11l-1 8L18.5 10.5H12l1-8z"/></svg></span></div>
@@ -387,8 +387,8 @@
     <section class="section section-reviews" id="resenas">
       <div class="section-header">
         <div class="section-eyebrow">Lo que dicen nuestros clientes</div>
-        <h2 class="section-title">Reseñas Reales</h2>
-        <p class="section-subtitle">Más de 1000 clientes confían en Fragrance Obsession. Esto es lo que opinan.</p>
+        <h2 class="section-title">Opiniones de Clientes</h2>
+        <p class="section-subtitle">Esto es lo que opinan los clientes de Fragrance Obsession.</p>
       </div>
       <div class="reviews-carousel">
         <button class="rev-arrow rev-prev" id="revPrev" type="button" aria-label="Anterior">‹</button>
@@ -474,7 +474,7 @@
             <i class="fa-solid fa-plus" aria-hidden="true"></i>
           </button>
           <div class="faq-answer" role="region">
-            <p>Aceptamos Yape, Plin, Visa, Mastercard y efectivo. También ofrecemos pagos con criptomonedas para tu comodidad.</p>
+            <p>Aceptamos Yape y Plin. También ofrecemos la opción de pagar al momento de confirmar el pedido por WhatsApp.</p>
           </div>
         </div>
       </div>
@@ -706,20 +706,30 @@
                   autocomplete="off" />
               </div>
             </div>
-            <div class="form-group">
-              <label for="chDireccion">Dirección *</label>
-              <input type="text" id="chDireccion" placeholder="Av. Principal 123" required
-                autocomplete="street-address" />
+            <div class="form-row">
+              <div class="form-group">
+                <label for="chDepartamento">Departamento *</label>
+                <input type="text" id="chDepartamento" placeholder="Lima" required autocomplete="address-level1" />
+              </div>
+              <div class="form-group">
+                <label for="chProvincia">Provincia *</label>
+                <input type="text" id="chProvincia" placeholder="Lima" required autocomplete="address-level2" />
+              </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="chDistrito">Distrito *</label>
-                <input type="text" id="chDistrito" placeholder="Miraflores" required autocomplete="address-level2" />
+                <input type="text" id="chDistrito" placeholder="Miraflores" required autocomplete="address-level3" />
               </div>
               <div class="form-group">
-                <label for="chReferencia">Referencia</label>
-                <input type="text" id="chReferencia" placeholder="Al costado del banco" />
+                <label for="chDireccion">Dirección *</label>
+                <input type="text" id="chDireccion" placeholder="Av. Principal 123" required
+                  autocomplete="street-address" />
               </div>
+            </div>
+            <div class="form-group">
+              <label for="chReferencia">Referencia</label>
+              <input type="text" id="chReferencia" placeholder="Al costado del banco" />
             </div>
 <div class="checkout-summary">
         <div class="form-section-title">Resumen del Pedido</div>
@@ -879,6 +889,7 @@
       <div class="sticky-cart__texts">
         <span class="sticky-cart__label">Tu pedido</span>
         <span class="sticky-cart__total" id="stickyCartTotal">S/ 0.00</span>
+        <span class="sticky-cart__savings" id="stickyCartSavings" hidden></span>
       </div>
     </div>
     <button class="sticky-cart__btn" id="stickyCartBtn" onclick="goToCheckout()">
@@ -910,9 +921,9 @@
       </div>
       <div class="footer-col">
         <h4>Navegar</h4>
-        <a role="button" tabindex="0" onclick="navigateTo('home')">Inicio</a>
-        <a role="button" tabindex="0" onclick="navigateTo('catalogo')">Catálogo</a>
-        <a role="button" tabindex="0" onclick="navigateTo('promos')">Combos</a>
+        <a href="#home" data-page="home" onclick="navigateTo('home')">Inicio</a>
+        <a href="#catalogo" data-page="catalogo" onclick="navigateTo('catalogo')">Catálogo</a>
+        <a href="#promos" data-page="promos" onclick="navigateTo('promos')">Combos</a>
       </div>
       <div class="footer-col">
         <h4>Información</h4>
@@ -930,9 +941,6 @@
       <p class="footer-payments">Aceptamos
             <span class="pay-logo pay-logo--yape" title="Yape"><img src="img/pagos/yape.svg" alt="Yape" loading="lazy" /></span>
             <span class="pay-logo pay-logo--plin" title="Plin"><img src="img/pagos/plin.svg" alt="Plin" loading="lazy" /></span>
-            <span class="pay-logo pay-logo--visa" title="Visa"><img src="img/pagos/visa.svg" alt="Visa" loading="lazy" /></span>
-            <span class="pay-logo pay-logo--mastercard" title="Mastercard"><img src="img/pagos/mastercard.svg" alt="Mastercard" loading="lazy" /></span>
-            <span class="pay-logo pay-logo--cash" title="Efectivo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="11" rx="2"/><circle cx="12" cy="12.5" r="2.4"/><path d="M6.5 9.8h.01M17.5 15.2h.01"/></svg></span>
           </p>
       <p class="footer-legal">
         <a href="privacidad.html">Política de Privacidad</a>

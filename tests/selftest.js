@@ -71,9 +71,20 @@ step(function () {
         setTimeout(clickLoadMore, 300);
       } else {
         window.__chains -= 1;
-        // nicho (116 productos): el render incremental añade chunks de 24; al
-        // desbordar el último chunk, el grid queda en 120 tarjetas (sin botón).
-        ok(gridCount() === 120, "catalogNichoFiltered", "grid=" + gridCount());
+        // El total real de "nicho" se calcula en vivo desde FO_PRODUCTS (no
+        // se hardcodea un número: el catálogo cambia con el tiempo). El
+        // render incremental añade chunks de 24; al desbordar el último
+        // chunk, el grid debe quedar con exactamente esa cantidad de
+        // tarjetas, sin duplicados (ver bug de load-more/slice corregido
+        // en renderCatalog).
+        var filteredCount = window.FO_PRODUCTS.filter(function (p) {
+          return (!p.type || p.type === "product") && !p.tester && !p.sealed && p.category === "nicho";
+        }).length;
+        ok(gridCount() === filteredCount, "catalogNichoFiltered", "grid=" + gridCount() + " esperado=" + filteredCount);
+        const cardCount = document.querySelectorAll("#catalogGrid .product-card").length;
+        ok(cardCount === filteredCount, "cardCountMatchesGrid", "cards=" + cardCount + " esperado=" + filteredCount);
+        const uniqueIds = new Set([...document.querySelectorAll("#catalogGrid .product-card")].filter((el) => el.dataset.productId).map((el) => el.dataset.productId));
+        ok(uniqueIds.size === cardCount, "uniqueProductIds", "dups=" + (cardCount - uniqueIds.size));
       }
     }
     setTimeout(clickLoadMore, 300);
@@ -128,8 +139,11 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
         setTimeout(clickLoadMore, 500);
       } else {
         window.__chains -= 1;
-        // vuelta a nicho: mismo comportamiento incremental (120 tarjetas)
-        ok(gridCount() === 120, "catalogBackFiltered", "grid=" + gridCount());
+        // vuelta a nicho: mismo comportamiento incremental, mismo total real
+        var filteredCount = window.FO_PRODUCTS.filter(function (p) {
+          return (!p.type || p.type === "product") && !p.tester && !p.sealed && p.category === "nicho";
+        }).length;
+        ok(gridCount() === filteredCount, "catalogBackFiltered", "grid=" + gridCount() + " esperado=" + filteredCount);
       }
     }
     setTimeout(clickLoadMore, 500);
@@ -630,7 +644,7 @@ step(function () {
     var waPreview = window.__FO_TEST.buildOrderMessage();
     ok(waPreview.indexOf("decants") !== -1 && waPreview.indexOf("ítems") === -1, "whatsappDecantsCopy", waPreview.slice(-350));
     ok(waPreview.indexOf("TOTAL: S/ " + state.discounts.subtotalFinal.toFixed(2)) !== -1, "whatsappMatchesCheckout", waPreview.slice(-220));
-    ["chNombre", "chApellido", "chTelefono", "chDireccion", "chDistrito"].forEach(function (id) {
+    ["chNombre", "chApellido", "chTelefono", "chDepartamento", "chProvincia", "chDireccion", "chDistrito"].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) { el.value = id === "chTelefono" ? "999888777" : "Test"; }
     });
@@ -696,7 +710,7 @@ step(function () {
   }, 400);
 
   step(function () {
-    ["chNombre", "chApellido", "chTelefono", "chDireccion", "chDistrito"].forEach(function (id) {
+    ["chNombre", "chApellido", "chTelefono", "chDepartamento", "chProvincia", "chDireccion", "chDistrito"].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) { el.value = id === "chTelefono" ? "999888777" : "Test"; }
     });

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>Gracias por tu compra · FRAGRANCE OBSESSION</title>
+  <title>Pedido listo · FRAGRANCE OBSESSION</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Manrope:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'" />
@@ -34,49 +34,24 @@
     .checkmark svg { width: 40px; height: 40px; stroke: #fff; stroke-width: 3; fill: none; }
     .title {
       font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.8rem);
-      font-weight: 300; letter-spacing: .03em; margin-bottom: 1rem; animation: fadeUp .8s .2s ease both;
+      font-weight: 300; letter-spacing: .03em; margin-bottom: 1rem; animation: fadeUp .6s .2s ease both;
     }
     .msg {
       color: var(--text-sec); font-size: .95rem; max-width: 450px; margin: 0 auto 1.5rem;
-      line-height: 1.8; font-weight: 300; animation: fadeUp .8s .4s ease both;
+      line-height: 1.8; font-weight: 300; animation: fadeUp .6s .4s ease both;
     }
-    .order-id {
-      display: inline-block; padding: .6rem 1.5rem; border-radius: 9999px;
-      background: rgba(201,155,95,.1); border: 1px solid rgba(201,155,95,.25);
-      font-size: .8rem; letter-spacing: .08em; color: var(--gold-light);
-      margin-bottom: 2rem; animation: fadeUp .8s .5s ease both;
-    }
-    .steps {
-      text-align: left; max-width: 400px; margin: 0 auto 2.5rem;
-      animation: fadeUp .8s .6s ease both;
-    }
-    .step {
-      display: flex; gap: 1rem; align-items: flex-start; padding: .8rem 0;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-    }
+    .order-id { display: none; }
+    .steps { text-align: left; max-width: 400px; margin: 0 auto 2.5rem; animation: fadeUp .6s .6s ease both; }
+    .step { display: flex; gap: 1rem; align-items: flex-start; padding: .8rem 0; border-bottom: 1px solid rgba(255,255,255,.06); }
     .step:last-child { border-bottom: none; }
-    .step-num {
-      flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
-      background: rgba(201,155,95,.15); color: var(--gold-light);
-      font-size: .7rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
-    }
+    .step-num { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: rgba(201,155,95,.15); color: var(--gold-light); font-size: .7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
     .step-text { font-size: .88rem; color: var(--text-sec); line-height: 1.6; }
     .step-text strong { color: var(--text); font-weight: 500; }
-    .actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; animation: fadeUp .8s .8s ease both; }
-    .btn {
-      display: inline-flex; align-items: center; gap: .5rem; padding: 1rem 2.4rem;
-      font-size: .75rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
-      border: none; border-radius: 9999px; cursor: pointer; transition: all .4s cubic-bezier(.16,1,.3,1);
-      font-family: var(--font-body); text-decoration: none;
-    }
-    .btn-gold {
-      background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-deep));
-      color: #fff; box-shadow: 0 8px 32px rgba(201,155,95,.4);
-    }
+    .actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; animation: fadeUp .6s .8s ease both; }
+    .btn { display: inline-flex; align-items: center; gap: .5rem; padding: 1rem 2.4rem; font-size: .75rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; border: none; border-radius: 9999px; cursor: pointer; transition: all .4s cubic-bezier(.16,1,.3,1); font-family: var(--font-body); text-decoration: none; }
+    .btn-gold { background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-deep)); color: #fff; box-shadow: 0 8px 32px rgba(201,155,95,.4); }
     .btn-gold:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 18px 48px rgba(201,155,95,.55); }
-    .btn-ghost {
-      background: rgba(255,255,255,.06); color: var(--text); border: 1px solid rgba(255,255,255,.15);
-    }
+    .btn-ghost { background: rgba(255,255,255,.06); color: var(--text); border: 1px solid rgba(255,255,255,.15); }
     .btn-ghost:hover { background: rgba(255,255,255,.12); border-color: var(--gold); color: var(--gold-light); transform: translateY(-3px); }
     @keyframes popIn { from { opacity:0; transform:scale(.3); } to { opacity:1; transform:scale(1); } }
     @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
@@ -88,37 +63,12 @@
     <div class="checkmark">
       <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
-    <h1 class="title">¡Gracias por tu compra!</h1>
-    <p class="msg">Tu pedido ha sido recibido exitosamente. Pronto recibirás un mensaje de confirmación por WhatsApp con los detalles de tu envío.</p>
-    <div class="order-id" id="orderId">Pedido #FO-0000</div>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-text"><strong>Confirmación</strong> — Te contactaremos por WhatsApp en menos de 30 minutos.</div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-text"><strong>Preparación</strong> — Empacamos tu pedido con cuidado premium.</div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-text"><strong>Envío</strong> — Recíbelo en 24-72 horas según tu ubicación.</div>
-      </div>
-    </div>
+    <h1 class="title">Tu pedido está listo</h1>
+    <p class="msg">Envía el mensaje de WhatsApp para confirmar tu pedido.</p>
     <div class="actions">
       <a href="index.html" class="btn btn-gold">Volver al Inicio</a>
       <a href="https://wa.me/51994467586" class="btn btn-ghost" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
     </div>
   </div>
-
-  <script>
-    (function() {
-      var params = new URLSearchParams(window.location.search);
-      var orderId = params.get('order');
-      if (orderId) {
-        document.getElementById('orderId').textContent = 'Pedido #' + orderId;
-      }
-    })();
-  </script>
 </body>
 </html>
