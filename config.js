@@ -10,10 +10,14 @@ window.FO_CONFIG = {
      (funciona en localhost, subcarpeta o dominio propio). */
   SITE_URL: (function () {
     try {
+      var origin = window.location.origin || "";
+      if (/\.vercel\.app$/.test(origin) || /^https?:\/\/localhost/.test(origin)) {
+        return "https://www.fraganceobession.com/";
+      }
       var path = (window.location.pathname || "/").replace(/\/?index\.html$/, "").replace(/\/+$/, "");
-      return window.location.origin + (path ? path + "/" : "/");
+      return origin + (path ? path + "/" : "/");
     } catch (e) {
-      return "https://fraganceobsession.pe/";
+      return "https://www.fraganceobession.com/";
     }
   })(),
 

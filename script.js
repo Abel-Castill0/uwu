@@ -104,7 +104,7 @@
   const FO = window.FO_CONFIG || {};
   const WHATSAPP_NUMBER = FO.WHATSAPP_NUMBER || "51994467586";
   const MERCADOPAGO_LINK = ""; /* ej. "https://mpago.la/XXXXX" — link de pago cuando exista */
-  const SITE_URL = FO.SITE_URL || "https://fraganceobsession.pe/";
+  const SITE_URL = FO.SITE_URL || "https://www.fraganceobession.com/";
   // Modo desarrollo (solo localhost): habilita logs de diagnóstico.
   const IS_DEV = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
 

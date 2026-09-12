@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin.html
 Disallow: /debug
 
-Sitemap: https://fraganceobsession.pe/sitemap.xml
+Sitemap: https://www.fraganceobession.com/sitemap.xml
