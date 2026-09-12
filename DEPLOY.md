@@ -1,109 +1,192 @@
-# DEPLOY.md — Despliegue en GitHub Pages (checklist)
+# DEPLOY.md — Vercel Production Checklist
 
-Guía de publicación y puesta a punto de **Fragrance Obsession** en GitHub Pages, incluyendo dominio personalizado, SEO, análisis (GA4/Meta Pixel) y requisitos legales.
+Guía operativa de producción para **FRAGRANCE OBSESSION**.
 
-## 1. Verificación antes de publicar (obligatorio)
+## Estado de producción
+
+- **Hosting:** Vercel
+- **Repositorio:** `Abel-Castill0/uwu`
+- **Rama de producción:** `master`
+- **Dominio principal:** `https://www.fraganceobession.com/`
+- **Apex:** `https://fraganceobession.com/` → `308` → `https://www.fraganceobession.com/`
+- **Project ID:** `prj_2n3qkwZ1g7dcZ2DpnOecpdNsNryN`
+
+## 1. Pre-deploy
+
+Comprueba primero el alcance y evita incluir secretos, capturas, logs o archivos temporales:
 
 ```bash
-# 1. Integridad: todos los JS deben pasar node --check
-node --check script.js sw.js config.js productos.js descuentos.js animations.js
-
-# 2. Suite completa: 6 corridas (file:// + HTTP raíz + /site/ × normal + reduced-motion)
-npm test            # esperado: cada corrida medida = 104 PASS | 0 FAIL
-
-# 3. Smoke: 14 recursos esenciales
-npm run smoke       # esperado: SMOKE: 14 PASS | 0 FAIL
-
-# 4. Auditoría responsive (5 viewports)
-node tests/runners/cdp-responsive-check.js   # esperado: RESPONSIVE: 5/5 OK
-
-# 5. Auditoría de contraste AA
-node tests/runners/cdp-contrast-check.js     # esperado: ratios ≥ 4.5 (texto normal) / ≥ 3 (grande)
-
-# 6. Verificar que no haya mojibake (caracteres de reemplazo) en los fuentes
-node -e "const fs=require('fs'),p=require('path');const b=[];(function w(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){const f=p.join(d,e.name);if(e.isDirectory())w(f);else if(/\.(js|html|css|json|md|txt|xml|webmanifest)$/i.test(f)){const s=fs.readFileSync(f,'utf8');if(s.includes('\uFFFD'))b.push(f)}}})( '.');console.log(b.length?b.join('\n'):'OK: sin mojibake')"
+git status
+git branch --show-current
+git diff
+git diff --cached
 ```
 
-Nota: el runner de la suite hace una carga `warm-up` descartada (primer arranque de Edge); las corridas medidas son las siguientes. Un warm-up con fallos de timing (p. ej. `cartItems2` o grids) no invalida el resultado.
+La rama debe ser `master`. Conserva cambios locales ajenos al trabajo actual.
 
-## 2. Datos de configuración finales (crítico)
-
-Estos valores los pones tú antes de publicar:
-
-| Ítem | Archivo | Cómo |
-|------|---------|------|
-| **GA4** | `index.html` (bloque `GOOGLE ANALYTICS 4`) | Reemplaza `G-XXXXXXXXXX` en `window.GA_MEASUREMENT_ID`. El loader NO carga GA mientras el ID tenga `XXXXXX`. |
-| **Meta Pixel** | `index.html` (bloque `META PIXEL`) | Reemplaza `XXXXXXXXXXXXXXX` en `window.META_PIXEL_ID`. El Pixel NO carga mientras tenga `XXXXXXX`. |
-| **ADMIN_HASH** | `config.js` → `ADMIN_HASH` | Solo protege la utilidad local/demo; no es autenticación de producción ni debe usarse con datos sensibles. |
-| **Dominio** | `sitemap.xml`, `robots.txt`, `index.html` (canonical) | Usa tu dominio real. `SITE_URL` en `config.js` es dinámico (funciona solo). |
-
-Si no vas a usar GA o Meta Pixel, borra el bloque correspondiente en `index.html`.
-
-## 3. Publicar en GitHub Pages
+Ejecuta validación proporcional al cambio:
 
 ```bash
-git add -A
+# Sintaxis de los JavaScript modificados
+node --check script.js
+node --check config.js
+node --check sw.js
+
+# Tests relevantes para la superficie modificada
+npm test
+
+# Recursos esenciales
+npm run smoke
+
+# Higiene final
+git diff --check
+git status
+git diff --stat
+git diff
+```
+
+No todos los cambios requieren la suite completa. Los cambios solo documentales requieren `git diff --check` y búsquedas dirigidas; cualquier test ejecutado debe terminar con `0 FAIL`.
+
+## 2. Deploy
+
+El deploy normal se realiza mediante la integración Git de Vercel:
+
+```bash
+git add <archivos-revisados>
 git commit -m "descripción del cambio"
-git push origin main        # Pages publica desde la rama main automáticamente
+git push origin master
 ```
 
-Configuración inicial (una vez):
-1. GitHub → repo → **Settings → Pages**.
-2. **Build and deployment → Source: Deploy from a branch**.
-3. Rama `main`, carpeta `/ (root)` → **Save**.
-4. Espera el build (~1 min). URL: `https://TU_USUARIO.github.io/TU_REPO/`.
+Flujo esperado:
 
-## 4. Dominio personalizado (opcional)
-
-1. Crea el archivo `CNAME` en la raíz con tu dominio: `fraganceobsession.pe`.
-2. Settings → Pages → **Custom domain** → escribe el dominio → Save.
-3. En tu proveedor DNS agrega:
-   - `A` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
-   - (o `CNAME` → `TU_USUARIO.github.io` si es subdominio como `www.fraganceobsession.pe`)
-4. Marca **Enforce HTTPS** (SSL automático de Pages).
-5. Actualiza `sitemap.xml`, `robots.txt` y el `canonical` de `index.html` con el dominio final.
-
-## 5. Verificación post-publicación
-
-```bash
-curl -s -o /dev/null -w "%{http_code}\n" https://TU_USUARIO.github.io/TU_REPO/            # 200
-curl -s -o /dev/null -w "%{http_code}\n" https://TU_USUARIO.github.io/TU_REPO/robots.txt   # 200
-curl -s -o /dev/null -w "%{http_code}\n" https://TU_USUARIO.github.io/TU_REPO/sitemap.xml  # 200
-curl -s -o /dev/null -w "%{http_code}\n" https://TU_USUARIO.github.io/TU_REPO/sw.js        # 200
+```text
+git push origin master
+→ Vercel Git Integration
+→ target production
+→ READY
 ```
 
-- [ ] Todas devuelven `200`.
-- [ ] En el navegador: página en **modo incógnito** (descartar SW viejo), DevTools → Application → Service Workers activo, sin errores de consola.
-- [ ] Recorre: home → catálogo → modal → carrito → checkout WhatsApp → gracias.
-- [ ] `/pagina-inexistente.html` muestra el `404.html` custom.
-- [ ] `/offline.html` accesible con red cortada (PWA).
+No se crea un deployment manual normalmente. Antes de cerrar, confirma que `HEAD`, `origin/master` y el deployment de producción señalen al mismo SHA.
 
-## 6. Service Worker: actualizaciones futuras
+## 3. Vercel
 
-1. Edita `sw.js` **con Node** (nunca PowerShell → BOM).
-2. **Bump de la versión** (ej. `fo-v37-ghpages` → `fo-v38-ghpages`): el SW detecta el cambio y re-descarga los recursos.
-3. Commit y push. La primera visita del usuario puede mostrar la versión vieja; la segunda ya usa la nueva.
-4. Para forzar actualización en un dispositivo: borrar los datos del sitio (Safari iOS: **Ajustes → Safari → Avanzado → Datos de sitios web → eliminar dominio**) o usar el modo incógnito.
+Configuración esperada:
 
-## 7. Nuevos perfumes
+- `productionBranch = master`
+- `target = production`
+- `state = READY`
+- Dominio `www.fraganceobession.com` asignado a producción
+- Dominio `fraganceobession.com` configurado como redirect al `www`
 
-1. Agrega la entrada en `productos.js` + imagen en `img/perfumes/`.
-2. Regenera los WebP:
-   ```bash
-   npm install sharp   # solo la primera vez
-   node tools/optimize-images.js --only=perfumes   # regenera img/perfumes_optimized/
-   ```
-3. Re-corre la suite y el smoke (sección 1) antes del push.
+Puede verificarse desde el proyecto de Vercel o mediante su API usando el Project ID explícito. Trata `VERCEL_TOKEN` como secreto: no lo imprimas, no leas `.env` completo y nunca lo incluyas en código, commits o logs.
 
-## 8. SEO post-publicación
+## 4. Dominio, DNS y SSL
 
-1. **Google Search Console** → Agrega el dominio → verifica (meta tag o DNS).
-2. Envía `sitemap.xml` en **Sitemaps**.
-3. **Bing Webmaster Tools** → Importa desde GSC.
-4. Comprueba datos estructurados (JSON-LD del catálogo) con el validador de Google.
+Configuración vigente:
 
-## Notas de seguridad
+```text
+A      @     → 216.198.79.1
+CNAME  www   → 43e54af2a1d71a26.vercel-dns-017.com.
+```
 
-- `admin.html` es una utilidad local/demo client-side: no la uses con datos sensibles reales; el checkout productivo pasa por WhatsApp.
-- No se deben subir: `node_modules/`, `.agents/`, `.claude/settings.local.json`, ni las capturas fuera de `tests/shots/`.
-- La revisión visual de las capturas (`tests/shots/`, 50 PNG) es responsabilidad del cliente antes de publicar.
+Comportamiento esperado:
+
+```text
+https://fraganceobession.com/
+→ 308 Permanent Redirect
+→ https://www.fraganceobession.com/
+→ 200 OK
+```
+
+Verificación:
+
+```powershell
+Resolve-DnsName fraganceobession.com -Type A
+Resolve-DnsName www.fraganceobession.com -Type CNAME
+curl.exe -IL https://fraganceobession.com/
+curl.exe -I https://www.fraganceobession.com/
+```
+
+Ambos dominios deben tener HTTPS válido y la cadena no debe contener loops. El redirect apex vive en Domain Settings de Vercel; no lo dupliques en `vercel.json`.
+
+## 5. Post-deploy
+
+### HTTP y assets
+
+```powershell
+curl.exe -I https://www.fraganceobession.com/
+curl.exe -I https://www.fraganceobession.com/styles.css
+curl.exe -I https://www.fraganceobession.com/script.js
+curl.exe -I https://www.fraganceobession.com/productos.js
+curl.exe -I https://www.fraganceobession.com/config.js
+curl.exe -I https://www.fraganceobession.com/manifest.webmanifest
+curl.exe -I https://www.fraganceobession.com/robots.txt
+curl.exe -I https://www.fraganceobession.com/sitemap.xml
+curl.exe -I https://www.fraganceobession.com/img/og-cover.webp
+curl.exe -I https://www.fraganceobession.com/sw.js
+```
+
+Los recursos anteriores deben responder `200`.
+
+### SEO
+
+Confirma en el HTML de producción:
+
+- canonical: `https://www.fraganceobession.com/`
+- `og:url`: `https://www.fraganceobession.com/`
+- `og:image`: `https://www.fraganceobession.com/img/og-cover.webp`
+- `twitter:image`: el mismo OG público
+- JSON-LD Store y Breadcrumbs bajo el dominio principal
+- `robots.txt` anuncia `https://www.fraganceobession.com/sitemap.xml`
+- `sitemap.xml` es XML válido y no contiene fragmentos `#catalogo` o `#promos`
+
+### Security headers
+
+La respuesta del dominio principal debe incluir:
+
+- `Strict-Transport-Security`
+- `X-Content-Type-Options`
+- `X-Frame-Options`
+- `Referrer-Policy`
+- `Permissions-Policy`
+
+### PWA y 404
+
+Comprueba que `manifest.webmanifest`, `sw.js`, `icon-192.png` e `icon-512.png` respondan `200`. El service worker usa cachés versionadas, stale-while-revalidate para assets e imágenes y network-first para navegación, con fallback a `offline.html`. Cambia la versión cuando cambie el contrato de caché.
+
+Una ruta estática inexistente debe responder `404` y mostrar el `404.html` del proyecto en Vercel:
+
+```powershell
+curl.exe -I https://www.fraganceobession.com/pagina-inexistente.html
+```
+
+## 6. Admin
+
+`admin.html` es una utilidad local/demo:
+
+- Solo lee pedidos guardados en el `localStorage` del mismo navegador.
+- No tiene backend, base de datos ni sesión server-side.
+- `ADMIN_HASH` client-side no es autenticación de producción.
+- No debe usarse con datos sensibles ni presentarse como panel real.
+- No existe enlace público desde la tienda.
+- Vercel bloquea su exposición mediante `/admin.html` → `308` → `/`.
+
+## 7. Emails
+
+Se mantienen sin cambios hasta confirmar un mailbox oficial `.com`:
+
+- `contacto@fraganceobsession.pe`
+- `cliente@fraganceobsession.pe`
+
+Estas direcciones y el usuario de TikTok `@fraganceobsession.pe` no son errores de dominio técnico y no deben reemplazarse automáticamente.
+
+## 8. Nuevos perfumes
+
+Cuando cambie el catálogo:
+
+1. Agrega la entrada en `productos.js` y la imagen fuente local.
+2. Regenera los WebP con `node tools/optimize-images.js --only=perfumes`.
+3. Ejecuta los tests relevantes y `npm run smoke`.
+4. Revisa el diff antes del commit.
+
+El proyecto continúa siendo estático y puede servirse en hosting alternativo, pero la producción oficial descrita por esta guía es Vercel.
