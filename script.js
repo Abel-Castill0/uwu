@@ -271,10 +271,19 @@
     }
     if (state.appliedPct >= 15) return "15% aplicado · mejor beneficio por cantidad";
     if (state.appliedPct > 0) return state.appliedPct + "% aplicado";
+    // Carrito solo con packs: el combo ya trae su propio precio promocional
+    // (no recibe 5/10/15% adicional) y sus fragancias internas no cuentan
+    // como decants individuales elegibles — no sugerir lo contrario.
+    if (state.packOnly) return "Tu combo ya incluye su beneficio.";
     if (state.nextTier) return "Agrega " + state.itemsToNextTier + " decant" + (state.itemsToNextTier === 1 ? "" : "s") + " más para obtener " + state.nextTier.pct + "%";
     return "Tus descuentos se aplican automáticamente";
   }
   function nextTierCopy(state) {
+    if (state.packOnly) {
+      return state.nextTier
+        ? "Agrega " + state.itemsToNextTier + " decant" + (state.itemsToNextTier === 1 ? "" : "s") + " individual" + (state.itemsToNextTier === 1 ? "" : "es") + " para activar " + state.nextTier.pct + "% en presentaciones elegibles."
+        : "";
+    }
     if (!state.nextTier || state.appliedPct === 0) return "";
     return "Agrega " + state.itemsToNextTier + " más para llegar al " + state.nextTier.pct + "%";
   }
@@ -595,11 +604,17 @@
     const footer = $("cartFooter");
     const total = $("cartTotal");
     if (!footer || !total) return;
+    // Trust badges viven ahora en .cart-scroll (siempre visible), no dentro
+    // de .cart-footer: con carrito vacío deben ocultarse explícitamente,
+    // igual que antes cuando el footer entero quedaba en display:none.
+    const trustCart = $("trustBadgesCart");
     if (cart.length === 0) {
       footer.style.display = "none";
+      if (trustCart) trustCart.style.display = "none";
       renderBreakdown("cartBreakdown", "cart");
     } else {
       footer.style.display = "block";
+      if (trustCart) trustCart.style.display = "";
       total.textContent = formatPrice(getCartTotal());
       renderBreakdown("cartBreakdown", "cart");
     }
@@ -633,7 +648,9 @@
     }
     const picks = [];
     const pool = [...candidates];
-    const want = Math.min(3, pool.length);
+    // Máximo 2 sugerencias visibles inicialmente: el upsell vive dentro del
+    // área de scroll del carrito y no debe competir con los productos.
+    const want = Math.min(2, pool.length);
     for (let i = 0; i < want; i++) {
       picks.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
     }
@@ -2455,6 +2472,7 @@
   window.__FO_TEST = {
     addToCart: addToCart,
     clearCart: function () { cart = []; saveCart(); updateCartUI(); },
+    setCart: function (items) { cart = items || []; saveCart(); updateCartUI(); },
     sanitizeCartAvailability: sanitizeCartAvailability,
     getCartPromoUXState: getCartPromoUXState,
     isDiscountEligibleSize: isDiscountEligibleSize,

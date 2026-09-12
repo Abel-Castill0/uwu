@@ -90,6 +90,69 @@ function r2(n) { return Math.round(n * 100) / 100; }
   check("pack_umbral", d.subtotalOriginal === 404 && d.subtotalFinal === 404, "final=" + d.subtotalFinal);
 }
 
+/* ── Caso 5b: BUG REAL — carrito SOLO con packs debe poder alcanzar el
+   umbral de S/199 (antes había un early-return por pagables.length===0
+   que cortaba ANTES de evaluar el paso 4, dejando aplicaEnvioGratis /
+   vialGratisAgregado en false pese a subtotalFinal >= 199: la UI mostraba
+   "Te faltan S/0.00" + "No incluido", una contradicción directa). ── */
+{
+  // packOnlyBelowThreshold: S/150 solamente → no desbloquea nada, faltan 49.
+  const items = [{ type: "pack", brand: "Promo", size: "nicho-3", price: 150, qty: 1, isPack: true }];
+  const d = calcular(items);
+  const s = promoState(items);
+  check("packOnlyBelowThreshold_noFreeShipping", d.aplicaEnvioGratis === false, "d=" + JSON.stringify(d));
+  check("packOnlyBelowThreshold_noVial", d.vialGratisAgregado === false, "d=" + JSON.stringify(d));
+  check("packOnlyBelowThreshold_remaining49", s.thresholdRemaining === 49, "remaining=" + s.thresholdRemaining);
+}
+{
+  // packOnlyAboveThreshold: S/235.60 solamente → desbloquea envío + vial,
+  // sin descuento 5/10/15 (el pack ya trae su propio precio promocional).
+  const items = [{ type: "pack", brand: "Promo", size: "nicho-4", price: 235.6, qty: 1, isPack: true }];
+  const d = calcular(items);
+  const s = promoState(items);
+  check("packOnlyAboveThreshold_subtotal", d.subtotalOriginal === 235.6 && d.subtotalFinal === 235.6, JSON.stringify(d));
+  check("packOnlyAboveThreshold_noDiscount", d.descuentoTotal === 0, "dto=" + d.descuentoTotal);
+  check("packOnlyAboveThreshold_freeShipping", d.aplicaEnvioGratis === true, JSON.stringify(d));
+  check("packOnlyAboveThreshold_vial", d.vialGratisAgregado === true, JSON.stringify(d));
+  check("packOnlyAboveThreshold_remaining0", s.thresholdRemaining === 0, "remaining=" + s.thresholdRemaining);
+  check("packOnlyAboveThreshold_eligibleCount0", s.eligibleCount === 0, "eligibleCount=" + s.eligibleCount);
+  check("packOnlyAboveThreshold_packOnlyFlag", s.packOnly === true, "packOnly=" + s.packOnly);
+}
+{
+  // packPlusDecants: el umbral usa subtotalFinal GLOBAL (pack + decants
+  // con su propio descuento aplicado), y el pack sigue sin recibir 5/10/15.
+  const items = [
+    { type: "pack", brand: "Promo", size: "nicho-3", price: 120, qty: 1, isPack: true },
+    { type: "decant", brand: "MarcaZ", size: "5", price: 40, qty: 2 }, // 2 decants elegibles → 5%
+  ];
+  const d = calcular(items);
+  const s = promoState(items);
+  check("packPlusDecants_subtotalOriginal", d.subtotalOriginal === r2(120 + 80), "subtotal=" + d.subtotalOriginal);
+  check("packPlusDecants_onlyDecantsDiscounted", d.descuentoCantidad === r2(80 * 0.05), "dto=" + d.descuentoCantidad);
+  check("packPlusDecants_subtotalFinal", d.subtotalFinal === r2(120 + r2(80 * 0.95)), "final=" + d.subtotalFinal);
+  const expectedRemaining = r2(Math.max(0, 199 - d.subtotalFinal));
+  check("packPlusDecants_thresholdUsesGlobalFinal", s.thresholdRemaining === expectedRemaining, "remaining=" + s.thresholdRemaining + " esperado=" + expectedRemaining);
+  check("packPlusDecants_notPackOnly", s.packOnly === false, "packOnly=" + s.packOnly);
+}
+{
+  // Promo copy: pack solo NO debe sugerir que sus fragancias internas son
+  // decants individuales elegibles para el próximo tramo (5/10/15%).
+  const items = [{ type: "pack", brand: "Promo", size: "nicho-4", price: 150, qty: 1, isPack: true }];
+  const s = promoState(items);
+  check("packOnlyCopy_eligibleCountZero", s.eligibleCount === 0, "eligibleCount=" + s.eligibleCount);
+  check("packOnlyCopy_flagSet", s.packOnly === true, "packOnly=" + s.packOnly);
+}
+{
+  // ACTIVOS=false sigue apagando TODO (descuentos + umbral): el fix no
+  // debe alterar ese comportamiento intencional.
+  const originalActivos = cfg.ACTIVOS;
+  cfg.ACTIVOS = false;
+  const items = [{ type: "pack", brand: "Promo", size: "nicho-4", price: 235.6, qty: 1, isPack: true }];
+  const d = calcular(items);
+  check("activosOff_packStillNoThreshold", d.aplicaEnvioGratis === false && d.vialGratisAgregado === false, JSON.stringify(d));
+  cfg.ACTIVOS = originalActivos;
+}
+
 /* ── Caso 6: 10 decants (1-10ml) → 15% (tramo nuevo) ── */
 {
   const items = [

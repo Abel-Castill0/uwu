@@ -293,6 +293,60 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(cartBadges.length === 3, "trustBadgesCart3", "badges=" + cartBadges.length);
   }, 400);
 
+  /* 13b2. BUG REAL — carrito solo con un pack (>= S/199) ya NO debe caer en
+     la contradicción "Te faltan S/0.00" + "No incluido": envío/vial deben
+     leerse como desbloqueados en el desglose renderizado. También cubre el
+     copy de beneficio para packOnly (sin sugerir que las fragancias del
+     combo son decants individuales elegibles). */
+  step(function () {
+    var pack = {
+      productId: "combo-test-threshold", type: "pack", isPack: true,
+      name: "Combo curado · 4 fragancias", brand: "FRAGRANCE OBSESSION",
+      image: "", size: "3ml", price: 235.6, qty: 1, includedProducts: [],
+    };
+    window.__FO_TEST.setCart([pack]);
+    var breakdownEl = document.getElementById("cartBreakdown");
+    var breakdown = breakdownEl.textContent.replace(/\s+/g, " ");
+    ok(breakdown.indexOf("Te faltan") === -1, "packOnlyNoRemainingContradiction", breakdown);
+    ok(!!breakdownEl.querySelector(".cart-threshold--unlocked"), "packOnlyThresholdUnlockedUI", breakdown);
+    ok(breakdown.indexOf("GRATIS") !== -1 && breakdown.indexOf("INCLUIDO") !== -1, "packOnlyShippingVialCopy", breakdown);
+    ok(breakdown.indexOf("Tu combo ya incluye su beneficio") !== -1, "packOnlyBenefitCopy", breakdown);
+    ok(breakdown.indexOf("decants individuales") !== -1, "packOnlyMentionsIndividualDecants", breakdown);
+    window.__FO_TEST.clearCart();
+  }, 300);
+
+  /* 13b3. Pack multi-producto: grid de 2 columnas, sin scroll horizontal,
+     tarjetas únicas por producto (bug real de la captura: carrusel de
+     miniaturas de 36px con overflow-x). */
+  step(function () {
+    var included = [
+      { id: 1, name: "Contemporary", brand: "Clive Christian", image: "img/perfumes_optimized/Comteporary.webp" },
+      { id: 3, name: "Rock Rose", brand: "Clive Christian", image: "img/perfumes_optimized/Rock rose.webp" },
+      { id: 62, name: "Narcotic Delight", brand: "Initio", image: "img/perfumes_optimized/NARCOTIC DELIGHT.webp" },
+      { id: 55, name: "Porthole", brand: "Zoologist", image: "img/perfumes_optimized/PORTHOLE.webp" },
+    ].map(function (p) { return Object.assign({}, p, { size: "3ml" }); });
+    var pack = {
+      productId: "combo-test-grid", type: "pack", isPack: true,
+      name: "Combo curado · 4 fragancias", brand: "FRAGRANCE OBSESSION",
+      image: included[0].image, size: "3ml", price: 235.6, qty: 1, includedProducts: included,
+    };
+    window.__FO_TEST.setCart([pack]);
+    var strip = document.querySelector("#cartItems .cart-pack-strip");
+    ok(!!strip, "packGridRendered", "sin .cart-pack-strip");
+    var items = strip ? strip.querySelectorAll(".cart-pack-item") : [];
+    ok(items.length === included.length, "packGridProductCount", "items=" + items.length + " esperado=" + included.length);
+    var names = Array.prototype.map.call(items, function (el) {
+      return el.querySelector(".cart-pack-name") ? el.querySelector(".cart-pack-name").textContent.trim() : "";
+    });
+    ok(new Set(names).size === included.length, "packGridUniqueProducts", names.join("|"));
+    ok(getComputedStyle(strip).display === "grid", "packGridIsGrid", "display=" + getComputedStyle(strip).display);
+    ok(strip.scrollWidth <= strip.clientWidth + 1, "packGridNoHorizontalOverflow", "scrollWidth=" + strip.scrollWidth + " clientWidth=" + strip.clientWidth);
+    // El sidebar completo tampoco debe generar overflow horizontal.
+    var sidebar = document.getElementById("cartSidebar");
+    ok(sidebar.scrollWidth <= sidebar.clientWidth + 1, "cartSidebarNoHorizontalOverflow", "scrollWidth=" + sidebar.scrollWidth + " clientWidth=" + sidebar.clientWidth);
+    window.__FO_TEST.clearCart();
+  }, 300);
+
   /* 13c. footer: modales informativos (FAQ abre, Esc cierra, Términos cambia contenido) */
   step(function () {
     var links = document.querySelectorAll("#footerInfoLinks [data-info-modal]");

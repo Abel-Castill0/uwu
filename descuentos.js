@@ -60,17 +60,27 @@
     var decants = pagables.filter(function (it) { return it.type === "decant"; });
     out.cantDecants = decants.reduce(function (s, it) { return s + it.qty; }, 0);
 
-    if (!cfg.ACTIVOS || pagables.length === 0) {
+    /* El switch global ACTIVOS sigue apagando TODO el sistema de promos
+       (descuentos + umbral): comportamiento intencional preservado. */
+    if (!cfg.ACTIVOS) {
       out.subtotalFinal = out.subtotalOriginal;
       return out;
     }
 
+    /* pagables.length === 0 (carrito solo con packs) YA NO corta antes del
+       umbral: los packs no reciben descuento 5/10/15 (no hay decants
+       "pagables" que evaluar en los pasos 1 y 2), pero sí deben poder
+       alcanzar el umbral de S/199 con su propio subtotal — de lo
+       contrario un pack de S/235.60 nunca desbloquea envío gratis ni vial
+       de regalo, y la UI cae en la contradicción "Te faltan S/0.00" +
+       "No incluido". Pasos 1 y 2 se saltan; el paso 4 (umbral) SIEMPRE se
+       evalúa cuando ACTIVOS es true. */
     /* 1) Descuento por cantidad de decants — solo presentaciones de 1ml a
        10ml (POR_CANTIDAD.tamMaxMl) cuentan y reciben este descuento; los
        decants de 20ml/30ml quedan fuera (piden más volumen, no aplica el
        incentivo de "prueba y compra más"). Sin tamMaxMl configurado, no
        se restringe (compatibilidad hacia atrás). */
-    if (cfg.POR_CANTIDAD && cfg.POR_CANTIDAD.activo) {
+    if (pagables.length > 0 && cfg.POR_CANTIDAD && cfg.POR_CANTIDAD.activo) {
       var tamMax = cfg.POR_CANTIDAD.tamMaxMl;
       var decantsElegibles = !tamMax ? decants : decants.filter(function (it) {
         return isDiscountEligibleSize(it.size);
@@ -178,6 +188,13 @@
     });
     var nextTier = tiers.length ? tiers[0] : null;
     var thresholdAmount = umbral.activo ? Number(umbral.monto) || 0 : 0;
+    var itemsArr = items || [];
+    // Carrito compuesto SOLO por packs: sus fragancias internas no son
+    // decants individuales elegibles (d.cantDecants ya excluye packs), así
+    // que el copy de "próximo tier" no debe sugerir que el combo ya suma
+    // hacia el 5/10/15% — ver cartBenefitCopy() en script.js.
+    var hasPack = itemsArr.some(function (it) { return it.isPack; });
+    var packOnly = hasPack && d.cantDecants === 0;
 
     return {
       eligibleCount: d.cantDecantsElegibles,
@@ -190,6 +207,8 @@
       thresholdAmount: thresholdAmount,
       thresholdRemaining: thresholdAmount ? redondear(Math.max(0, thresholdAmount - d.subtotalFinal)) : 0,
       freeShippingUnlocked: d.aplicaEnvioGratis,
+      hasPack: hasPack,
+      packOnly: packOnly,
       discounts: d,
     };
   }

@@ -841,20 +841,22 @@
         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
       </button>
     </div>
-    <div class="cart-items" id="cartItems">
-      <div class="cart-empty">
-        <div class="cart-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8.5h13l1.2 12a1.8 1.8 0 0 1-1.8 2H6.1a1.8 1.8 0 0 1-1.8-2l1.2-12z"/><path d="M8.5 10.5V7a3.5 3.5 0 0 1 7 0v3.5"/></svg></div>
-        <p>Tu carrito está vacío.</p>
-        <span>¡Explora nuestra colección!</span>
+    <div class="cart-scroll" id="cartScroll">
+      <div class="cart-items" id="cartItems">
+        <div class="cart-empty">
+          <div class="cart-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8.5h13l1.2 12a1.8 1.8 0 0 1-1.8 2H6.1a1.8 1.8 0 0 1-1.8-2l1.2-12z"/><path d="M8.5 10.5V7a3.5 3.5 0 0 1 7 0v3.5"/></svg></div>
+          <p>Tu carrito está vacío.</p>
+          <span>¡Explora nuestra colección!</span>
+        </div>
       </div>
-    </div>
-    <div class="cart-footer" id="cartFooter" style="display:none;">
       <div class="upsell-strip" id="upsellStrip">
         <p class="upsell-strip__title"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3.8-1.8 5.4-3 7.2C7.4 11.4 6.5 13.6 6.5 16a5.5 5.5 0 0 0 11 0c0-2.2-.8-4-2-5.5-.4 1.2-1 2-2 2.6.6-3.4.7-8-1.5-11z"/></svg> Agrega una muestra y descubre tu próximo favorito</p>
         <div class="upsell-strip__items" id="upsellItems"></div>
       </div>
       <div class="cart-breakdown" id="cartBreakdown"></div>
       <div class="trust-badges trust-badges--cart" id="trustBadgesCart" aria-label="Garantías de compra"></div>
+    </div>
+    <div class="cart-footer" id="cartFooter" style="display:none;">
       <div class="cart-total">
         <span>Total</span>
         <span id="cartTotal">S/ 0.00</span>
