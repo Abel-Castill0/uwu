@@ -28,13 +28,12 @@ window.FO_CONFIG = {
      para futuras confirmaciones por correo. */
   EMAIL: "contacto@fraganceobsession.pe",
 
-  /* Panel admin (admin.html): la contraseña NO se guarda en texto plano.
-     ADMIN_HASH es el SHA-256 (hex) de tu contraseña.
-     ⚠️ CAMBIAR antes de publicar. Genera tu propio hash con la herramienta:
+  /* Utilidad local/demo (admin.html), no administración de producción.
+     ADMIN_HASH es solo un candado client-side, no una frontera de seguridad.
+     Para cambiarlo localmente, genera otro hash con la herramienta:
         node tools/generate-admin-hash.js "TU-CONTRASEÑA"
      (o interactivo:  node tools/generate-admin-hash.js)
-     y pega el resultado aquí (64 caracteres hex). El hash de abajo es solo
-     de ejemplo y NO debe publicarse como contraseña real. */
+     y pega el resultado aquí (64 caracteres hex). */
   ADMIN_HASH: "1d3542876d1c3e0b8c53394e2fcadb4d55cc36df65fa4f122af1d86c825e34af",
 
   /* ── FRANJA DE PROMOCIONES (marquee) ──────────────────────────

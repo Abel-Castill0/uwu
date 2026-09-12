@@ -2283,7 +2283,7 @@
   }
   setupPayMethods();
 
-  // Guarda el pedido en localStorage (fo_pedidos) para el panel admin.
+  // Guarda una copia local del pedido para la utilidad demo del mismo navegador.
   function saveOrderRecord(datos) {
     try {
       const now = new Date();

@@ -1,6 +1,6 @@
 # Fragrance Obsession · Decants de Lujo
 
-Tienda online estática (HTML/CSS/JS puro) de decants premium de perfumes árabes, de diseñador y nicho en Lima, Perú. Sin frameworks ni backend: se publica tal cual en **GitHub Pages**. Checkout 100 % WhatsApp (+ enlace Mercado Pago), panel admin client-side y PWA offline.
+Tienda online estática (HTML/CSS/JS puro) de decants premium de perfumes árabes, de diseñador y nicho en Lima, Perú. Sin frameworks ni backend: se publica tal cual en **GitHub Pages**. Checkout 100 % WhatsApp, utilidad local/demo de pedidos y PWA offline.
 
 ## Publicar en GitHub Pages
 
@@ -22,20 +22,7 @@ GitHub Pages ya la sirve en `https://TU_USUARIO.github.io/TU_REPO/` (el proyecto
 
 ## Después de publicar (importante)
 
-1. **Cambia la contraseña del panel admin** (`/admin.html`): el hash actual en `config.js` es de una contraseña de ejemplo. Genera el tuyo:
-   ```bash
-   # Node (recomendado, disponible en el repo)
-   node tools/generate-admin-hash.js
-   #   o directamente:  node tools/generate-admin-hash.js "tu-contraseña"
-   ```
-   ```powershell
-   # PowerShell (alternativa)
-   $s = Read-Host "Nueva contraseña (no se muestra)"
-   $bytes = [System.Text.Encoding]::UTF8.GetBytes($s)
-   $hash = [System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)
-   ([BitConverter]::ToString($hash)).Replace('-','').ToLower()
-   ```
-   Pega el resultado en `config.js` → `ADMIN_HASH` y vuelve a subir.
+1. **Admin local/demo**: `admin.html` solo lee pedidos del `localStorage` del mismo navegador. No existe backend, base de datos, sesión ni autenticación server-side; no debe usarse como administración real de producción. Vercel redirige esta ruta al inicio.
 2. **Google Analytics**: en `index.html` reemplaza `G-XXXXXXXXXX` por tu ID real (el loader está preparado y no carga hasta que cambies el ID).
 3. **Meta Pixel**: en `index.html` reemplaza `window.META_PIXEL_ID = "XXXXXXXXXXXXXXX"` por tu ID real (idem: no carga hasta que lo cambies).
 4. **Dominio personalizado** (opcional): crea `CNAME` con tu dominio y configúralo en Settings → Pages. Verifica que `sitemap.xml` y `robots.txt` usen tu dominio (edita `sitemap.xml` si no es `fraganceobsession.pe`).
@@ -51,7 +38,7 @@ Revisa que `sw.js` esté activo (DevTools → Application → Service Workers) y
 ## Notas técnicas
 
 - **Service Worker** (`sw.js`, versión `fo-v51-ghpages`): cachea los assets críticos con rutas relativas y `scope "./"`; al actualizar la página el nuevo SW **toma el control de inmediato** (`skipWaiting` + `clients.claim`) — no hace falta recargar dos veces. Si ves versiones viejas, desregistra el SW en DevTools > Application > Service Workers y recarga con Ctrl+F5. ⚠️ Cada cambio del SW hay que subirlo con **Node** (escribir `sw.js` con `fs.writeFileSync`), nunca con PowerShell, para no alterar el BOM.
-- **Panel admin**: `/admin.html` valida con SHA-256 en el navegador (`crypto.subtle`); no hay contraseña en el cliente ni servidor. Es un candado de disuasión del hosting estático, no autenticación real.
+- **Utilidad local de pedidos**: `admin.html` valida un SHA-256 en el navegador y solo lee el `localStorage` del mismo origen. Es una demo local, no un panel de producción ni una frontera de seguridad.
 - **Temas**: claro/oscuro con `data-theme` en `<html>`; se respeta `prefers-reduced-motion` (desactiva marquee, Ken Burns y micro-interacciones).
 - **Filtros**: píldoras de categoría + panel offcanvas en móvil; los resultados se anuncian con `role="status"` y `aria-live`. Los filtros de género están ocultos (todos los perfumes son unisex) — reactivar borrando el bloque `PENDIENTE decisión del cliente` en `styles.css` si el cliente clasifica por género.
 - **Imágenes optimizadas**: `img/perfumes_optimized/` (WebP 1000px q82, generadas con `node tools/optimize-images.js --only=perfumes`) es la ÚNICA fuente que sirve el sitio — `productos.js` → `FO_PRODUCT_IMAGES` apunta directo ahí, sin `srcset` ni flags. `img/perfumes/` (PNG originales sin comprimir, ~240MB) es solo la fuente para regenerar; está en `.gitignore` y no se sube al repo. `img/perfumes_backup/` e `img/perfumes_backup_optimized/` guardan archivos huérfanos (sin producto asociado o sin precio conocido) — nunca se borran, solo se mueven ahí. Para añadir un perfume: foto en `img/perfumes/` (en disco, no se versiona; **si el tamaño es 20ml o 30ml el nombre del archivo NUNCA lleva "premium"** — eso es solo para 5ml/10ml) + entrada en `FO_PRODUCT_IMAGES` + `node tools/optimize-images.js --only=perfumes` + `npm test`.
@@ -96,9 +83,9 @@ Los runners ahora viven en `tests/`; consulta `tests/README.md` para requisitos 
 | `index.html` | Catálogo, packs, home, checkout y modales; GA + Meta Pixel (placeholders) |
 | `styles.css` | Tema claro/oscuro y diseño responsive (bloque V17 al final) |
 | `script.js` | Lógica completa (filtros, carrito, navegación, srcset optimizado) |
-| `config.js` | Ajustes: `SITE_URL`, `ADMIN_HASH`, `PROXIMAMENTE`, marquee |
+| `config.js` | Ajustes: `SITE_URL`, `ADMIN_HASH` local/demo, `PROXIMAMENTE`, marquee |
 | `sw.js` | Service Worker (offline + actualización inmediata, `fo-v45-ghpages`) |
-| `admin.html` | Panel de administración (login con SHA-256) |
+| `admin.html` | Utilidad local/demo de pedidos del mismo navegador |
 | `productos.js`, `descuentos.js`, `animations.js` | Datos y animaciones |
 | `gracias.html`, `offline.html`, `404.html` | Páginas de soporte |
 | `privacidad.html`, `terminos.html` | Legales (privacidad + términos) |

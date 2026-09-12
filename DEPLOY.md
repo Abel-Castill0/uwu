@@ -34,7 +34,7 @@ Estos valores los pones tú antes de publicar:
 |------|---------|------|
 | **GA4** | `index.html` (bloque `GOOGLE ANALYTICS 4`) | Reemplaza `G-XXXXXXXXXX` en `window.GA_MEASUREMENT_ID`. El loader NO carga GA mientras el ID tenga `XXXXXX`. |
 | **Meta Pixel** | `index.html` (bloque `META PIXEL`) | Reemplaza `XXXXXXXXXXXXXXX` en `window.META_PIXEL_ID`. El Pixel NO carga mientras tenga `XXXXXXX`. |
-| **ADMIN_HASH** | `config.js` → `ADMIN_HASH` | `node tools/generate-admin-hash.js "tu-contraseña"` → pega el hash (64 hex). Nunca publiques el hash de ejemplo. |
+| **ADMIN_HASH** | `config.js` → `ADMIN_HASH` | Solo protege la utilidad local/demo; no es autenticación de producción ni debe usarse con datos sensibles. |
 | **Dominio** | `sitemap.xml`, `robots.txt`, `index.html` (canonical) | Usa tu dominio real. `SITE_URL` en `config.js` es dinámico (funciona solo). |
 
 Si no vas a usar GA o Meta Pixel, borra el bloque correspondiente en `index.html`.
@@ -104,6 +104,6 @@ curl -s -o /dev/null -w "%{http_code}\n" https://TU_USUARIO.github.io/TU_REPO/sw
 
 ## Notas de seguridad
 
-- El panel admin es client-side (limitación del hosting estático): no lo uses con datos sensibles reales; el checkout pasa por WhatsApp del cliente.
+- `admin.html` es una utilidad local/demo client-side: no la uses con datos sensibles reales; el checkout productivo pasa por WhatsApp.
 - No se deben subir: `node_modules/`, `.agents/`, `.claude/settings.local.json`, ni las capturas fuera de `tests/shots/`.
 - La revisión visual de las capturas (`tests/shots/`, 50 PNG) es responsabilidad del cliente antes de publicar.

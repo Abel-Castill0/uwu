@@ -1159,8 +1159,6 @@
   .social-links a:hover { background: var(--gold); border-color: var(--gold); color: #fff; transform: translateY(-3px); box-shadow: 0 8px 22px rgba(201,155,95,.4); }
   .footer-bottom { max-width: var(--max-w); margin: 0 auto; text-align: center; padding-top: 1.7rem; border-top: 1px solid rgba(255,255,255,.07); font-size: .76rem; color: rgba(255,255,255,.32); line-height: 1.8; }
   .footer-signature { margin-top: .35rem; }
-  .footer-admin { margin-left: .5rem; opacity: .35; font-size: .85rem; text-decoration: none; transition: opacity .3s ease; }
-  .footer-admin:hover { opacity: 1; }
   .footer-signature a { color: var(--gold); font-weight: 600; transition: color var(--t-fast); }
   .footer-signature a:hover { color: var(--gold-light); }
   /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -4579,8 +4577,6 @@ body:has(#cartSidebar.active) .sticky-cart { display: none; }
   .upsell-strip__title svg { vertical-align: -2px; margin-right: 3px; color: var(--gold-deep); }
   [data-theme="dark"] .upsell-strip__title svg { color: var(--gold-light); }
   .footer-bottom p svg { vertical-align: -2px; color: var(--gold); }
-  .footer-admin svg { vertical-align: -2px; }
-
   /* ---- Badges mate: sin brillo neón, fondo sólido + borde sutil ---- */
   .product-badge.soon,
   .product-badge.new,
