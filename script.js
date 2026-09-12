@@ -322,19 +322,7 @@
   function formatPrice(p) {
     return "S/ " + p.toFixed(2);
   }
-  /* Fake discount: shows a higher "original" price crossed out + % OFF badge.
-     Reads product.fakeDiscount (e.g. 20 or 15). If absent, no discount. */
-  function getFakeDiscount(realPrice, product) {
-    if (!product || typeof product.fakeDiscount !== "number" || product.fakeDiscount <= 0) return null;
-    if (typeof realPrice !== "number" || realPrice <= 0) return null;
-    const pct = product.fakeDiscount;
-    const fakeOriginal = Math.round(realPrice / (1 - pct / 100));
-    return {
-      fakeOriginal,
-      pct,
-      html: `<span class="price-fake-block"><span class="price-fake-top"><span class="price-fake-original">${esc(formatPrice(fakeOriginal))}</span><span class="price-fake-pct">${pct}% OFF</span></span><span class="price-fake-real">${esc(formatPrice(realPrice))}</span><span class="price-fake-note">Precio real de oferta</span></span>`,
-    };
-  }
+
   // Escapa texto que se inyecta en HTML para prevenir roturas de markup
   function esc(str) {
     return String(str == null ? "" : str)
@@ -876,12 +864,9 @@
       .join("");
     const price = currentModalSize ? sizes[currentModalSize] : null;
     const modalPromo = isFull && !isComingSoon(product.id) ? productPromoInfo(product) : null;
-    const modalFake = !modalPromo && price ? getFakeDiscount(price, product) : null;
     const specialPrice = isFull && price && !isComingSoon(product.id);
     $("modalPrice").innerHTML = modalPromo
       ? `<span class="price-special-label">Precio especial</span><span class="price-regular">${esc(formatPrice(modalPromo.regularPrice))}</span><span class="price-pct">${modalPromo.pct}% menos</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
-      : modalFake
-      ? `${modalFake.html} <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : specialPrice
       ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : price
@@ -1150,8 +1135,7 @@
       const hasSize = comboProductHasSize(prod, comboSize);
       const disabled = !hasSize || (!isSelected && comboSelectedIds.length >= COMBO_MAX);
       const realPrice = hasSize ? prod.decantSizes[comboSize] : null;
-      const fake = realPrice ? getFakeDiscount(realPrice, prod) : null;
-      const priceHtml = realPrice ? (fake ? fake.html : formatPrice(realPrice)) : `Sin ${comboSize}ml`;
+      const priceHtml = realPrice ? formatPrice(realPrice) : `Sin ${comboSize}ml`;
       const imgSrc = prod.cardImage || cardImg(prod);
       return `<label class="combo-item${isSelected ? " selected" : ""}${disabled ? " disabled" : ""}">
         <input type="checkbox" data-product-id="${prod.id}"${isSelected ? " checked" : ""}${disabled ? " disabled" : ""} />
@@ -1372,12 +1356,10 @@
       ? `<span class="product-badge ${esc(badge.className)}">${esc(badge.label)}</span>`
       : "";
     const specialPrice = hasFull && !hasDecants && !soon;
-    // Precio: promo real, fake discount visual, o precio normal
+    // Precio: promo real o precio normal
     const promo = soon ? null : productPromoInfo(product);
-    const fake = !promo && minPrice ? getFakeDiscount(minPrice, product) : null;
     const priceText = promo
       ? `<span class="price-special-label">Precio especial</span><span class="price-regular">${esc(formatPrice(promo.regularPrice))}</span><span class="price-pct">${promo.pct}% menos</span><span class="price-final">${esc(formatPrice(promo.price))}</span>`
-      : fake ? fake.html
       : specialPrice && minPrice
       ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(minPrice))}</span>`
       : minPrice ? `Desde ${formatPrice(minPrice)}` : "Consultar";
@@ -1401,7 +1383,7 @@
             <span class="product-price">${priceText}</span>
             ${stockText ? `<span class="product-stock">${esc(stockText)}</span>` : ""}
           </div>
-          <button class="btn-add${soon ? " btn-soon" : ""}" data-add-id="${product.id}"${soon ? " disabled" : ""}>${soon ? "Próximamente" : hasDecants ? "Ver y Comprar" : "Comprar Sellado"}</button>
+          <button class="btn-add${soon ? " btn-soon" : ""}" data-add-id="${product.id}"${soon ? " disabled" : ""}>${soon ? "Próximamente" : hasDecants ? "Ver y Comprar" : fullPresentationLabel(product) === "Frasco completo" ? "Comprar Sellado" : `Comprar ${fullPresentationLabel(product)}`}</button>
         </div>
       </div>`;
   }
@@ -2760,12 +2742,6 @@
       html: `<p><strong>FRAGRANCE OBSESSION</strong> nació con una idea simple: que puedas disfrutar de las mejores fragancias del mundo sin tener que comprar un frasco completo.</p>
         <p>Seleccionamos cuidadosamente perfumes árabes, de diseñador y nicho, y los ofrecemos en decants premium con <strong>extracción con jeringa</strong> desde el frasco original.</p>
         <p>Más de 1,000 clientes en todo el Perú ya confían en nosotros. Somos una tienda peruana, con despacho en Lima Metropolitana y envíos a todo el país.</p>`,
-    },
-    beneficios: {
-      title: "Beneficios por cantidad",
-      html: `<p>Los descuentos se aplican automáticamente sobre decants elegibles de <strong>1 a 10 ml</strong>. Puedes combinar fragancias nicho y de diseñador.</p>
-        <p><strong>2–5 decants:</strong> 5% · <strong>6–9:</strong> 10% · <strong>10 o más:</strong> 15%.</p>
-        <p>Las presentaciones de 20 y 30 ml no participan en este beneficio. Los pedidos desde S/ 199 incluyen envío gratis y un vial de regalo.</p>`,
     },
   };
 

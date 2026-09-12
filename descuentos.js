@@ -82,15 +82,23 @@
       }
     }
 
-    /* 2) Descuento por marca repetida (3+ unidades de la misma marca) */
+    /* 2) Descuento por marca repetida (3+ decants elegibles de la misma marca).
+       Solo cuentan decants de 1ml a 10ml (misma restricción que POR_CANTIDAD).
+       Sellados, testers y parciales NO participan en este descuento. */
     if (cfg.POR_MARCA && cfg.POR_MARCA.activo) {
+      var tamMaxMarca = (cfg.POR_CANTIDAD && cfg.POR_CANTIDAD.tamMaxMl) || 10;
+      var decantsMarca = pagables.filter(function (it) {
+        if (it.type !== "decant") return false;
+        var ml = parseInt(String(it.size).replace("_premium", ""), 10);
+        return !isNaN(ml) && ml <= tamMaxMarca;
+      });
       var porMarca = {};
-      pagables.forEach(function (it) {
+      decantsMarca.forEach(function (it) {
         porMarca[it.brand] = (porMarca[it.brand] || 0) + it.qty;
       });
       Object.keys(porMarca).forEach(function (marca) {
         if (porMarca[marca] >= cfg.POR_MARCA.minItems) {
-          var itemsMarca = pagables.filter(function (it) { return it.brand === marca; });
+          var itemsMarca = decantsMarca.filter(function (it) { return it.brand === marca; });
           var baseMarca = subtotalDe(itemsMarca);
           var montoMarca = redondear(baseMarca * (cfg.POR_MARCA.porcentaje / 100));
           out.descuentoMarca = redondear(out.descuentoMarca + montoMarca);
@@ -142,7 +150,7 @@
   function calcularPrecioPromo(regularPrice, price) {
     if (typeof regularPrice !== "number" || typeof price !== "number") return null;
     if (!(regularPrice > price) || price < 0) return null;
-    const pct = Math.round(((regularPrice - price) / regularPrice) * 100);
+    const pct = Math.round(((regularPrice - price) / regularPrice) * 1000) / 10;
     return { regularPrice, price, pct, ahorro: redondear(regularPrice - price) };
   }
 

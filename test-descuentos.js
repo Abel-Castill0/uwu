@@ -138,7 +138,7 @@ const promo = window.calcularPrecioPromo;
 {
   const p = promo(1050, 860);
   check("promo_1050_noEs20pct", p && p.pct !== 20, JSON.stringify(p));
-  check("promo_1050_pctReal", p && p.pct === 18, JSON.stringify(p)); // (1050-860)/1050 = 18.09% -> redondeado 18
+  check("promo_1050_pctReal", p && p.pct === 18.1, JSON.stringify(p)); // (1050-860)/1050 = 18.095% -> 18.1
 }
 {
   const p = promo(undefined, 860);
@@ -151,6 +151,70 @@ const promo = window.calcularPrecioPromo;
 {
   const p = promo(860, 860); // igual: no es promo, es el mismo precio
   check("promo_regularIgualAlFinal_null", p === null, JSON.stringify(p));
+}
+/* ── Caso 10: calcularPrecioPromo — precision de 1 decimal ── */
+{
+  const p = promo(1000, 875);
+  check("promo_1000to875_12pct5", p && p.pct === 12.5, JSON.stringify(p)); // 12.5%
+}
+{
+  const p = promo(1000, 880);
+  check("promo_1000to880_12pct", p && p.pct === 12, JSON.stringify(p)); // 12% exacto
+}
+
+/* ── Caso 11: POR_MARCA solo cuenta decants elegibles (1-10ml) ── */
+{
+  // 3 decants misma marca, 1-10ml → 10% aplica
+  const items = [
+    { type: "decant", brand: "MarcaA", size: "5", price: 100, qty: 1 },
+    { type: "decant", brand: "MarcaA", size: "10", price: 200, qty: 1 },
+    { type: "decant", brand: "MarcaA", size: "3", price: 70, qty: 1 },
+  ];
+  const d = calcular(items);
+  check("marca3decants_aplica", d.descuentoMarca > 0, "dtoMarca=" + d.descuentoMarca);
+}
+
+/* ── Caso 12: POR_MARCA NO cuenta sellados/testers ── */
+{
+  // 2 decants + 1 sellado misma marca → NO cuenta como 3 decants
+  const items = [
+    { type: "decant", brand: "MarcaB", size: "5", price: 100, qty: 1 },
+    { type: "decant", brand: "MarcaB", size: "10", price: 200, qty: 1 },
+    { type: "full", brand: "MarcaB", size: "100", price: 800, qty: 1 },
+  ];
+  const d = calcular(items);
+  check("marca2decants1sellado_noAplica", d.descuentoMarca === 0, "dtoMarca=" + d.descuentoMarca);
+}
+
+/* ── Caso 13: 3 sellados misma marca → NO aplica POR_MARCA ── */
+{
+  const items = [
+    { type: "full", brand: "MarcaC", size: "100", price: 500, qty: 1 },
+    { type: "full", brand: "MarcaC", size: "100", price: 500, qty: 1 },
+    { type: "full", brand: "MarcaC", size: "100", price: 500, qty: 1 },
+  ];
+  const d = calcular(items);
+  check("marca3sellados_noAplica", d.descuentoMarca === 0, "dtoMarca=" + d.descuentoMarca);
+}
+
+/* ── Caso 14: decants de 20ml/30ml NO cuentan para POR_MARCA ── */
+{
+  const items = [
+    { type: "decant", brand: "MarcaD", size: "20", price: 300, qty: 3 },
+  ];
+  const d = calcular(items);
+  check("marca3decants20ml_noAplica", d.descuentoMarca === 0, "dtoMarca=" + d.descuentoMarca);
+}
+
+/* ── Caso 15: 3 testers misma marca → NO aplica POR_MARCA ── */
+{
+  const items = [
+    { type: "full", brand: "MarcaE", size: "100", price: 400, qty: 1 },
+    { type: "full", brand: "MarcaE", size: "100", price: 400, qty: 1 },
+    { type: "full", brand: "MarcaE", size: "100", price: 400, qty: 1 },
+  ];
+  const d = calcular(items);
+  check("marca3testers_noAplica", d.descuentoMarca === 0, "dtoMarca=" + d.descuentoMarca);
 }
 
 console.log("RESULTADO: " + passed + " PASS | " + failed + " FAIL");
