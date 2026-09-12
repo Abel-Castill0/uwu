@@ -511,6 +511,7 @@
             <button class="filter-btn cat-pill cat-pill--cat" data-filter="disenador" data-cat="disenador" aria-pressed="false"><i class="fa-solid fa-gem" aria-hidden="true"></i><span>Diseñador</span></button>
             <button class="filter-btn cat-pill cat-pill--cat" data-filter="completos" data-cat="completos" aria-pressed="false"><i class="fa-solid fa-bottle-droplet" aria-hidden="true"></i><span>Completos</span></button>
             <span class="cat-filter-divider" aria-hidden="true"></span>
+            <button class="filter-btn cat-pill cat-pill--brand" id="brandFilterBtn" type="button" aria-pressed="false"><i class="fa-solid fa-tag" aria-hidden="true"></i><span id="brandFilterLabel">Marcas</span></button>
             <div class="cat-filter-gender" id="filtersGender" role="group" aria-label="Filtrar por género">
               <button class="filter-btn cat-pill cat-pill--gender" data-filter="masculino" aria-pressed="false"><i class="fa-solid fa-mars" aria-hidden="true"></i><span>Masculino</span></button>
               <button class="filter-btn cat-pill cat-pill--gender" data-filter="femenino" aria-pressed="false"><i class="fa-solid fa-venus" aria-hidden="true"></i><span>Femenino</span></button>
@@ -544,12 +545,38 @@
             <button class="filter-btn cat-pill cat-pill--oc cat-pill--oc-gender" data-oc-gender="femenino" aria-pressed="false">Femenino</button>
             <button class="filter-btn cat-pill cat-pill--oc cat-pill--oc-gender" data-oc-gender="unisex" aria-pressed="false">Unisex</button>
           </div>
+          <p class="filters-offcanvas__label">Marca</p>
+          <div class="filters-offcanvas__brand">
+            <button class="filters-offcanvas__brand-btn" id="ocBrandBtn" type="button">
+              <span id="ocBrandLabel">Todas las marcas</span>
+              <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </button>
+            <button class="filters-offcanvas__brand-clear" id="ocBrandClear" type="button" style="display:none" aria-label="Limpiar marca seleccionada">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </div>
         </div>
         <div class="filters-offcanvas__foot">
           <button class="btn btn-gold" id="filtersApplyBtn" type="button"><span>Aplicar</span></button>
         </div>
       </div>
       <div class="filters-offcanvas__backdrop" id="filtersBackdrop"></div>
+
+      <!-- Brand explorer modal -->
+      <div class="brand-explorer-overlay" id="brandExplorerOverlay" role="dialog" aria-modal="true" aria-label="Explorar por marca">
+        <div class="brand-explorer" id="brandExplorer">
+          <div class="brand-explorer__head">
+            <h3>Explorar por marca</h3>
+            <button class="modal-close" id="brandExplorerClose" type="button" aria-label="Cerrar explorador de marcas"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+          </div>
+          <div class="brand-explorer__search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input type="search" id="brandSearchInput" placeholder="Buscar marca..." autocomplete="off" spellcheck="false" aria-label="Buscar marca" />
+          </div>
+          <div class="brand-explorer__az" id="brandAzIndex" role="toolbar" aria-label="Índice alfabético"></div>
+          <div class="brand-explorer__body" id="brandGroupsList"></div>
+        </div>
+      </div>
 
       <!-- Promociones oficiales del catálogo -->
       <section class="promo-strip" aria-label="Promociones del catálogo">

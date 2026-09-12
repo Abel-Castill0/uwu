@@ -171,7 +171,7 @@
      STATE
   ══════════════════════════════════════════════════════════════ */
   let cart = [];
-  let activeFilters = { category: null, gender: null };
+  let activeFilters = { category: null, gender: null, brand: null };
   let searchTerm = "";
   let quickFilter = "todos";
   // Los packs (type: "group") viven en el mismo array pero NO son perfumes:
@@ -191,6 +191,33 @@
   let currentModalSize = null;
   let currentPage = "home";
   let catalogVisibleCount = 24;
+  /* ── Brand explorer state ── */
+  let _catalogBrandsCache = null;
+  let _brandExplorerSearch = "";
+  function getCatalogBrands() {
+    if (_catalogBrandsCache) return _catalogBrandsCache;
+    const brandSet = new Set();
+    products.forEach(function (p) {
+      if (isProduct(p) && p.brand) brandSet.add(p.brand.trim());
+    });
+    _catalogBrandsCache = [...brandSet].sort(function (a, b) {
+      return a.localeCompare(b, "es", { sensitivity: "base" });
+    });
+    return _catalogBrandsCache;
+  }
+  function getBrandGroups(brands) {
+    const groups = {};
+    brands.forEach(function (b) {
+      const first = b.charAt(0).toUpperCase();
+      const key = /[A-Z]/.test(first) ? first : "#";
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(b);
+    });
+    return groups;
+  }
+  function stripAccents(s) {
+    return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
   /* ── Pack Builder state ── */
   let comboSize = "3";
   let comboSelectedIds = [];
@@ -1278,7 +1305,7 @@
     if (navLink) navLink.classList.add("active");
     renderStickyCartVisibility();
     if (page === "catalogo") {
-      activeFilters = { category: null, gender: null };
+      activeFilters = { category: null, gender: null, brand: null };
       searchTerm = "";
       quickFilter = "todos";
       const searchEl = $("catalogSearch");
@@ -1434,6 +1461,9 @@
     }
     if (activeFilters.gender) {
       filtered = filtered.filter((p) => p.gender === activeFilters.gender);
+    }
+    if (activeFilters.brand) {
+      filtered = filtered.filter((p) => p.brand && p.brand.trim() === activeFilters.brand);
     }
     if (quickFilter !== "todos") {
       filtered = filtered.filter(QUICK_FILTERS[quickFilter] || (() => true));
@@ -1667,6 +1697,30 @@
       const clearBtn = $("searchClear");
       if (clearBtn) clearBtn.style.display = searchEl.value ? "inline-flex" : "none";
     }
+    updateBrandButton();
+  }
+
+  function updateBrandButton() {
+    const brandBtn = $("brandFilterBtn");
+    const brandLabel = $("brandFilterLabel");
+    if (!brandBtn) return;
+    if (activeFilters.brand) {
+      brandLabel.textContent = activeFilters.brand;
+      brandBtn.classList.add("active");
+      brandBtn.setAttribute("aria-pressed", "true");
+    } else {
+      brandLabel.textContent = "Marcas";
+      brandBtn.classList.remove("active");
+      brandBtn.setAttribute("aria-pressed", "false");
+    }
+    const ocBrandLabel = $("ocBrandLabel");
+    const ocBrandClear = $("ocBrandClear");
+    if (ocBrandLabel) {
+      ocBrandLabel.textContent = activeFilters.brand || "Todas las marcas";
+    }
+    if (ocBrandClear) {
+      ocBrandClear.style.display = activeFilters.brand ? "" : "none";
+    }
   }
 
   const filtersCat = $("filtersCategory");
@@ -1790,6 +1844,149 @@
 
   /* (Los chips de filtro rápido se eliminaron en el rediseño:
      la barra de píldoras de #filtersCategory los reemplaza.) */
+
+  /* ══════════════════════════════════════════════════════════════
+     BRAND EXPLORER
+  ══════════════════════════════════════════════════════════════ */
+  function renderBrandExplorer() {
+    var allBrands = getCatalogBrands();
+    var q = _brandExplorerSearch.trim().toLowerCase();
+    var qNorm = stripAccents(q);
+    var filtered = q
+      ? allBrands.filter(function (b) { return stripAccents(b.toLowerCase()).indexOf(qNorm) !== -1; })
+      : allBrands;
+    var groups = getBrandGroups(filtered);
+    var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#".split("");
+
+    var indexHTML = letters.map(function (l) {
+      var has = !!groups[l];
+      return '<button class="brand-az-btn' + (has ? "" : " disabled") + '" data-letter="' + l + '"' + (has ? "" : ' tabindex="-1" aria-disabled="true"') + '>' + l + '</button>';
+    }).join("");
+
+    var groupsHTML = letters.filter(function (l) { return !!groups[l]; }).map(function (l) {
+      var items = groups[l].map(function (b) {
+        var selected = activeFilters.brand === b;
+        return '<button class="brand-item' + (selected ? " selected" : "") + '" data-brand="' + esc(b) + '"' + (selected ? ' aria-pressed="true"' : ' aria-pressed="false"') + '>' + esc(b) + '</button>';
+      }).join("");
+      return '<div class="brand-group" data-letter-group="' + l + '"><div class="brand-group__letter">' + l + '</div><div class="brand-group__list">' + items + '</div></div>';
+    }).join("");
+
+    var noResults = filtered.length === 0
+      ? '<p class="brand-no-results">No encontramos esa marca.<button class="brand-no-results__clear" id="brandSearchClear">Limpiar búsqueda</button></p>'
+      : "";
+
+    var explorer = $("brandExplorer");
+    if (!explorer) return;
+    var searchInput = $("brandSearchInput");
+
+    $("brandAzIndex").innerHTML = indexHTML;
+    $("brandGroupsList").innerHTML = groupsHTML + noResults;
+    if (searchInput) searchInput.value = _brandExplorerSearch;
+  }
+
+  function openBrandExplorer() {
+    var overlay = $("brandExplorerOverlay");
+    if (!overlay) return;
+    _brandExplorerSearch = "";
+    renderBrandExplorer();
+    overlay.classList.add("active");
+    document.body.classList.add("no-scroll");
+    var searchInput = $("brandSearchInput");
+    if (searchInput) setTimeout(function () { searchInput.focus(); }, 100);
+    document.addEventListener("keydown", brandExplorerKeydown);
+  }
+
+  function closeBrandExplorer() {
+    var overlay = $("brandExplorerOverlay");
+    if (!overlay) return;
+    overlay.classList.remove("active");
+    document.body.classList.remove("no-scroll");
+    document.removeEventListener("keydown", brandExplorerKeydown);
+    var brandBtn = $("brandFilterBtn");
+    if (brandBtn) brandBtn.focus();
+  }
+
+  function brandExplorerKeydown(e) {
+    if (e.key === "Escape") { closeBrandExplorer(); return; }
+    if (e.key !== "Tab") return;
+    var focusable = $("brandExplorer").querySelectorAll('button:not([tabindex="-1"]), input, [tabindex]:not([tabindex="-1"])');
+    if (!focusable.length) return;
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
+  function selectBrand(brand) {
+    activeFilters.brand = activeFilters.brand === brand ? null : brand;
+    closeBrandExplorer();
+    updateCatalogFilterButtons();
+    renderCatalog();
+  }
+
+  var brandFilterBtn = $("brandFilterBtn");
+  if (brandFilterBtn) {
+    brandFilterBtn.addEventListener("click", function () {
+      if (activeFilters.brand) {
+        activeFilters.brand = null;
+        updateCatalogFilterButtons();
+        renderCatalog();
+      } else {
+        openBrandExplorer();
+      }
+    });
+  }
+
+  var brandExplorerOverlay = $("brandExplorerOverlay");
+  if (brandExplorerOverlay) {
+    brandExplorerOverlay.addEventListener("click", function (e) {
+      if (e.target === brandExplorerOverlay) { closeBrandExplorer(); return; }
+      var brandItem = e.target.closest(".brand-item");
+      if (brandItem) { selectBrand(brandItem.dataset.brand); return; }
+      var azBtn = e.target.closest(".brand-az-btn:not(.disabled)");
+      if (azBtn) {
+        var letter = azBtn.dataset.letter;
+        var group = $("brandExplorer").querySelector('[data-letter-group="' + letter + '"]');
+        if (group) group.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+        return;
+      }
+      var clearBtn = e.target.closest("#brandSearchClear");
+      if (clearBtn) {
+        _brandExplorerSearch = "";
+        renderBrandExplorer();
+        var si = $("brandSearchInput");
+        if (si) si.focus();
+        return;
+      }
+    });
+  }
+
+  var brandSearchInput = $("brandSearchInput");
+  if (brandSearchInput) {
+    brandSearchInput.addEventListener("input", function () {
+      _brandExplorerSearch = this.value;
+      renderBrandExplorer();
+    });
+  }
+
+  var brandExplorerClose = $("brandExplorerClose");
+  if (brandExplorerClose) brandExplorerClose.addEventListener("click", closeBrandExplorer);
+
+  var ocBrandBtn = $("ocBrandBtn");
+  if (ocBrandBtn) {
+    ocBrandBtn.addEventListener("click", function () {
+      openBrandExplorer();
+    });
+  }
+
+  var ocBrandClear = $("ocBrandClear");
+  if (ocBrandClear) {
+    ocBrandClear.addEventListener("click", function () {
+      activeFilters.brand = null;
+      updateCatalogFilterButtons();
+      renderCatalog();
+    });
+  }
 
   /* ══════════════════════════════════════════════════════════════
      FILTERS — PROMOS
