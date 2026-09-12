@@ -217,5 +217,71 @@ const promo = window.calcularPrecioPromo;
   check("marca3testers_noAplica", d.descuentoMarca === 0, "dtoMarca=" + d.descuentoMarca);
 }
 
+/* ════════════════════════════════════════════════════════════════
+   TEST DECANT PROMO BADGE (hasDecantPromoEligible logic)
+   ════════════════════════════════════════════════════════════════ */
+
+/* Simula hasDecantPromoEligible — misma lógica que script.js */
+function hasDecantPromoEligible(product) {
+  if (!product || !window.FO_CONFIG.DESCUENTOS || !window.FO_CONFIG.DESCUENTOS.ACTIVOS) return false;
+  if (!product.decantSizes) return false;
+  var tamMax = (window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD && window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD.tamMaxMl) || 10;
+  var keys = Object.keys(product.decantSizes);
+  return keys.some(function (k) {
+    var ml = parseInt(String(k).replace("_premium", ""), 10);
+    return !isNaN(ml) && ml >= 1 && ml <= tamMax;
+  });
+}
+
+/* ── Caso 16: decant 1–10ml → eligible ── */
+{
+  const p = { decantSizes: { "5": 35, "10": 65 } };
+  check("decant10ml_eligible", hasDecantPromoEligible(p) === true, "");
+}
+
+/* ── Caso 17: decant premium 5ml → eligible ── */
+{
+  const p = { decantSizes: { "5_premium": 120 } };
+  check("decantPremium5ml_eligible", hasDecantPromoEligible(p) === true, "");
+}
+
+/* ── Caso 18: solo 20ml/30ml → NOT eligible ── */
+{
+  const p = { decantSizes: { "20": 180, "30": 260 } };
+  check("only20_30ml_notEligible", hasDecantPromoEligible(p) === false, "");
+}
+
+/* ── Caso 19: mix 5ml + 20ml → eligible (5ml qualifies) ── */
+{
+  const p = { decantSizes: { "5": 35, "20": 180 } };
+  check("mix5ml20ml_eligible", hasDecantPromoEligible(p) === true, "");
+}
+
+/* ── Caso 20: no decantSizes → NOT eligible ── */
+{
+  const p = { fullSizes: { "100": 400 } };
+  check("noDecantSizes_notEligible", hasDecantPromoEligible(p) === false, "");
+}
+
+/* ── Caso 21: null product → NOT eligible ── */
+{
+  check("nullProduct_notEligible", hasDecantPromoEligible(null) === false, "");
+}
+
+/* ── Caso 22: descuentos inactivos → NOT eligible ── */
+{
+  const saved = window.FO_CONFIG.DESCUENTOS.ACTIVOS;
+  window.FO_CONFIG.DESCUENTOS.ACTIVOS = false;
+  const p = { decantSizes: { "5": 35 } };
+  check("descuentosOff_notEligible", hasDecantPromoEligible(p) === false, "");
+  window.FO_CONFIG.DESCUENTOS.ACTIVOS = saved;
+}
+
+/* ── Caso 23: config POR_CANTIDAD.min10 = 15 → badge shows "HASTA 15% OFF" ── */
+{
+  const pctMax = (window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD && window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD.min10) || 15;
+  check("badgeMaxPct_is15", pctMax === 15, "pctMax=" + pctMax);
+}
+
 console.log("RESULTADO: " + passed + " PASS | " + failed + " FAIL");
 process.exit(failed ? 1 : 0);

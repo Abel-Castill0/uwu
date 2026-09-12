@@ -194,6 +194,7 @@
   /* ── Brand explorer state ── */
   let _catalogBrandsCache = null;
   let _brandExplorerSearch = "";
+  let _brandExplorerTrigger = null;
   function getCatalogBrands() {
     if (_catalogBrandsCache) return _catalogBrandsCache;
     const brandSet = new Set();
@@ -208,7 +209,7 @@
   function getBrandGroups(brands) {
     const groups = {};
     brands.forEach(function (b) {
-      const first = b.charAt(0).toUpperCase();
+      const first = stripAccents(b.charAt(0)).toUpperCase();
       const key = /[A-Z]/.test(first) ? first : "#";
       if (!groups[key]) groups[key] = [];
       groups[key].push(b);
@@ -928,6 +929,22 @@
       addBtn.classList.remove("btn-soon");
       if (soonNote) soonNote.remove();
     }
+    // Badge informativo de descuento por cantidad para decants elegibles
+    let promoNote = document.getElementById("modalPromoNote");
+    if (!promoNote) {
+      promoNote = document.createElement("p");
+      promoNote.id = "modalPromoNote";
+      promoNote.className = "modal-promo-note";
+      var priceEl2 = $("modalPrice");
+      if (priceEl2) priceEl2.parentNode.insertBefore(promoNote, priceEl2.nextSibling);
+    }
+    if (hasDecantPromoEligible(product) && !isFull && !soon) {
+      var pctMax = (FO_CONFIG.DESCUENTOS && FO_CONFIG.DESCUENTOS.POR_CANTIDAD && FO_CONFIG.DESCUENTOS.POR_CANTIDAD.min10) || 15;
+      promoNote.textContent = "Hasta " + pctMax + "% OFF por cantidad en presentaciones de 1–10 ml";
+      promoNote.style.display = "";
+    } else {
+      promoNote.style.display = "none";
+    }
     // Enlace de cotización: visible cuando el producto NO tiene frasco completo
     const quoteLink = $("modalQuoteLink");
     if (quoteLink) quoteLink.style.display = !hasFull && FO.FRASCO_COMPLETO_WHATSAPP !== false ? "" : "none";
@@ -1366,6 +1383,29 @@
     return window.calcularPrecioPromo ? window.calcularPrecioPromo(product.regularPrice, price) : null;
   }
 
+  /* Determina si un producto tiene decants elegibles para el badge de
+     descuento por cantidad (1ml a 10ml). Solo decants participan,
+     no sellados/testers/parciales, ni productos próximamente. */
+  function hasDecantPromoEligible(product) {
+    if (!product || !FO_CONFIG.DESCUENTOS || !FO_CONFIG.DESCUENTOS.ACTIVOS) return false;
+    if (!product.decantSizes) return false;
+    var tamMax = FO_CONFIG.DESCUENTOS.POR_CANTIDAD && FO_CONFIG.DESCUENTOS.POR_CANTIDAD.tamMaxMl;
+    if (!tamMax) tamMax = 10;
+    var keys = Object.keys(product.decantSizes);
+    return keys.some(function (k) {
+      var ml = parseInt(String(k).replace("_premium", ""), 10);
+      return !isNaN(ml) && ml >= 1 && ml <= tamMax;
+    });
+  }
+
+  /* Badge visual de descuento para decants: "HASTA 15% OFF" */
+  function decantPromoBadgeHTML(product) {
+    if (!hasDecantPromoEligible(product)) return "";
+    var cfg = FO_CONFIG.DESCUENTOS || {};
+    var pctMax = (cfg.POR_CANTIDAD && cfg.POR_CANTIDAD.min10) || 15;
+    return '<span class="price-promo-badge">HASTA ' + pctMax + '% OFF</span><span class="price-promo-note">por cantidad · 1–10 ml</span>';
+  }
+
   /* ══════════════════════════════════════════════════════════════
      RENDER — PRODUCT CARD
   ══════════════════════════════════════════════════════════════ */
@@ -1408,6 +1448,7 @@
           <div class="product-brand">${esc(product.brand)}</div>
           <div class="product-price-block">
             <span class="product-price">${priceText}</span>
+            ${hasDecants && !soon ? decantPromoBadgeHTML(product) : ""}
             ${stockText ? `<span class="product-stock">${esc(stockText)}</span>` : ""}
           </div>
           <button class="btn-add${soon ? " btn-soon" : ""}" data-add-id="${product.id}"${soon ? " disabled" : ""}>${soon ? "Próximamente" : hasDecants ? "Ver y Comprar" : fullPresentationLabel(product) === "Frasco completo" ? "Comprar Sellado" : `Comprar ${fullPresentationLabel(product)}`}</button>
@@ -1887,6 +1928,7 @@
   function openBrandExplorer() {
     var overlay = $("brandExplorerOverlay");
     if (!overlay) return;
+    _brandExplorerTrigger = document.activeElement;
     _brandExplorerSearch = "";
     renderBrandExplorer();
     overlay.classList.add("active");
@@ -1902,8 +1944,11 @@
     overlay.classList.remove("active");
     document.body.classList.remove("no-scroll");
     document.removeEventListener("keydown", brandExplorerKeydown);
-    var brandBtn = $("brandFilterBtn");
-    if (brandBtn) brandBtn.focus();
+    var trigger = _brandExplorerTrigger;
+    if (trigger && trigger.isConnected && trigger.offsetParent !== null) {
+      trigger.focus();
+    }
+    _brandExplorerTrigger = null;
   }
 
   function brandExplorerKeydown(e) {
@@ -1927,13 +1972,7 @@
   var brandFilterBtn = $("brandFilterBtn");
   if (brandFilterBtn) {
     brandFilterBtn.addEventListener("click", function () {
-      if (activeFilters.brand) {
-        activeFilters.brand = null;
-        updateCatalogFilterButtons();
-        renderCatalog();
-      } else {
-        openBrandExplorer();
-      }
+      openBrandExplorer();
     });
   }
 

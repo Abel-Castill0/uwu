@@ -30,7 +30,7 @@ function stripAccents(s) {
 function getBrandGroups(brands) {
   const groups = {};
   brands.forEach(function (b) {
-    const first = b.charAt(0).toUpperCase();
+    const first = stripAccents(b.charAt(0)).toUpperCase();
     const key = /[A-Z]/.test(first) ? first : "#";
     if (!groups[key]) groups[key] = [];
     groups[key].push(b);
@@ -74,8 +74,9 @@ const brands = extractBrands();
   const groups = getBrandGroups(brands);
   const groupKeys = Object.keys(groups);
   check("brandGroupsExist", groupKeys.length > 0, "groups=" + groupKeys.length);
-  /* Élixir Privé (accent) should group under # */
-  check("accentBrandGroupsUnderHash", !!groups["#"], "groups=" + JSON.stringify(groupKeys));
+  /* Élixir Privé should group under E, not # */
+  check("accentBrandGroupsUnderE", !!(groups["E"] && groups["E"].some(function (b) { return b.indexOf("Élixir") === 0; })), "groups=" + JSON.stringify(groupKeys));
+  check("hashGroupEmptyOrNonAlpha", !groups["#"] || groups["#"].length === 0 || groups["#"].every(function (b) { return !/[A-Z]/i.test(stripAccents(b.charAt(0))); }), "hashGroup=" + JSON.stringify(groups["#"] || []));
 }
 
 /* ── Caso 4: marcas con tildes preservadas ── */
@@ -129,11 +130,13 @@ check("stephanBrandPreserved", brands.some(function (b) { return b.indexOf("Sté
   check("brandSearchParfums", matches.length >= 2, "matches=" + JSON.stringify(matches));
 }
 
-/* ── Caso 10: # for non-alpha first char ── */
+/* ── Caso 10: accent-normalized groups are correct ── */
 {
   const groups = getBrandGroups(brands);
-  const hashGroup = groups["#"] || [];
-  check("hashGroupHasNonAlpha", hashGroup.length > 0, "hashGroup=" + JSON.stringify(hashGroup));
+  const eGroup = groups["E"] || [];
+  const elixir = eGroup.filter(function (b) { return b.indexOf("Élixir") === 0; });
+  check("elixirPrivéInEGroup", elixir.length === 0 || eGroup.includes("Élixir Privé"), "eGroup=" + JSON.stringify(eGroup));
+  check("hashGroupOnlyNonAlpha", !groups["#"] || groups["#"].length === 0 || groups["#"].every(function (b) { return !/[A-Z]/i.test(stripAccents(b.charAt(0))); }), "hashGroup=" + JSON.stringify(groups["#"] || []));
 }
 
 /* ── Caso 11: empty search returns all ── */
