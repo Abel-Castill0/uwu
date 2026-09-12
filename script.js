@@ -939,7 +939,8 @@
       if (priceEl2) priceEl2.parentNode.insertBefore(promoNote, priceEl2.nextSibling);
     }
     if (hasDecantPromoEligible(product) && !isFull && !soon) {
-      var pctMax = (FO_CONFIG.DESCUENTOS && FO_CONFIG.DESCUENTOS.POR_CANTIDAD && FO_CONFIG.DESCUENTOS.POR_CANTIDAD.min10) || 15;
+      var pc2 = FO_CONFIG.DESCUENTOS && FO_CONFIG.DESCUENTOS.POR_CANTIDAD;
+      var pctMax = (pc2 && pc2.activo === true && pc2.min10) || 15;
       promoNote.textContent = "Hasta " + pctMax + "% OFF por cantidad en presentaciones de 1–10 ml";
       promoNote.style.display = "";
     } else {
@@ -1388,9 +1389,10 @@
      no sellados/testers/parciales, ni productos próximamente. */
   function hasDecantPromoEligible(product) {
     if (!product || !FO_CONFIG.DESCUENTOS || !FO_CONFIG.DESCUENTOS.ACTIVOS) return false;
+    var pc = FO_CONFIG.DESCUENTOS.POR_CANTIDAD;
+    if (!pc || pc.activo !== true) return false;
     if (!product.decantSizes) return false;
-    var tamMax = FO_CONFIG.DESCUENTOS.POR_CANTIDAD && FO_CONFIG.DESCUENTOS.POR_CANTIDAD.tamMaxMl;
-    if (!tamMax) tamMax = 10;
+    var tamMax = pc.tamMaxMl || 10;
     var keys = Object.keys(product.decantSizes);
     return keys.some(function (k) {
       var ml = parseInt(String(k).replace("_premium", ""), 10);
@@ -1402,7 +1404,9 @@
   function decantPromoBadgeHTML(product) {
     if (!hasDecantPromoEligible(product)) return "";
     var cfg = FO_CONFIG.DESCUENTOS || {};
-    var pctMax = (cfg.POR_CANTIDAD && cfg.POR_CANTIDAD.min10) || 15;
+    var pc = cfg.POR_CANTIDAD;
+    if (!pc || pc.activo !== true) return "";
+    var pctMax = pc.min10 || 15;
     return '<span class="price-promo-badge">HASTA ' + pctMax + '% OFF</span><span class="price-promo-note">por cantidad · 1–10 ml</span>';
   }
 
@@ -1744,15 +1748,21 @@
   function updateBrandButton() {
     const brandBtn = $("brandFilterBtn");
     const brandLabel = $("brandFilterLabel");
+    const brandClear = $("brandClearBtn");
     if (!brandBtn) return;
     if (activeFilters.brand) {
       brandLabel.textContent = activeFilters.brand;
       brandBtn.classList.add("active");
       brandBtn.setAttribute("aria-pressed", "true");
+      if (brandClear) {
+        brandClear.style.display = "";
+        brandClear.setAttribute("aria-label", "Quitar filtro de marca " + activeFilters.brand);
+      }
     } else {
       brandLabel.textContent = "Marcas";
       brandBtn.classList.remove("active");
       brandBtn.setAttribute("aria-pressed", "false");
+      if (brandClear) brandClear.style.display = "none";
     }
     const ocBrandLabel = $("ocBrandLabel");
     const ocBrandClear = $("ocBrandClear");
@@ -1812,7 +1822,7 @@
     if (!filtersOffcanvas) return;
     filtersOffcanvas.classList.remove("open");
     filtersBackdrop.classList.remove("show");
-    document.body.classList.remove("no-scroll");
+    syncBodyScrollLock();
     if (btnFiltersMobile) btnFiltersMobile.setAttribute("aria-expanded", "false");
   }
   if (btnFiltersMobile) btnFiltersMobile.addEventListener("click", openFiltersPanel);
@@ -1925,6 +1935,20 @@
     if (searchInput) searchInput.value = _brandExplorerSearch;
   }
 
+  /* ── Sync body scroll lock: mantiene no-scroll si cualquier
+     superficie modal sigue abierta (filters offcanvas, brand explorer,
+     nav drawer, etc.). ── */
+  function syncBodyScrollLock() {
+    var filtersOpen = filtersOffcanvas && filtersOffcanvas.classList.contains("open");
+    var brandOpen = $("brandExplorerOverlay") && $("brandExplorerOverlay").classList.contains("active");
+    var navOpen = navEl && navEl.classList.contains("mounted");
+    if (filtersOpen || brandOpen || navOpen) {
+      document.body.classList.add("no-scroll");
+    } else {
+      document.body.classList.remove("no-scroll");
+    }
+  }
+
   function openBrandExplorer() {
     var overlay = $("brandExplorerOverlay");
     if (!overlay) return;
@@ -1942,7 +1966,7 @@
     var overlay = $("brandExplorerOverlay");
     if (!overlay) return;
     overlay.classList.remove("active");
-    document.body.classList.remove("no-scroll");
+    syncBodyScrollLock();
     document.removeEventListener("keydown", brandExplorerKeydown);
     var trigger = _brandExplorerTrigger;
     if (trigger && trigger.isConnected && trigger.offsetParent !== null) {
@@ -1970,8 +1994,16 @@
   }
 
   var brandFilterBtn = $("brandFilterBtn");
+  var brandClearBtn = $("brandClearBtn");
   if (brandFilterBtn) {
-    brandFilterBtn.addEventListener("click", function () {
+    brandFilterBtn.addEventListener("click", function (e) {
+      if (brandClearBtn && e.target === brandClearBtn) {
+        e.stopPropagation();
+        activeFilters.brand = null;
+        updateCatalogFilterButtons();
+        renderCatalog();
+        return;
+      }
       openBrandExplorer();
     });
   }
@@ -2435,6 +2467,7 @@
     if (navBackdrop) navBackdrop.classList.add("active");
     if (hamburger) hamburger.setAttribute("aria-expanded", "true");
     document.body.style.overflow = "hidden";
+    document.body.classList.add("no-scroll");
     document.body.classList.add("modal-open");
     document.documentElement.classList.add("modal-open");
     if (window.__modalScrollY === undefined) window.__modalScrollY = window.scrollY;
@@ -2456,6 +2489,7 @@
     if (navBackdrop) navBackdrop.classList.remove("active");
     if (hamburger) hamburger.setAttribute("aria-expanded", "false");
     document.body.style.overflow = "";
+    syncBodyScrollLock();
     document.body.classList.remove("modal-open");
     document.documentElement.classList.remove("modal-open");
     if (restoreScroll && window.__modalScrollY !== undefined) {

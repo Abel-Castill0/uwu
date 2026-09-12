@@ -224,8 +224,10 @@ const promo = window.calcularPrecioPromo;
 /* Simula hasDecantPromoEligible — misma lógica que script.js */
 function hasDecantPromoEligible(product) {
   if (!product || !window.FO_CONFIG.DESCUENTOS || !window.FO_CONFIG.DESCUENTOS.ACTIVOS) return false;
+  var pc = window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD;
+  if (!pc || pc.activo !== true) return false;
   if (!product.decantSizes) return false;
-  var tamMax = (window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD && window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD.tamMaxMl) || 10;
+  var tamMax = pc.tamMaxMl || 10;
   var keys = Object.keys(product.decantSizes);
   return keys.some(function (k) {
     var ml = parseInt(String(k).replace("_premium", ""), 10);
@@ -281,6 +283,30 @@ function hasDecantPromoEligible(product) {
 {
   const pctMax = (window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD && window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD.min10) || 15;
   check("badgeMaxPct_is15", pctMax === 15, "pctMax=" + pctMax);
+}
+
+/* ── Caso 24: POR_CANTIDAD.activo=false → NOT eligible ── */
+{
+  const saved = window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD.activo;
+  window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD.activo = false;
+  const p = { decantSizes: { "5": 35, "10": 65 } };
+  check("porCantidadOff_notEligible", hasDecantPromoEligible(p) === false, "");
+  window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD.activo = saved;
+}
+
+/* ── Caso 25: POR_CANTIDAD missing entirely → NOT eligible ── */
+{
+  const saved = window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD;
+  window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD = undefined;
+  const p = { decantSizes: { "5": 35 } };
+  check("porCantidadMissing_notEligible", hasDecantPromoEligible(p) === false, "");
+  window.FO_CONFIG.DESCUENTOS.POR_CANTIDAD = saved;
+}
+
+/* ── Caso 26: ACTIVOS=true + POR_CANTIDAD.activo=true → eligible ── */
+{
+  const p = { decantSizes: { "3": 28, "5_premium": 120 } };
+  check("bothActive_eligible", hasDecantPromoEligible(p) === true, "");
 }
 
 console.log("RESULTADO: " + passed + " PASS | " + failed + " FAIL");
