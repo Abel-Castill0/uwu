@@ -3998,15 +3998,24 @@ backdrop-filter: blur(6px);
     background: var(--gold-deep); color: #fff; border-color: transparent;
   }
   .cat-pill--brand.active i { opacity: 1; }
+  /* ── Brand filter composite control ── */
+  .brand-filter-control {
+    display: inline-flex; align-items: center; position: relative;
+    vertical-align: middle;
+  }
+  .brand-filter-control .cat-pill--brand {
+    border-top-right-radius: 0; border-bottom-right-radius: 0;
+    padding-right: .7rem;
+  }
   .brand-clear-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 1.1rem; height: 1.1rem; border-radius: 50%; border: none;
-    background: rgba(255,255,255,.25); color: inherit; font-size: .7rem;
-    line-height: 1; margin-left: .35rem; padding: 0; cursor: pointer;
+    width: 1.4rem; height: 100%; min-height: 1.8rem; border-radius: 0 var(--r-pill) var(--r-pill) 0;
+    border: 1.5px solid var(--border); border-left: none;
+    background: var(--gold-deep); color: #fff; font-size: .75rem;
+    line-height: 1; padding: 0 .35rem; cursor: pointer;
     transition: background .2s;
   }
-  .brand-clear-btn:hover { background: rgba(255,255,255,.45); }
-  .cat-pill--brand:not(.active) .brand-clear-btn { display: none !important; }
+  .brand-clear-btn:hover { background: #8a6530; }
   /* Píldoras dentro del offcanvas */
   .cat-pill--oc { padding: .65rem 1.2rem; font-size: .9rem; font-weight: 600; }
 

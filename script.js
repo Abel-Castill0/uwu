@@ -1340,6 +1340,9 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   window.navigateTo = navigateTo;
+  window.activeFilters = activeFilters;
+  window.updateCatalogFilterButtons = updateCatalogFilterButtons;
+  window._updateBrandButton = updateBrandButton;
 
   /* Condición real de un frasco completo (sellado/tester/parcial): dato
      de negocio en productos.js (product.sealedStatus + contentPercent),
@@ -1721,7 +1724,7 @@
   ══════════════════════════════════════════════════════════════ */
   function updateCatalogFilterButtons() {
     const cat = activeFilters.category || "todos";
-    document.querySelectorAll("#filtersCategory .filter-btn").forEach((btn) => {
+    document.querySelectorAll("#filtersCategory .cat-pill--cat[data-filter]").forEach((btn) => {
       const active = cat === btn.dataset.filter;
       btn.classList.toggle("active", active);
       btn.setAttribute("aria-pressed", String(active));
@@ -1755,7 +1758,7 @@
       brandBtn.classList.add("active");
       brandBtn.setAttribute("aria-pressed", "true");
       if (brandClear) {
-        brandClear.style.display = "";
+        brandClear.style.display = "inline-flex";
         brandClear.setAttribute("aria-label", "Quitar filtro de marca " + activeFilters.brand);
       }
     } else {
@@ -1777,7 +1780,7 @@
   const filtersCat = $("filtersCategory");
   if (filtersCat) {
     filtersCat.addEventListener("click", function (e) {
-      const btn = e.target.closest(".filter-btn");
+      const btn = e.target.closest(".cat-pill--cat[data-filter]");
       if (!btn) return;
       activeFilters.category = btn.dataset.filter;
       activeFilters.gender = null;
@@ -1996,15 +1999,17 @@
   var brandFilterBtn = $("brandFilterBtn");
   var brandClearBtn = $("brandClearBtn");
   if (brandFilterBtn) {
-    brandFilterBtn.addEventListener("click", function (e) {
-      if (brandClearBtn && e.target === brandClearBtn) {
-        e.stopPropagation();
-        activeFilters.brand = null;
-        updateCatalogFilterButtons();
-        renderCatalog();
-        return;
-      }
+    brandFilterBtn.addEventListener("click", function () {
       openBrandExplorer();
+    });
+  }
+  if (brandClearBtn) {
+    brandClearBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      activeFilters.brand = null;
+      updateCatalogFilterButtons();
+      renderCatalog();
+      if (brandFilterBtn) brandFilterBtn.focus();
     });
   }
 
