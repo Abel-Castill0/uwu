@@ -163,9 +163,9 @@
     /* ══════════════════════════════════════════════════════════════
        NUEVOS PRODUCTOS — Babycat (YSL) + Mefisto (Xerjoff)
     ══════════════════════════════════════════════════════════════ */
-    { id: 149, name: "Babycat", brand: "Yves Saint Laurent", category: "disenador", gender: "unisex", notes: "Vainilla ahumada, pimienta negra y sándalo: sensual, cálido y adictivo.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {2:35,3:55,5:79,10:159,30:399}, fullImage: "", decantImage: "", cardImage: "", featured: false, badge: null, badgeText: "" },
+    { id: 149, name: "Babycat", brand: "Yves Saint Laurent", category: "disenador", gender: "unisex", notes: "Vainilla ahumada, pimienta negra y sándalo: sensual, cálido y adictivo.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {2:35,3:55,5:79,10:159,30:399}, fullImage: "", decantImage: "", cardImage: "img/perfumes_optimized/babycat.webp", sizeImages: {"2": "img/perfumes_optimized/Babycat Yves Saint Laurent  decant premium 5ml.webp", "3": "img/perfumes_optimized/Babycat Yves Saint Laurent  decant premium 5ml.webp", "5": "img/perfumes_optimized/Babycat Yves Saint Laurent  decant premium 5ml.webp", "10": "img/perfumes_optimized/Babycat Yves Saint Laurent  decant premium 10ml.webp", "30": "img/perfumes_optimized/Babycat Yves Saint Laurent  30ml.webp", "5_premium": "img/perfumes_optimized/Babycat Yves Saint Laurent  decant premium 5ml.webp", "10_premium": "img/perfumes_optimized/Babycat Yves Saint Laurent  decant premium 10ml.webp"}, featured: false, badge: null, badgeText: "" },
     /* Mefisto (Xerjoff) — precios confirmados por cliente */
-    { id: 150, name: "Mefisto", brand: "Xerjoff", category: "nicho", gender: "unisex", notes: "Bergamota, lavanda y almizcle: fresco, elegante y atemporal.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {1:19,2:25,3:35,5:49,10:99,30:249}, fullImage: "", decantImage: "", cardImage: "", featured: false, badge: null, badgeText: "" },
+    { id: 150, name: "Mefisto", brand: "Xerjoff", category: "nicho", gender: "unisex", notes: "Bergamota, lavanda y almizcle: fresco, elegante y atemporal.", description: "Decant premium de lujo. Original auténtico, enviado en vial de cristal con atomizador. Calidad garantizada y precio por mililitro imbatible.", fullSizes: {}, decantSizes: {1:19,2:25,3:35,5:49,10:99,30:249}, fullImage: "", decantImage: "", cardImage: "img/perfumes_optimized/mefisto.webp", sizeImages: {"1": "img/perfumes_optimized/Mefisto Xerjoff  decant premium 5ml.webp", "2": "img/perfumes_optimized/Mefisto Xerjoff  decant premium 5ml.webp", "3": "img/perfumes_optimized/Mefisto Xerjoff  decant premium 5ml.webp", "5": "img/perfumes_optimized/Mefisto Xerjoff  decant premium 5ml.webp", "10": "img/perfumes_optimized/Mefisto Xerjoff  decant premium 10ml.webp", "30": "img/perfumes_optimized/Mefisto Xerjoff.webp", "5_premium": "img/perfumes_optimized/Mefisto Xerjoff  decant premium 5ml.webp", "10_premium": "img/perfumes_optimized/Mefisto Xerjoff  decant premium 10ml.webp"}, featured: false, badge: null, badgeText: "" },
   ];
 
   /* ══════════════════════════════════════════════════════════════
@@ -351,8 +351,8 @@
     146: { main: "img/perfumes_optimized/DIOR HOMME SPORT 125ML TESTER.webp", sizes: {} },
     147: { main: "img/perfumes_optimized/ERBA PURA 100ML TESTER.webp", sizes: {} },
     148: { main: "img/perfumes_optimized/LAMAR KAJAL 100ML PARCIAL.webp", sizes: {} },
-    149: { main: "", sizes: {} },
-    150: { main: "", sizes: {} },
+    149: { main: "img/perfumes_optimized/Babycat Yves Saint Laurent.webp", sizes: {} },
+    150: { main: "img/perfumes_optimized/Mefisto Xerjoff.webp", sizes: {} },
   };
   Object.entries(w.FO_PRODUCT_IMAGES).forEach(([id, imgs]) => {
     const p = w.FO_PRODUCTS.find((x) => x.id === Number(id));
