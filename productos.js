@@ -3,7 +3,7 @@
  * Fuente de datos mantenida a mano directamente en este archivo
  * (no existe un script generador en el repo — editar aquí).
  * Catálogo oficial: nicho + diseñador. Precios en soles (S/).
- * Promos: 2-5 decants 5% / 6-9 decants 10% / 10+ decants 15% / 3 misma marca 10% / >S/199 vial+delivery.
+ * Promos: 2-5 decants 5% / 6-9 decants 10% / 10+ decants 15% / 3 misma marca 10% / >= S/199: envío gratis + vial de nicho.
  */
 (function (w) {
   w.FO_PRODUCTS = [

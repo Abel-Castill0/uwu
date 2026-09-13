@@ -46,11 +46,11 @@ window.FO_CONFIG = {
     "5% OFF en 2-5 decants (1-10ml)",
     "10% OFF en 6-9 decants · 15% OFF desde 10",
     "10% OFF en 3 decants de la misma marca",
-    "Vial de regalo en pedidos desde S/ 199",
+    "ENVÍO GRATIS + vial de nicho desde S/ 199",
   ],
 
   /* ── RESEÑAS DE CLIENTES (Social Proof) ──────────────────────
-     Se renderizan en la sección "Reseñas Reales" de la home. */
+     Se renderizan en la sección "Opiniones de Clientes" de la home. */
   REVIEWS: [
     { stars: 5, text: "La calidad del decant es excelente, 100% original.", name: "María G.", product: "Yara · Lattafa" },
     { stars: 5, text: "Llegó rápido y muy bien empaquetado.", name: "Carlos R.", product: "9 PM · Afnan" },
@@ -147,13 +147,19 @@ window.FO_CONFIG = {
      Ejemplo: PROXIMAMENTE: [42, 73] */
   PROXIMAMENTE: [9, 10, 19, 37, 40, 41, 51, 60, 63, 64, 79, 95, 100, 101, 103, 137, 138, 140], // Ichigo Ichie, Last Birthday Cake, Mango Kiss, Que Chimba, Speachless, Evil Angel, Birth of Venus, Tropikalys Karma, Musk Therapy, Paragon, Grand Soir, Wulong Cha X, Castley, Sedley, Malibú Party, Toucan, Loverbird, Fierezza
 
-  /* ── CONTENIDO: VIDEOS DE TIKTOK (galería estática, cero iframes) ──
-     Cada tarjeta muestra "thumbnail" con un botón de play decorativo y
-     enlaza directo al video en TikTok en pestaña nueva (target=_blank).
-     Cero scripts/iframes de terceros, cero requests a tiktok.com desde
-     esta página en ningún momento.
-     · thumbnail: miniatura local en img/tiktok/ (SVG/WebP).
-     · url:       enlace público del video en TikTok. */
+  /* ── CONTENIDO: VIDEOS DE TIKTOK (embed oficial, click-to-play) ──
+     Cada tarjeta muestra un "thumbnail" local con botón de play; al
+     hacer clic se crea un <iframe> con el embed oficial de TikTok
+     (tiktok.com/player/v1/<postId>) y el video se reproduce DENTRO de
+     la sección, sin salir a la app. El iframe no existe hasta ese clic,
+     así que no hay requests a tiktok.com solo por cargar o scrollear la
+     página. Ver renderTikTokGallery() en script.js.
+     · thumbnail: poster local en img/tiktok/ (SVG/WebP), mostrado antes
+       del clic.
+     · url:       enlace público del video (fallback / "Síguenos en
+       TikTok" fuera del player).
+     · postId:    ID numérico del video, resuelto una sola vez desde el
+       enlace corto (vt.tiktok.com/... → tiktok.com/@usuario/video/<id>). */
   TIKTOK_PROFILE_URL: "https://www.tiktok.com/@fraganceobsession.pe?_r=1&_t=ZS-993ZhxTLNmH",
   /* postId: ID numérico del video, resuelto una sola vez desde el enlace
      corto (vt.tiktok.com/... → tiktok.com/@usuario/video/<postId>). Se usa
