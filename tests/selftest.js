@@ -1017,39 +1017,71 @@ step(function () {
   }, 300);
 
   /* 15b2. Contrato de precio referencial (sellado/tester vs sin dato vs
-     parcial). Ningún producto real tiene regularPrice todavía (no se
-     inventa ninguno) -- se prueba mutando temporalmente FO_PRODUCTS en
-     memoria y restaurando el valor original al final. */
+     parcial). 141-146 ya tienen regularPrice real, confirmado por el
+     cliente (precios actuales = precio con 25% ya aplicado). Se verifica
+     el valor exacto de cada uno, y que el guard de "sin dato"/"dato
+     inválido"/"parcial excluido" siga funcionando mutando temporalmente
+     FO_PRODUCTS en memoria y restaurando el valor original al final. */
   step(function () {
     var pInfo = window.__FO_TEST.productPromoInfo;
-    var pSellado = (window.FO_PRODUCTS || []).find(function (p) { return p.id === 141; }); // sellado
-    var pTester = (window.FO_PRODUCTS || []).find(function (p) { return p.id === 146; });  // tester
-    var pParcial = (window.FO_PRODUCTS || []).find(function (p) { return p.id === 147; }); // parcial
-    ok(!!pInfo && !!pSellado && !!pTester && !!pParcial, "referencePriceFixturesExist", "sin productos 141/146/147");
-    if (!pInfo || !pSellado || !pTester || !pParcial) return;
+    var byId = function (id) { return (window.FO_PRODUCTS || []).find(function (p) { return p.id === id; }); };
 
-    // Sin regularPrice: no debe haber tachado/badge/%% (arquitectura ya
-    // existente en descuentos.js/script.js, nunca fabrica un "antes").
+    // 141-146: regularPrice = precio final / 0.75 (cliente confirmó que el
+    // precio final YA es con 25% de descuento). -25% exacto en los 6.
+    var expected = {
+      141: { price: 875, regularPrice: 1166.67 },
+      142: { price: 870, regularPrice: 1160.00 },
+      143: { price: 825, regularPrice: 1100.00 },
+      144: { price: 860, regularPrice: 1146.67 },
+      145: { price: 860, regularPrice: 1146.67 },
+      146: { price: 390, regularPrice: 520.00 },
+    };
+    Object.keys(expected).forEach(function (idStr) {
+      var id = Number(idStr);
+      var p = byId(id);
+      ok(!!p, "referencePriceFixtureExists_" + id, "producto " + id + " no encontrado");
+      if (!p) return;
+      var exp = expected[id];
+      ok(p.regularPrice === exp.regularPrice, "regularPriceValue_" + id, "esperado=" + exp.regularPrice + " real=" + p.regularPrice);
+      var promo = pInfo(p);
+      ok(!!promo && promo.price === exp.price, "finalPriceUnchanged_" + id, JSON.stringify(promo));
+      ok(!!promo && Math.abs(promo.pct - 25) < 0.05, "referencePricePct25_" + id, JSON.stringify(promo));
+    });
+
+    // 147/148 (parcial): NO deben tener regularPrice ni recibir markdown,
+    // aunque tengan fullSizes con una sola talla (guard sealedStatus).
+    [147, 148].forEach(function (id) {
+      var p = byId(id);
+      ok(!!p, "parcialFixtureExists_" + id, "producto " + id + " no encontrado");
+      if (!p) return;
+      ok(p.regularPrice === undefined, "parcialHasNoRegularPrice_" + id, "regularPrice=" + p.regularPrice);
+      ok(pInfo(p) === null, "parcialNoMarkdown_" + id, JSON.stringify(pInfo(p)));
+    });
+
+    var pSellado = byId(141); // sellado con regularPrice real
+    var pTester = byId(146);  // tester con regularPrice real
+    var pParcial = byId(147); // parcial
+
+    // Guard de datos: si el regularPrice se limpia, no debe haber
+    // tachado/badge/%% (arquitectura ya existente en descuentos.js/
+    // script.js, nunca fabrica un "antes").
+    var origSellado = pSellado.regularPrice;
+    pSellado.regularPrice = undefined;
     ok(pInfo(pSellado) === null, "noReferencePriceNoMarkdown", JSON.stringify(pInfo(pSellado)));
 
     // referencePrice=1000 / precio final=875 -> 12.5% exacto, no 12%.
-    var origSellado = pSellado.regularPrice;
     pSellado.regularPrice = 1000;
     var promoSellado = pInfo(pSellado);
     ok(promoSellado && promoSellado.pct === 12.5, "referencePriceExactPercent12_5", JSON.stringify(promoSellado));
-    pSellado.regularPrice = origSellado;
 
     // referencePrice <= precio final: dato inválido, no markdown.
     pSellado.regularPrice = 800; // < 875 (precio final real)
     ok(pInfo(pSellado) === null, "referencePriceLowerThanFinalIsInvalid", JSON.stringify(pInfo(pSellado)));
     pSellado.regularPrice = origSellado;
 
-    // Tester con referencia válida: mismo contrato UI que sellado.
-    var origTester = pTester.regularPrice;
-    pTester.regularPrice = 500; // > 390 (precio final real del tester)
+    // Tester con referencia real: mismo contrato UI que sellado.
     var promoTester = pInfo(pTester);
     ok(!!promoTester && promoTester.price === 390, "testerValidReferenceUsesSameContract", JSON.stringify(promoTester));
-    pTester.regularPrice = origTester;
 
     // Parcial: NO recibe comparación automática aunque tenga regularPrice,
     // salvo dato comercial explícito (pedido explícito del cliente).
