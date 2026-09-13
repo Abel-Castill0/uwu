@@ -2936,26 +2936,145 @@
     renderQuizStep();
   }
 
-  /* Carrusel de reseñas (flechas) */
-  function setupReviewsCarousel() {
-    const track = $("reviewsTrack");
-    const prev = $("revPrev");
-    const next = $("revNext");
-    if (!track || !prev || !next) return;
-    const step = () => {
-      const card = track.querySelector(".review-card");
-      return card ? card.getBoundingClientRect().width + 21 : 320;
+  /* ══════════════════════════════════════════════════════════════
+     RESEÑAS — Senja (formulario + widget públicos, sin API/backend)
+  ══════════════════════════════════════════════════════════════ */
+
+  /* Si el widget de testimonios aprobados no logra pintar contenido
+     (todavía no hay reseñas aprobadas, o Senja no llegó a cargar),
+     mostramos el estado honesto en vez de dejar un hueco vacío. */
+  function setupSenjaWidgetEmptyState() {
+    const wrap = $("senjaWidget");
+    const empty = $("reviewsEmptyState");
+    if (!wrap || !empty) return;
+    const showEmpty = () => {
+      wrap.style.display = "none";
+      empty.hidden = false;
     };
-    function updateArrows() {
-      const maxScroll = track.scrollWidth - track.clientWidth - 2;
-      prev.hidden = track.scrollLeft <= 2;
-      next.hidden = track.scrollLeft >= maxScroll;
+    const platformSrc = (FO.SENJA && FO.SENJA.WIDGET_PLATFORM_SRC) || "";
+    const script = platformSrc
+      ? document.querySelector(`script[src="${platformSrc}"]`)
+      : null;
+    let settled = false;
+    const check = () => {
+      if (settled) return;
+      settled = true;
+      // El widget (data-mode="shadow") se pinta dentro de un shadow root;
+      // si tras cargar el script sigue sin alto, no hay nada que mostrar.
+      const rendered = wrap.shadowRoot
+        ? wrap.shadowRoot.childElementCount > 0
+        : wrap.getBoundingClientRect().height > 4;
+      if (!rendered) showEmpty();
+    };
+    if (script) script.addEventListener("error", showEmpty, { once: true });
+    // Da tiempo al script a cargar y al widget a pintar sus testimonios.
+    setTimeout(check, 3000);
+    // Si el script ni siquiera llegó a cargar tras un tiempo razonable
+    // (bloqueado, sin red, etc.), no dejamos el hueco esperando para siempre.
+    setTimeout(() => { if (!settled) check(); }, 7000);
+  }
+
+  /* Modal "Dejar una Opinión": inyecta el iframe del formulario de Senja
+     recién al abrir (no bloquea el first paint) y muestra un loading state
+     mientras carga; si falla, cae a un link directo al formulario público. */
+  let reviewIframeMounted = false;
+  function mountReviewIframe() {
+    if (reviewIframeMounted) return;
+    reviewIframeMounted = true;
+    const wrap = $("reviewModalFrameWrap");
+    const loading = $("reviewModalLoading");
+    const fallback = $("reviewModalFallback");
+    const cfg = FO.SENJA || {};
+    if (!wrap || !cfg.FORM_EMBED_SRC) { if (fallback) fallback.hidden = false; return; }
+    const iframe = document.createElement("iframe");
+    iframe.id = "senja-collector-iframe";
+    iframe.src = cfg.FORM_EMBED_SRC;
+    iframe.title = "Formulario de opinión";
+    iframe.width = "100%";
+    iframe.height = "700";
+    iframe.setAttribute("scrolling", "auto");
+    iframe.setAttribute("frameborder", "0");
+    iframe.allow = "camera;microphone";
+    let settled = false;
+    const onReady = () => {
+      if (settled) return;
+      settled = true;
+      if (loading) loading.hidden = true;
+      try {
+        if (typeof window.iFrameResize === "function") {
+          window.iFrameResize({ log: false, checkOrigin: false }, "#senja-collector-iframe");
+        }
+      } catch (e) { /* noop: el formulario sigue siendo usable sin auto-resize */ }
+    };
+    const onFail = () => {
+      if (settled) return;
+      settled = true;
+      if (loading) loading.hidden = true;
+      if (fallback) fallback.hidden = false;
+      iframe.remove();
+    };
+    iframe.addEventListener("load", onReady, { once: true });
+    iframe.addEventListener("error", onFail, { once: true });
+    setTimeout(() => { if (!settled) onFail(); }, 8000);
+    wrap.insertBefore(iframe, fallback);
+  }
+  // Foco propio para este modal: no reutiliza lastFocusedEl/restoreFocus()
+  // porque ese estado es compartido con el modal de producto/carrito, y los
+  // cuatro "closeX()" genéricos corren en cada Escape sin comprobar si su
+  // propio overlay estaba realmente abierto — pueden consumir/pisar el
+  // resultado antes de que closeReviewModal() tenga oportunidad de usarlo.
+  let reviewModalReturnFocusEl = null;
+  let reviewModalOpenFocusTimer = null;
+  function openReviewModal() {
+    const overlay = $("reviewModalOverlay");
+    if (!overlay) return;
+    mountReviewIframe();
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+    document.body.classList.add("modal-open");
+    document.documentElement.classList.add("modal-open");
+    if (window.__modalScrollY === undefined) window.__modalScrollY = window.scrollY;
+    reviewModalReturnFocusEl = $("leaveReviewBtn");
+    const modalEl = $("reviewModal");
+    if (reviewModalOpenFocusTimer) cancelAnimationFrame(reviewModalOpenFocusTimer);
+    reviewModalOpenFocusTimer = requestAnimationFrame(() => {
+      reviewModalOpenFocusTimer = null;
+      try { if (overlay.classList.contains("active") && modalEl) modalEl.focus(); } catch (e) { /* noop */ }
+    });
+    track("open_review_form", {});
+  }
+  function closeReviewModal() {
+    const overlay = $("reviewModalOverlay");
+    if (!overlay) return;
+    if (reviewModalOpenFocusTimer) { cancelAnimationFrame(reviewModalOpenFocusTimer); reviewModalOpenFocusTimer = null; }
+    overlay.classList.remove("active");
+    document.body.style.overflow = "";
+    document.body.classList.remove("modal-open");
+    document.documentElement.classList.remove("modal-open");
+    if (window.__modalScrollY !== undefined) {
+      window.scrollTo(0, window.__modalScrollY);
+      window.__modalScrollY = undefined;
     }
-    prev.addEventListener("click", () => track.scrollBy({ left: -step(), behavior: "smooth" }));
-    next.addEventListener("click", () => track.scrollBy({ left: step(), behavior: "smooth" }));
-    track.addEventListener("scroll", updateArrows, { passive: true });
-    window.addEventListener("resize", updateArrows);
-    updateArrows();
+    const returnTo = reviewModalReturnFocusEl;
+    reviewModalReturnFocusEl = null;
+    if (returnTo && typeof returnTo.focus === "function") {
+      try { returnTo.focus(); } catch (e) { /* noop */ }
+    }
+  }
+  function setupReviewModal() {
+    const btn = $("leaveReviewBtn");
+    const overlay = $("reviewModalOverlay");
+    const closeBtn = $("reviewModalClose");
+    if (!btn || !overlay) return;
+    btn.addEventListener("click", openReviewModal);
+    if (closeBtn) closeBtn.addEventListener("click", () => closeReviewModal());
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) closeReviewModal(); });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && overlay.classList.contains("active")) closeReviewModal();
+    });
+    const modal = $("reviewModal");
+    if (modal) modal.addEventListener("keydown", (e) => trapTabFocus(modal, e));
+    setupSenjaWidgetEmptyState();
   }
 
   /* Deep-link de producto: ?producto=ID abre el modal */
@@ -3020,27 +3139,6 @@
         a.href = wa;
       }
     });
-  }
-
-  /* Reseñas desde config.js (Social Proof) */
-  function renderReviews() {
-    const track = $("reviewsTrack");
-    const reviews = Array.isArray(FO.REVIEWS) ? FO.REVIEWS : [];
-    if (!track || !reviews.length) return;
-    track.innerHTML = reviews
-      .map((r) => {
-        const n = Math.max(0, Math.min(5, parseInt(r.stars, 10) || 5));
-        const initials = (r.name || "FO").replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g, "").trim().split(/\s+/).slice(0, 2).map((w) => w[0] || "").join("").toUpperCase();
-        return `<article class="review-card">
-          <div class="review-stars" aria-label="${n} de 5 estrellas">${"★".repeat(n)}${"☆".repeat(5 - n)}</div>
-          <p class="review-text">“${r.text}”</p>
-          <div class="review-author">
-            <span class="review-avatar" aria-hidden="true">${initials || "FO"}</span>
-            <span class="review-meta"><strong>${r.name}</strong>${r.product ? `<span class="review-bought">${r.product}</span>` : ""}</span>
-          </div>
-        </article>`;
-      })
-      .join("");
   }
 
   /* Insignias de confianza (carrito y checkout) desde config.js */
@@ -3311,8 +3409,7 @@
     setupThemeToggle();
     setupRipple();
     setupRecommender();
-    renderReviews();
-    setupReviewsCarousel();
+    setupReviewModal();
     renderTrustBadges();
     setupFooterInfoLinks();
     setupConnectivityToasts();

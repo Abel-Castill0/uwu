@@ -537,16 +537,54 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     if (nosotrosBtn) { document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); }
   }, 300);
 
-  /* 13e. resenas desde config.js */
+  /* 13e. Reseñas — Senja (sin testimonios demo hardcodeados) */
   step(function () {
-    var cards = document.querySelectorAll("#reviewsTrack .review-card");
-    var cfg = (window.FO_CONFIG && window.FO_CONFIG.REVIEWS) ? window.FO_CONFIG.REVIEWS.length : 0;
-    ok(cards.length === cfg && cfg > 0, "reviewsFromConfig", "cards=" + cards.length + " cfg=" + cfg);
-    var stars = document.querySelector("#reviewsTrack .review-card .review-stars");
-    ok(stars && stars.textContent.indexOf("★") >= 0, "reviewsStars", "sin estrellas");
-    var names = Array.prototype.map.call(document.querySelectorAll("#reviewsTrack .review-meta strong"), function (s) { return s.textContent; });
-    ok(names.length === cfg && names[0] === "María G.", "reviewsNames", names.join(","));
+    // No debe quedar ningún rastro del sistema de reseñas ficticias anterior.
+    ok(!window.FO_CONFIG || !window.FO_CONFIG.REVIEWS, "noHardcodedReviewsConfig", "FO_CONFIG.REVIEWS todavía existe");
+    var bodyText = document.body.textContent;
+    ["María G.", "Carlos R.", "Lucía P.", "Luis M.", "Ana P."].forEach(function (name) {
+      ok(bodyText.indexOf(name) === -1, "noDemoReviewName:" + name, "encontrado en body");
+    });
+    ok(!document.querySelector("#reviewsTrack"), "noOldReviewsTrack", "#reviewsTrack todavía existe");
+    // CTA + modal accesible
+    var cta = document.getElementById("leaveReviewBtn");
+    ok(!!cta && cta.tagName === "BUTTON", "reviewCtaPresent", "botón 'Dejar una Opinión' no encontrado");
+    ok(cta && cta.getAttribute("aria-haspopup") === "dialog", "reviewCtaAriaHaspopup", "falta aria-haspopup");
+    var overlay = document.getElementById("reviewModalOverlay");
+    ok(!!overlay && overlay.getAttribute("role") === "dialog" && overlay.getAttribute("aria-modal") === "true", "reviewModalDialog", "modal sin role=dialog/aria-modal");
+    var closeBtn = document.getElementById("reviewModalClose");
+    ok(!!closeBtn && !!closeBtn.getAttribute("aria-label"), "reviewModalCloseLabel", "botón cerrar sin aria-label");
+    // Contenedor del formulario Senja (fallback + wrap presentes desde el HTML)
+    ok(!!document.getElementById("reviewModalFrameWrap"), "senjaFormContainerPresent", "falta contenedor del formulario Senja");
+    ok(!!document.getElementById("reviewModalFallback"), "senjaFormFallbackPresent", "falta link de fallback del formulario");
+    // Widget de testimonios aprobados
+    ok(!!document.getElementById("senjaWidget"), "senjaWidgetContainerPresent", "falta contenedor del widget Senja");
+    ok(!!document.getElementById("reviewsEmptyState"), "reviewsEmptyStatePresent", "falta estado vacío honesto");
   }, 300);
+
+  /* 13e2. Modal de opinión: abre, no hay overflow horizontal, Escape cierra
+     y el foco vuelve al CTA. La sección de reseñas vive solo en "home"
+     (los pasos previos de catálogo/promos navegan fuera de esa vista), así
+     que hay que volver a "home" antes: si no, el CTA existe en el DOM pero
+     queda oculto (offsetParent null) y no puede recibir foco. */
+  step(function () { window.navigateTo("home"); }, 200);
+  step(function () {
+    var cta = document.getElementById("leaveReviewBtn");
+    ok(!!cta && !!cta.offsetParent, "reviewCtaVisibleOnHome", "CTA oculto en la vista home");
+    if (cta) cta.click();
+  }, 100);
+  step(function () {
+    var overlay = document.getElementById("reviewModalOverlay");
+    ok(!!overlay && overlay.classList.contains("active"), "reviewModalOpens", "el modal no se activó al hacer click en el CTA");
+    ok(document.documentElement.scrollWidth <= window.innerWidth + 1, "reviewModalNoHorizontalOverflow", "scrollWidth=" + document.documentElement.scrollWidth);
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  }, 400);
+  step(function () {
+    var overlay = document.getElementById("reviewModalOverlay");
+    ok(!!overlay && !overlay.classList.contains("active"), "reviewModalEscapeCloses", "el modal sigue activo tras Escape");
+    var ae = document.activeElement;
+    ok(ae === document.getElementById("leaveReviewBtn"), "reviewModalFocusRestored", "el foco no volvió al CTA (quedó en " + (ae ? (ae.tagName + "#" + ae.id) : "null") + ")");
+  }, 200);
 
   /* 13e2. TikTok: embed oficial click-to-play, nunca un <a> envolviendo
      todo el player, sin overflow, sin redirect automático al hacer clic. */

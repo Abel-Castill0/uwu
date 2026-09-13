@@ -106,11 +106,11 @@
       });
     }
 
-    /* Review cards */
-    var reviews = gsap.utils.toArray(".review-card");
-    if (reviews.length) {
-      gsap.from(reviews, {
-        scrollTrigger: { trigger: ".reviews-carousel", start: "top 84%", toggleActions: "play none none none" },
+    /* Reseñas: CTA + widget de Senja */
+    var reviewsWrap = document.querySelector(".reviews-widget-wrap");
+    if (reviewsWrap) {
+      gsap.from([".reviews-cta-row", reviewsWrap], {
+        scrollTrigger: { trigger: ".section-reviews", start: "top 84%", toggleActions: "play none none none" },
         y: isMobile ? 16 : 35, opacity: 0, duration: isMobile ? 0.4 : 0.6, stagger: stag, ease: EASE_OUT, clearProps: "transform",
       });
     }

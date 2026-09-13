@@ -383,17 +383,26 @@
       </div>
     </section>
 
-    <!-- RESEÑAS / TESTIMONIOS -->
+    <!-- RESEÑAS / TESTIMONIOS — Senja (formulario + widget públicos, sin API/backend) -->
     <section class="section section-reviews" id="resenas">
       <div class="section-header">
-        <div class="section-eyebrow">Lo que dicen nuestros clientes</div>
+        <div class="section-eyebrow">TU EXPERIENCIA CUENTA</div>
         <h2 class="section-title">Opiniones de Clientes</h2>
-        <p class="section-subtitle">Esto es lo que opinan los clientes de Fragrance Obsession.</p>
+        <p class="section-subtitle">¿Ya probaste alguna de nuestras fragancias? Comparte tu experiencia y ayuda a otros a encontrar su próxima fragancia.</p>
       </div>
-      <div class="reviews-carousel">
-        <button class="rev-arrow rev-prev" id="revPrev" type="button" aria-label="Anterior">‹</button>
-        <div class="reviews-grid" id="reviewsTrack" aria-live="polite" tabindex="0" role="region" aria-label="Reseñas de clientes"></div>
-        <button class="rev-arrow rev-next" id="revNext" type="button" aria-label="Siguiente">›</button>
+      <div class="reviews-cta-row">
+        <button class="btn btn-gold" id="leaveReviewBtn" type="button" aria-haspopup="dialog" aria-controls="reviewModal">
+          Dejar una Opinión
+        </button>
+      </div>
+      <div class="reviews-widget-wrap" id="reviewsWidgetWrap">
+        <!-- Widget de testimonios aprobados (Senja Studio). Se rellena solo
+             cuando existan reseñas aprobadas; el script se carga una sola
+             vez, de forma async, más abajo antes de </body>. -->
+        <div class="senja-embed" id="senjaWidget" data-id="16d9277d-d35e-4f68-ad14-fb6b2d8d1b2e" data-mode="shadow" data-lazyload="false" style="display: block; width: 100%;"></div>
+        <p class="reviews-empty-state" id="reviewsEmptyState" hidden>
+          Aún no hay opiniones publicadas.<br>Puedes ser el primero en compartir tu experiencia.
+        </p>
       </div>
     </section>
 
@@ -825,6 +834,28 @@
     </div>
   </div>
 
+  <!-- ============ MODAL "DEJAR UNA OPINIÓN" (Senja Form Embed) ============ -->
+  <div class="modal-overlay" id="reviewModalOverlay" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
+    <div class="modal review-modal" id="reviewModal" tabindex="-1" role="document">
+      <button class="modal-close" id="reviewModalClose" aria-label="Cerrar formulario de opinión">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+      <div class="modal-body review-modal__body">
+        <h2 id="reviewModalTitle">Comparte tu Opinión</h2>
+        <div class="review-modal__frame-wrap" id="reviewModalFrameWrap">
+          <div class="review-modal__loading" id="reviewModalLoading">
+            <span class="review-modal__spinner" aria-hidden="true"></span>
+            <p>Preparando formulario…</p>
+          </div>
+          <div class="review-modal__fallback" id="reviewModalFallback" hidden>
+            <p>No pudimos cargar el formulario en este momento.</p>
+            <a id="reviewModalFallbackLink" href="https://senja.io/p/fragrance-obsession/r/ZY90RH" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark">Abrir formulario de opinión</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ CARRITO ============ -->
   <div class="cart-overlay" id="cartOverlay"></div>
   <aside class="cart-sidebar" id="cartSidebar" role="dialog" aria-modal="true" aria-label="Carrito de compras" tabindex="-1">
@@ -977,5 +1008,11 @@
   <script src="hero-stats.js" defer></script>
   <script src="animations.js" defer></script>
   <script src="script.js" defer></script>
+
+  <!-- Senja (reseñas reales): terceros, script público, async, se carga una
+       sola vez y no bloquea el first paint. iframeResizer solo ajusta la
+       altura del iframe del formulario cuando se abre el modal. -->
+  <script src="https://widget.senja.io/js/iframeResizer.min.js" async></script>
+  <script src="https://widget.senja.io/widget/16d9277d-d35e-4f68-ad14-fb6b2d8d1b2e/platform.js" async></script>
   </body>
 </html>

@@ -49,15 +49,23 @@ window.FO_CONFIG = {
     "ENVÍO GRATIS + vial de nicho desde S/ 199",
   ],
 
-  /* ── RESEÑAS DE CLIENTES (Social Proof) ──────────────────────
-     Se renderizan en la sección "Opiniones de Clientes" de la home. */
-  REVIEWS: [
-    { stars: 5, text: "La calidad del decant es excelente, 100% original.", name: "María G.", product: "Yara · Lattafa" },
-    { stars: 5, text: "Llegó rápido y muy bien empaquetado.", name: "Carlos R.", product: "9 PM · Afnan" },
-    { stars: 4, text: "El aroma es idéntico al original, duró todo el día.", name: "Lucía P.", product: "Khamrah · Lattafa" },
-    { stars: 5, text: "Pedí el pack de 3 diseñador y quedé encantado. Recomiendo 100%.", name: "Luis M.", product: "Stronger With You Intensely" },
-    { stars: 5, text: "Me asesoraron por WhatsApp para elegir y acertaron. Servicio excelente.", name: "Ana P.", product: "Game of Spades Royale" },
-  ],
+  /* ── RESEÑAS DE CLIENTES (Senja) ──────────────────────────────
+     La sección "Opiniones de Clientes" de la home ya NO usa testimonios
+     de demo/hardcodeados: usa los embeds públicos oficiales de Senja
+     (sin API key, sin backend, sin base de datos propia).
+       - FORM_URL: página pública del formulario (fallback si el iframe no carga).
+       - FORM_EMBED_SRC: src del iframe embebido dentro del modal "Dejar una Opinión".
+       - WIDGET_ID: id del widget de testimonios aprobados (Senja Studio).
+       - WIDGET_PLATFORM_SRC: script público que renderiza el widget.
+     La aprobación de cada reseña ocurre manualmente dentro de Senja;
+     este sitio nunca decide qué testimonio se publica. */
+  SENJA: {
+    FORM_URL: "https://senja.io/p/fragrance-obsession/r/ZY90RH",
+    FORM_EMBED_SRC: "https://senja.io/p/fragrance-obsession/r/ZY90RH?mode=embed&nostyle=true",
+    WIDGET_ID: "16d9277d-d35e-4f68-ad14-fb6b2d8d1b2e",
+    WIDGET_PLATFORM_SRC: "https://widget.senja.io/widget/16d9277d-d35e-4f68-ad14-fb6b2d8d1b2e/platform.js",
+    IFRAME_RESIZER_SRC: "https://widget.senja.io/js/iframeResizer.min.js",
+  },
 
   /* ── INSIGNIAS DE CONFIANZA ──────────────────────────────────
      Íconos + texto corto que se muestran en carrito y checkout. */
