@@ -948,7 +948,7 @@
     const modalPromo = isFull && !isComingSoon(product.id) ? productPromoInfo(product) : null;
     const specialPrice = isFull && price && !isComingSoon(product.id);
     $("modalPrice").innerHTML = modalPromo
-      ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span><span class="price-pct">−${esc(modalPromo.pct)}%</span><span class="price-regular">Antes ${esc(formatPrice(modalPromo.regularPrice))}</span><span class="price-product-savings">Ahorras ${esc(formatPrice(modalPromo.ahorro))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
+      ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span><span class="price-pct">−${esc(modalPromo.pct)}%</span><span class="price-regular">${esc(formatPrice(modalPromo.regularPrice))}<em class="price-regular__caption">Precio referencial</em></span><span class="price-product-savings">Ahorras ${esc(formatPrice(modalPromo.ahorro))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : specialPrice
       ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : price
@@ -1028,7 +1028,7 @@
       : `Hola, quiero cotizar el frasco completo de ${product.name} (${product.brand}). ¿Me pueden dar más información?`;
     const promo = productPromoInfo(product);
     if (promo) {
-      msg += `\n\nPrecio especial: ${formatPrice(promo.price)}\nPrecio anterior: ${formatPrice(promo.regularPrice)}\nDescuento real: ${promo.pct}%\nAhorro: ${formatPrice(promo.ahorro)}`;
+      msg += `\n\nPrecio especial: ${formatPrice(promo.price)}\nPrecio referencial: ${formatPrice(promo.regularPrice)}\nDescuento real: ${promo.pct}%\nAhorro: ${formatPrice(promo.ahorro)}`;
     }
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
     const win = window.open(url, "_blank");
@@ -1445,6 +1445,11 @@
     if (!product || !product.fullSizes) return null;
     const sizes = Object.keys(product.fullSizes);
     if (sizes.length !== 1) return null; // solo aplica a talla unica (frasco completo)
+    // Comparación con precio referencial: solo sellado/tester. Un "parcial"
+    // (contenido usado, ej. 99%) NO recibe la comparación automáticamente
+    // -- mostrar un precio tachado ahí insinuaría una rebaja que no está
+    // confirmada para ese producto específico (pedido explícito del cliente).
+    if (product.sealedStatus && product.sealedStatus !== "sellado" && product.sealedStatus !== "tester") return null;
     const price = product.fullSizes[sizes[0]];
     return window.calcularPrecioPromo ? window.calcularPrecioPromo(product.regularPrice, price) : null;
   }
@@ -1493,7 +1498,7 @@
     // Precio: promo real o precio normal
     const promo = soon ? null : productPromoInfo(product);
     const priceText = promo
-      ? `<span class="price-special-label">Precio especial</span><span class="price-regular">${esc(formatPrice(promo.regularPrice))}</span><span class="price-pct">${promo.pct}% menos</span><span class="price-final">${esc(formatPrice(promo.price))}</span>`
+      ? `<span class="price-special-label">Precio especial</span><span class="price-regular">${esc(formatPrice(promo.regularPrice))}<em class="price-regular__caption">Precio referencial</em></span><span class="price-pct">−${promo.pct}%</span><span class="price-final">${esc(formatPrice(promo.price))}</span>`
       : specialPrice && minPrice
       ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(minPrice))}</span>`
       : minPrice ? `Desde ${formatPrice(minPrice)}` : "Consultar";
@@ -2500,6 +2505,7 @@
     isDiscountEligibleSize: isDiscountEligibleSize,
     getUpsellCandidates: getUpsellCandidates,
     buildOrderMessage: buildOrderMessage,
+    productPromoInfo: productPromoInfo,
   };
 
   /* ══════════════════════════════════════════════════════════════

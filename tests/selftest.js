@@ -1016,6 +1016,49 @@ step(function () {
     ok(wa.indexOf("630") !== -1, "waIncludesPrice", "url=" + wa);
   }, 300);
 
+  /* 15b2. Contrato de precio referencial (sellado/tester vs sin dato vs
+     parcial). Ningún producto real tiene regularPrice todavía (no se
+     inventa ninguno) -- se prueba mutando temporalmente FO_PRODUCTS en
+     memoria y restaurando el valor original al final. */
+  step(function () {
+    var pInfo = window.__FO_TEST.productPromoInfo;
+    var pSellado = (window.FO_PRODUCTS || []).find(function (p) { return p.id === 141; }); // sellado
+    var pTester = (window.FO_PRODUCTS || []).find(function (p) { return p.id === 146; });  // tester
+    var pParcial = (window.FO_PRODUCTS || []).find(function (p) { return p.id === 147; }); // parcial
+    ok(!!pInfo && !!pSellado && !!pTester && !!pParcial, "referencePriceFixturesExist", "sin productos 141/146/147");
+    if (!pInfo || !pSellado || !pTester || !pParcial) return;
+
+    // Sin regularPrice: no debe haber tachado/badge/%% (arquitectura ya
+    // existente en descuentos.js/script.js, nunca fabrica un "antes").
+    ok(pInfo(pSellado) === null, "noReferencePriceNoMarkdown", JSON.stringify(pInfo(pSellado)));
+
+    // referencePrice=1000 / precio final=875 -> 12.5% exacto, no 12%.
+    var origSellado = pSellado.regularPrice;
+    pSellado.regularPrice = 1000;
+    var promoSellado = pInfo(pSellado);
+    ok(promoSellado && promoSellado.pct === 12.5, "referencePriceExactPercent12_5", JSON.stringify(promoSellado));
+    pSellado.regularPrice = origSellado;
+
+    // referencePrice <= precio final: dato inválido, no markdown.
+    pSellado.regularPrice = 800; // < 875 (precio final real)
+    ok(pInfo(pSellado) === null, "referencePriceLowerThanFinalIsInvalid", JSON.stringify(pInfo(pSellado)));
+    pSellado.regularPrice = origSellado;
+
+    // Tester con referencia válida: mismo contrato UI que sellado.
+    var origTester = pTester.regularPrice;
+    pTester.regularPrice = 500; // > 390 (precio final real del tester)
+    var promoTester = pInfo(pTester);
+    ok(!!promoTester && promoTester.price === 390, "testerValidReferenceUsesSameContract", JSON.stringify(promoTester));
+    pTester.regularPrice = origTester;
+
+    // Parcial: NO recibe comparación automática aunque tenga regularPrice,
+    // salvo dato comercial explícito (pedido explícito del cliente).
+    var origParcial = pParcial.regularPrice;
+    pParcial.regularPrice = 900; // > 630 (precio final real), sería "válido" si no estuviera excluido
+    ok(pInfo(pParcial) === null, "parcialExcludedFromAutoReferencePrice", JSON.stringify(pInfo(pParcial)));
+    pParcial.regularPrice = origParcial;
+  }, 150);
+
   /* 15c. --max-w nunca estuvo definida en :root (bug real, no un valor a
      proposito): 14 reglas la usaban ("max-width: var(--max-w)") y sin
      definicion eso es invalido -> max-width:none, la seccion queda a lo

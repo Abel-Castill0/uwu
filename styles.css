@@ -558,6 +558,15 @@
     text-decoration: line-through; text-decoration-color: rgba(150,120,90,.55);
     order: 1;
   }
+  /* "Precio referencial" (nunca "Antes": no confirmamos que haya sido un
+     precio propio anterior de la tienda — puede ser MSRP/PVP/mercado).
+     Va DEBAJO del precio tachado, no dentro del tachado (line-through no
+     debe cruzar la etiqueta). */
+  .price-regular__caption {
+    display: block; font-style: normal; font-size: .58rem; font-weight: 600;
+    letter-spacing: .04em; text-transform: uppercase; text-decoration: none;
+    color: var(--text-light);
+  }
   .price-pct {
     font-size: .68rem; font-weight: 600; color: var(--gold-deep);
     order: 2;
@@ -5580,6 +5589,12 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
   font-size: .74rem; color: var(--text-secondary); line-height: 1.4;
 }
 .discount-summary__strip strong { color: var(--gold-deep); font-weight: 700; }
+/* Jerarquía explícita pedida por el cliente: "Desde S/199" semibold (no
+   compite), "ENVÍO GRATIS" es el mensaje principal (bold + acento gold,
+   letter-spacing como una mini-etiqueta), "+ vial..." queda secundario. */
+.discount-summary__strip strong.discount-summary__from { font-weight: 600; }
+.discount-summary__strip strong.discount-summary__shipping { font-weight: 800; letter-spacing: .03em; }
+.discount-summary__secondary { color: var(--text-muted); font-weight: 400; }
 .discount-summary__sep { opacity: .35; color: var(--text-muted); }
 /* Búsqueda activa: aún más compacto — el producto debe aparecer antes. */
 .discount-summary.is-compact { padding: .55rem 1rem; }
