@@ -85,8 +85,11 @@ check("Mefisto(150) exists", !!m, "");
 check("Mefisto NOT in PROXIMAMENTE", !mProx, "prox=" + mProx);
 check("Mefisto brand=Xerjoff", m && m.brand === "Xerjoff", "brand=" + (m ? m.brand : "?"));
 check("Mefisto has decants", m && m.hasDecants, "");
-const hasGentiluomo = src.includes("Mefisto Gentiluomo");
-check("Mefisto Gentiluomo does NOT exist", !hasGentiluomo, "");
+// El catálogo del cliente confirmó "Mefisto Gentiluomo" (línea Casamorati
+// de Xerjoff) con los mismos precios ya vigentes; fotos verificadas
+// visualmente (badge del frasco). Reemplaza el guard anterior que asumía
+// lo contrario.
+check("Mefisto name is Mefisto Gentiluomo", m && m.name === "Mefisto Gentiluomo", "name=" + (m ? m.name : "?"));
 // Verify exact prices
 if (m) {
   const mefRaw = m.raw || "";

@@ -1091,6 +1091,21 @@ step(function () {
     pParcial.regularPrice = origParcial;
   }, 150);
 
+  /* 15b3. Mefisto Gentiluomo (id 150): el catálogo del cliente confirma el
+     nombre completo, marca Xerjoff (línea Casamorati) y precios sin
+     cambios; las fotos nuevas (verificadas visualmente, badge del frasco
+     dice "MEFISTO GENTILUOMO") reemplazan las anteriores. */
+  step(function () {
+    var p = (window.FO_PRODUCTS || []).find(function (x) { return x.id === 150; });
+    ok(!!p, "mefistoFixtureExists", "producto 150 no encontrado");
+    if (!p) return;
+    ok(p.name === "Mefisto Gentiluomo", "mefistoNameUpdated", "name=" + p.name);
+    ok(p.brand === "Xerjoff", "mefistoBrandUnchanged", "brand=" + p.brand);
+    ok(JSON.stringify(p.decantSizes) === JSON.stringify({ 1: 19, 2: 25, 3: 35, 5: 49, 10: 99, 30: 249 }), "mefistoPricesUnchanged", JSON.stringify(p.decantSizes));
+    ok(p.cardImage.indexOf("MEFISTO.webp") !== -1, "mefistoNewMainImage", "cardImage=" + p.cardImage);
+    ok(p.cardImage.indexOf("Mefisto Xerjoff") === -1, "mefistoOldMainImageRemoved", "cardImage=" + p.cardImage);
+  }, 50);
+
   /* 15c. --max-w nunca estuvo definida en :root (bug real, no un valor a
      proposito): 14 reglas la usaban ("max-width: var(--max-w)") y sin
      definicion eso es invalido -> max-width:none, la seccion queda a lo
