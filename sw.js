@@ -6,7 +6,7 @@
  * OJO: si algún día se vuelve a cache-first para assets, CADA deploy
  * DEBE bumpear VERSION o los clientes se quedan con código viejo.
  */
-const VERSION = "fo-v76-mefisto-finalized";
+const VERSION = "fo-v77-ux-refinement";
 const CORE_CACHE = `core-${VERSION}`;
 const IMG_CACHE = `img-${VERSION}`;
 const FONT_CACHE = `font-${VERSION}`;
@@ -20,6 +20,7 @@ const CORE_ASSETS = [
   "productos.js",
   "config.js",
   "descuentos.js",
+  "hero-stats.js",
   "animations.js",
   "offline.html",
   "404.html",

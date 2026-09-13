@@ -155,8 +155,14 @@ window.FO_CONFIG = {
      · thumbnail: miniatura local en img/tiktok/ (SVG/WebP).
      · url:       enlace público del video en TikTok. */
   TIKTOK_PROFILE_URL: "https://www.tiktok.com/@fraganceobsession.pe?_r=1&_t=ZS-993ZhxTLNmH",
+  /* postId: ID numérico del video, resuelto una sola vez desde el enlace
+     corto (vt.tiktok.com/... → tiktok.com/@usuario/video/<postId>). Se usa
+     para el embed oficial https://www.tiktok.com/player/v1/<postId> — el
+     usuario da play y el video se reproduce dentro de la sección, sin
+     salir a la app. thumbnail sigue siendo el poster local mostrado ANTES
+     de que el usuario le dé play (el iframe no se crea hasta ese clic). */
   TIKTOK_VIDEOS: [
-    { title: "El perfume ideal para el calor", thumbnail: "img/tiktok/thumb1.svg", url: "https://vt.tiktok.com/ZSVyQTpeK/" },
-    { title: "Colección Stéphane Humbert Lucas", thumbnail: "img/tiktok/thumb2.svg", url: "https://vt.tiktok.com/ZSVyC1pGB/" },
+    { title: "El perfume ideal para el calor", thumbnail: "img/tiktok/thumb1.svg", url: "https://vt.tiktok.com/ZSVyQTpeK/", postId: "7490728805271751942" },
+    { title: "Colección Stéphane Humbert Lucas", thumbnail: "img/tiktok/thumb2.svg", url: "https://vt.tiktok.com/ZSVyC1pGB/", postId: "7489656124468202758" },
   ],
 };

@@ -183,7 +183,6 @@
     mujer: (p) => !p.tester && isProduct(p) && p.gender === "femenino",
     unisex: (p) => !p.tester && isProduct(p) && p.gender === "unisex",
     nicho: (p) => !p.tester && isProduct(p) && p.category === "nicho",
-    arabe: (p) => !p.tester && isProduct(p) && p.category === "arabe",
     disenador: (p) => !p.tester && isProduct(p) && p.category === "disenador",
   };
   let currentModalProduct = null;
@@ -1500,7 +1499,6 @@
       : minPrice ? `Desde ${formatPrice(minPrice)}` : "Consultar";
     const catLabel =
       product.category === "nicho" ? "Nicho"
-      : product.category === "arabe" ? "Árabe"
       : product.category === "deluxe" ? "Deluxe"
       : "Diseñador";
     const stockText = Number.isFinite(product.stock) && product.stock > 0 ? `Stock: ${product.stock}` : "";
@@ -1552,6 +1550,10 @@
     clearTimeout(window.__catalogRenderTimer);
 
     const query = searchTerm.trim().toLowerCase();
+    // Con búsqueda activa el producto debe aparecer lo antes posible: la
+    // franja de beneficios se compacta aún más (ver .is-compact en CSS).
+    const discountSummaryEl = $("discountSummary");
+    if (discountSummaryEl) discountSummaryEl.classList.toggle("is-compact", query !== "");
     const hasQuick = query !== "" || quickFilter !== "todos";
     // "todos" (píldora por defecto) equivale a "sin categoría": se muestran todas
     const cat = activeFilters.category === "todos" ? null : activeFilters.category;
@@ -1595,7 +1597,7 @@
       const countEl = $("catalogResultsCount");
       if (countEl) {
         const label = query ? ` para “${searchTerm.trim()}”` : "";
-        const total = `${filtered.length} fragancia${filtered.length === 1 ? "" : "s"}`;
+        const total = `${filtered.length} resultado${filtered.length === 1 ? "" : "s"}`;
         countEl.textContent = `${total}${label}`;
         countEl.style.display = "block";
       }
@@ -1651,12 +1653,26 @@
           );
         }
       } else {
+        const emptyTitle = query ? `No encontramos “${esc(searchTerm.trim())}”` : "No encontramos productos";
+        const clearBtn = query ? `<button type="button" class="btn-empty-action" id="emptyStateClearSearch">Limpiar búsqueda</button>` : "";
         grid.innerHTML = `
           <div class="empty-state">
             <div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5L16.2 16.2"/></svg></div>
-            <h3 class="empty-state-title">No encontramos productos</h3>
-            <p class="empty-state-text">Prueba con otra búsqueda o cambia de filtro.</p>
+            <h3 class="empty-state-title">${emptyTitle}</h3>
+            <p class="empty-state-text">Prueba con otra fragancia o marca.</p>
+            ${clearBtn}
           </div>`;
+        const clearAction = $("emptyStateClearSearch");
+        if (clearAction) {
+          clearAction.addEventListener("click", () => {
+            searchTerm = "";
+            const searchInput = $("catalogSearch");
+            if (searchInput) searchInput.value = "";
+            const clearIcon = $("searchClear");
+            if (clearIcon) clearIcon.style.display = "none";
+            renderCatalog();
+          });
+        }
       }
       grid.classList.remove("switching");
       observeRevealElements();
@@ -2010,7 +2026,13 @@
   function syncBodyScrollLock() {
     var filtersOpen = filtersOffcanvas && filtersOffcanvas.classList.contains("open");
     var brandOpen = $("brandExplorerOverlay") && $("brandExplorerOverlay").classList.contains("active");
-    var navOpen = navEl && navEl.classList.contains("mounted");
+    // BUG REAL: "mounted" es solo el estado de lifecycle/animación (queda
+    // activo ~350ms después de cerrar, mientras el drawer termina su
+    // transición de salida) — no es sinónimo de "nav abierto". Usarlo aquí
+    // mantenía no-scroll en el body incluso después de cerrar el drawer
+    // (p.ej. hamburguesa → Catálogo dejaba el body sin scroll). El estado
+    // lógico real es "open" (o el backdrop activo).
+    var navOpen = navEl && navEl.classList.contains("open");
     if (filtersOpen || brandOpen || navOpen) {
       document.body.classList.add("no-scroll");
     } else {
@@ -3071,7 +3093,7 @@
     nosotros: {
       title: "Nosotros",
       html: `<p><strong>FRAGRANCE OBSESSION</strong> nació con una idea simple: que puedas disfrutar de las mejores fragancias del mundo sin tener que comprar un frasco completo.</p>
-        <p>Seleccionamos cuidadosamente perfumes árabes, de diseñador y nicho, y los ofrecemos en decants premium con <strong>extracción con jeringa</strong> desde el frasco original.</p>
+        <p>Seleccionamos cuidadosamente fragancias de diseñador y nicho, y las ofrecemos en decants premium con <strong>extracción con jeringa</strong> desde el frasco original.</p>
         <p>Somos una tienda peruana, con despacho en Lima Metropolitana y envíos a todo el país.</p>`,
     },
   };
@@ -3194,35 +3216,71 @@
   }
 
   /* ══════════════════════════════════════════════════════════════
-     TIKTOK — galería estática (cero iframes, cero scripts de terceros).
-     Cada tarjeta es un enlace directo al video en TikTok (target=_blank):
-     miniatura local + botón de play decorativo. Cero requests a
-     tiktok.com en ningún momento (ni al cargar, ni al hacer scroll, ni
-     al hacer clic — el navegador navega a TikTok, no hay red desde nuestra
-     página). Se abandonaron el modal con iframe directo y, antes, el
-     facade+embed.js oficial: ambos dependían de que TikTok renderizara
-     dentro de nuestra página, y en producción (Safari/iPhone real) el
-     cliente reportó que el video no se reproducía y la página se sentía
-     lenta — un iframe/embed de terceros es peso y una dependencia
-     externa inestable que una tienda no necesita. Los videos se
-     definen en config.js → TIKTOK_VIDEOS / TIKTOK_PROFILE_URL.
+     TIKTOK — reproducción inline con el embed oficial (player/v1).
+     NOTA HISTÓRICA: una versión anterior con iframe/facade+embed.js se
+     abandonó porque en producción (Safari/iPhone real) el cliente
+     reportó que el video no reproducía y la página se sentía lenta — de
+     ahí se pasó a una galería 100% estática (enlace directo, cero red a
+     tiktok.com). El pedido actual es explícito: reproducir DENTRO de la
+     sección, no abrir la app. Para no repetir el problema anterior:
+       · el iframe NO se crea hasta que el usuario hace clic en play
+         (poster local + botón decorativo hasta ese momento → cero
+         requests a tiktok.com al cargar o hacer scroll);
+       · solo el player oficial (tiktok.com/player/v1/<postId>), nunca el
+         facade/embed.js completo;
+       · controles nativos del player (controls=1), sin autoplay con
+         sonido — el usuario decide cuándo reproducir.
+     Si el video real no carga en producción, revisar primero si es el
+     mismo problema de Safari/iPhone ya reportado antes de asumir que el
+     postId es incorrecto. Videos en config.js → TIKTOK_VIDEOS.
   ══════════════════════════════════════════════════════════════ */
   const TIKTOK_ICON_PATH =
     "M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z";
+  const TIKTOK_PLAYER_PARAMS = "music_info=0&description=0&rel=0&closed_caption=0";
+
+  function tiktokPlayerSrc(postId) {
+    return `https://www.tiktok.com/player/v1/${encodeURIComponent(postId)}?${TIKTOK_PLAYER_PARAMS}`;
+  }
 
   function renderTikTokGallery() {
     const grid = document.getElementById("tiktokGrid");
     if (!grid || !FO.TIKTOK_VIDEOS) return;
-    grid.innerHTML = FO.TIKTOK_VIDEOS.map((v) => `
-      <a class="tiktok-card" href="${esc(v.url)}" target="_blank" rel="noopener noreferrer" aria-label="Ver video en TikTok: ${esc(v.title)}">
-        <img class="tiktok-card__img" src="${esc(v.thumbnail)}" alt="" loading="lazy" decoding="async" />
-        <span class="tiktok-card__scrim" aria-hidden="true"></span>
-        <span class="tiktok-card__play" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"/></svg></span>
-        <span class="tiktok-card__meta">
+    grid.innerHTML = FO.TIKTOK_VIDEOS.map((v, i) => `
+      <div class="tiktok-card" id="tiktokCard${i}" data-post-id="${esc(v.postId || "")}" data-profile-url="${esc(v.url)}">
+        ${v.postId ? `
+        <button type="button" class="tiktok-card__poster" aria-label="Reproducir video: ${esc(v.title)}">
+          <img class="tiktok-card__img" src="${esc(v.thumbnail)}" alt="" loading="lazy" decoding="async" />
+          <span class="tiktok-card__scrim" aria-hidden="true"></span>
+          <span class="tiktok-card__play" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"/></svg></span>
+          <span class="tiktok-card__meta">
+            <strong class="tiktok-card__title">${esc(v.title)}</strong>
+          </span>
+        </button>` : `
+        <div class="tiktok-card__unavailable">
+          <i class="fab fa-tiktok" aria-hidden="true"></i>
           <strong class="tiktok-card__title">${esc(v.title)}</strong>
-          <span class="tiktok-card__cta"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="${TIKTOK_ICON_PATH}"/></svg>Ver en TikTok</span>
-        </span>
-      </a>`).join("");
+          <p>Video no disponible</p>
+          <a href="${esc(v.url)}" target="_blank" rel="noopener noreferrer" class="tiktok-card__cta">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="${TIKTOK_ICON_PATH}"/></svg>Ver perfil en TikTok
+          </a>
+        </div>`}
+      </div>`).join("");
+    grid.querySelectorAll(".tiktok-card__poster").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const card = btn.closest(".tiktok-card");
+        const postId = card && card.dataset.postId;
+        if (!postId) return;
+        const iframe = document.createElement("iframe");
+        iframe.src = tiktokPlayerSrc(postId);
+        iframe.loading = "lazy";
+        iframe.allow = "fullscreen; autoplay";
+        iframe.allowFullscreen = true;
+        iframe.title = btn.getAttribute("aria-label") || "Video de TikTok";
+        iframe.className = "tiktok-card__iframe";
+        iframe.setAttribute("frameborder", "0");
+        btn.replaceWith(iframe);
+      }, { once: true });
+    });
   }
 
   /* ══════════════════════════════════════════════════════════════

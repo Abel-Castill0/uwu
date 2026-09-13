@@ -48,6 +48,120 @@
   window.open = function (u) { window.__opened = u; return {}; };
   window.__opened = null;
 
+  /* 0a. Header: logo izquierda real, nav centrada en el header (grid de 3
+     columnas en vez de flex+space-between, que desplazaba el nav del
+     centro real porque logo/actions no pesan igual). */
+  step(function () {
+    var nav = document.querySelector(".header-inner .nav");
+    var headerInner = document.querySelector(".header-inner");
+    if (nav && headerInner && window.matchMedia("(min-width: 901px)").matches) {
+      var navRect = nav.getBoundingClientRect();
+      var hRect = headerInner.getBoundingClientRect();
+      var navCenter = navRect.left + navRect.width / 2;
+      var headerCenter = hRect.left + hRect.width / 2;
+      var delta = Math.abs(navCenter - headerCenter);
+      ok(delta <= 12, "headerNavCentered", "delta=" + delta.toFixed(1));
+    } else {
+      ok(true, "headerNavCentered", "viewport móvil, nav vive en el drawer");
+    }
+  }, 100);
+
+  /* 0b. Sin categoría "arabe": el cliente confirmó que no vende árabes.
+     No debe haber claims públicos de "árabe/árabes" en el HTML visible. */
+  step(function () {
+    var arabeCount = (window.FO_PRODUCTS || []).filter(function (p) { return p.category === "arabe"; }).length;
+    ok(arabeCount === 0, "noArabicCategoryProducts", "count=" + arabeCount);
+    var bodyText = document.body.textContent;
+    ok(!/árabe/i.test(bodyText), "noArabicClaimVisible", "encontrado en body");
+  }, 100);
+
+  /* 0c. BUG REAL — hamburguesa → Catálogo dejaba el body sin scroll:
+     syncBodyScrollLock() usaba .mounted (lifecycle/animación, sigue
+     activo ~350ms tras cerrar) como sinónimo de "nav abierto" en vez de
+     .open. openNav()/closeNav() no dependen de la posición del drawer
+     (que solo cambia por media query), así que esto se puede ejercitar
+     igual en el viewport de escritorio de la suite. */
+  step(function () {
+    var hamburger = document.getElementById("hamburger");
+    var navEl = document.getElementById("nav");
+    ok(!!hamburger && !!navEl, "hamburgerAndNavExist", "hamburger=" + !!hamburger + " nav=" + !!navEl);
+    if (hamburger) hamburger.click();
+    window.__chains += 1;
+    requestAnimationFrame(function () {
+      ok(navEl.classList.contains("open"), "navOpensOnHamburger", "classes=" + navEl.className);
+      ok(document.body.classList.contains("no-scroll"), "navLocksScrollWhenOpen", "no-scroll=" + document.body.classList.contains("no-scroll"));
+      var catalogLink = navEl.querySelector('.nav-links a[data-page="catalogo"]');
+      if (catalogLink) catalogLink.click();
+      window.__chains -= 1;
+    });
+  }, 200);
+  step(function () {
+    ok(!document.body.classList.contains("no-scroll"), "navScrollRestoredAfterCatalogo", "no-scroll=" + document.body.classList.contains("no-scroll"));
+    ok(!document.body.classList.contains("modal-open"), "navModalOpenClearedAfterCatalogo", "modal-open=" + document.body.classList.contains("modal-open"));
+  }, 500);
+  /* Repetir para Inicio y Combos: mismo camino (closeNav vía navigateTo). */
+  step(function () {
+    document.getElementById("hamburger").click();
+    window.__chains += 1;
+    requestAnimationFrame(function () {
+      var homeLink = document.getElementById("nav").querySelector('.nav-links a[data-page="home"]');
+      if (homeLink) homeLink.click();
+      window.__chains -= 1;
+    });
+  }, 200);
+  step(function () {
+    ok(!document.body.classList.contains("no-scroll"), "navScrollRestoredAfterInicio", "no-scroll=" + document.body.classList.contains("no-scroll"));
+  }, 500);
+  step(function () {
+    document.getElementById("hamburger").click();
+    window.__chains += 1;
+    requestAnimationFrame(function () {
+      var promosLink = document.getElementById("nav").querySelector('.nav-links a[data-page="promos"]');
+      if (promosLink) promosLink.click();
+      window.__chains -= 1;
+    });
+  }, 200);
+  step(function () {
+    ok(!document.body.classList.contains("no-scroll"), "navScrollRestoredAfterCombos", "no-scroll=" + document.body.classList.contains("no-scroll"));
+    window.navigateTo("home");
+  }, 500);
+  /* Cierre por X y por Escape también deben liberar el scroll. */
+  step(function () {
+    document.getElementById("hamburger").click();
+    window.__chains += 1;
+    requestAnimationFrame(function () {
+      var closeBtn = document.getElementById("navClose");
+      if (closeBtn) closeBtn.click();
+      window.__chains -= 1;
+    });
+  }, 200);
+  step(function () {
+    ok(!document.body.classList.contains("no-scroll"), "navScrollRestoredAfterCloseBtn", "no-scroll=" + document.body.classList.contains("no-scroll"));
+  }, 500);
+  step(function () {
+    document.getElementById("hamburger").click();
+    window.__chains += 1;
+    requestAnimationFrame(function () {
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      window.__chains -= 1;
+    });
+  }, 200);
+  step(function () {
+    ok(!document.body.classList.contains("no-scroll"), "navScrollRestoredAfterEscape", "no-scroll=" + document.body.classList.contains("no-scroll"));
+  }, 500);
+  step(function () {
+    document.getElementById("hamburger").click();
+    window.__chains += 1;
+    requestAnimationFrame(function () {
+      var backdrop = document.getElementById("navBackdrop");
+      if (backdrop) backdrop.click();
+      window.__chains -= 1;
+    });
+  }, 200);
+  step(function () {
+    ok(!document.body.classList.contains("no-scroll"), "navScrollRestoredAfterBackdrop", "no-scroll=" + document.body.classList.contains("no-scroll"));
+  }, 500);
+
   /* 1. catalogo: elegir categoria â†’ grid completo */
   step(function () {
     window.navigateTo("catalogo");
@@ -97,6 +211,27 @@ step(function () {
     if (btn) { btn.click(); }
     ok(document.getElementById("modalOverlay").classList.contains("active"), "productModalOpens", "overlay no activo");
   }, 200);
+
+  /* 2b. BUG REAL — la imagen del modal bajaba al scrollear los detalles:
+     #modal (regla #1 compartida con overflow-y:auto) scrolleaba como una
+     sola unidad; ahora solo .modal-body debe moverse, .modal-image queda
+     fija (misma posición en pantalla antes/después). Solo en desktop
+     (>=760px), que es donde aplica el grid de dos paneles. */
+  step(function () {
+    if (!window.matchMedia("(min-width: 760px)").matches) { return; }
+    var modal = document.getElementById("modal");
+    var mediaPane = document.getElementById("modalImage");
+    var infoPane = modal.querySelector(".modal-body");
+    var beforeRect = mediaPane.getBoundingClientRect();
+    infoPane.scrollTop = 0;
+    modal.scrollTop = 500; // si el dialog exterior aún scrolleara, esto lo revelaría
+    infoPane.scrollTop = 500;
+    var afterRect = mediaPane.getBoundingClientRect();
+    ok(modal.scrollTop === 0, "modalDialogItselfDoesNotScroll", "modal.scrollTop=" + modal.scrollTop);
+    ok(infoPane.scrollTop > 0, "modalInfoPaneScrolls", "infoPane.scrollTop=" + infoPane.scrollTop);
+    ok(Math.abs(beforeRect.top - afterRect.top) <= 1, "modalMediaPaneStaysStatic", "before=" + beforeRect.top + " after=" + afterRect.top);
+    infoPane.scrollTop = 0;
+  }, 150);
 
   /* 3. anadir al carrito */
   step(function () {
@@ -413,6 +548,25 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(names.length === cfg && names[0] === "María G.", "reviewsNames", names.join(","));
   }, 300);
 
+  /* 13e2. TikTok: embed oficial click-to-play, nunca un <a> envolviendo
+     todo el player, sin overflow, sin redirect automático al hacer clic. */
+  step(function () {
+    var cards = document.querySelectorAll("#tiktokGrid .tiktok-card");
+    ok(cards.length > 0, "tiktokCardsRendered", "cards=" + cards.length);
+    ok(document.querySelectorAll("#tiktokGrid > a.tiktok-card").length === 0, "tiktokNoWrappingAnchor", "hay <a> envolviendo el player");
+    var poster = document.querySelector("#tiktokGrid .tiktok-card__poster");
+    ok(!!poster, "tiktokPosterExists", "sin poster/play");
+    if (poster) poster.click();
+  }, 300);
+  step(function () {
+    var iframe = document.querySelector("#tiktokGrid .tiktok-card__iframe");
+    ok(!!iframe, "tiktokIframeCreatedOnPlay", "sin iframe tras el clic");
+    ok(!!iframe && /tiktok\.com\/player\/v1\//.test(iframe.src), "tiktokUsesOfficialPlayer", iframe ? iframe.src : "sin iframe");
+    ok(!!iframe && iframe.loading === "lazy", "tiktokIframeLazy", iframe ? iframe.loading : "sin iframe");
+    var card = iframe ? iframe.closest(".tiktok-card") : null;
+    ok(!!card && card.getBoundingClientRect().width <= card.getBoundingClientRect().height, "tiktokAspectPortrait", "9:16 esperado");
+  }, 200);
+
   /* 13f. announcement estable: una sola información útil, sin marquee. */
   step(function () {
     var announcement = document.querySelector(".announcement");
@@ -438,17 +592,48 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(!!sticky, "stickyCartStill", "sin sticky-cart");
   }, 300);
 
-  /* 13i. promo-strip: bloque compacto 5/10/15, sin carrusel. */
+  /* 13i. promo-strip: franja compacta 5/10/15, sin carrusel, altura acotada. */
   step(function () {
     window.navigateTo("catalogo");
     var summary = document.querySelector(".discount-summary");
-    var tiers = summary ? summary.querySelectorAll(".discount-summary__tiers div") : [];
-    ok(!!summary, "promoSummaryExists", "sin bloque de beneficios");
-    ok(tiers.length === 3 && /5%/.test(tiers[0].textContent) && /10%/.test(tiers[1].textContent) && /15%/.test(tiers[2].textContent), "promoTiers", "tiers=" + tiers.length);
+    var strip = summary ? summary.querySelector(".discount-summary__strip") : null;
+    ok(!!summary && !!strip, "promoSummaryExists", "sin bloque de beneficios");
+    var stripText = strip ? strip.textContent : "";
+    ok(/5%/.test(stripText) && /10%/.test(stripText) && /15%/.test(stripText) && stripText.indexOf("199") !== -1, "promoTiers", stripText);
     var mb = getComputedStyle(document.querySelector(".promo-strip")).marginBottom;
     var px = parseFloat(mb) || 99;
     ok(px <= 40, "promoStripCompact", "marginBottom=" + mb);
+    // Altura del bloque completo: antes ~200px+, objetivo ~80-110px.
+    var height = summary.getBoundingClientRect().height;
+    ok(height <= 140, "promoSummaryCompactHeight", "height=" + height);
   }, 500);
+
+  /* 13i2. Beneficios aún más compactos mientras hay búsqueda activa
+     (el producto debe aparecer lo antes posible). */
+  step(function () {
+    var input = document.getElementById("catalogSearch");
+    var summary = document.getElementById("discountSummary");
+    input.value = "Mefisto";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }, 900);
+  step(function () {
+    var summary = document.getElementById("discountSummary");
+    ok(!!summary && summary.classList.contains("is-compact"), "promoCompactWhileSearching", "class=" + (summary ? summary.className : "sin bloque"));
+    // BUG REAL: auto-fit + minmax(220px,1fr) estiraba la única tarjeta de
+    // "Mefisto" para llenar casi todo el ancho del grid. Con auto-fill el
+    // ancho de la tarjeta debe quedar igual que en la grilla normal (no
+    // proporcional al número de resultados) y nunca dominar el viewport.
+    var cards = document.querySelectorAll("#catalogGrid .product-card");
+    var grid = document.getElementById("catalogGrid");
+    var cardWidth = cards[0] ? cards[0].getBoundingClientRect().width : 0;
+    var gridWidth = grid ? grid.getBoundingClientRect().width : 1;
+    ok(cards.length === 1, "singleResultCount", "cards=" + cards.length);
+    ok(cardWidth > 0 && cardWidth < gridWidth * 0.4, "singleResultCardNotStretched", "cardWidth=" + cardWidth + " gridWidth=" + gridWidth);
+    ok(document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1, "singleResultNoHorizontalOverflow", "scrollWidth=" + document.documentElement.scrollWidth + " clientWidth=" + document.documentElement.clientWidth);
+    var input = document.getElementById("catalogSearch");
+    input.value = "";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }, 400);
 
   /* 13h. chips de tamano: retirado -- .pack-size-chip (toolbar oscura a
      medida) ya no existe, "Arma tu Pack" lo reemplazo por

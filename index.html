@@ -12,9 +12,9 @@
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="theme-color" content="#1A120B" />
   <meta name="description"
-    content="Fragrance Obsession · Decants premium de perfumes árabes, de diseñador y nicho en Lima, Perú. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el país." />
+    content="Fragrance Obsession · Decants premium de perfumes de diseñador y nicho en Lima, Perú. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el país." />
   <meta name="keywords"
-    content="FRAGRANCE OBSESSION, decants Lima, decants Perú, perfumes nicho, perfumes árabes, fragancias de lujo, muestras de perfume, decant 5ml, decant 10ml" />
+    content="FRAGRANCE OBSESSION, decants Lima, decants Perú, perfumes nicho, perfumes de diseñador, fragancias de lujo, muestras de perfume, decant 5ml, decant 10ml" />
   <meta name="robots" content="index, follow" />
   <meta name="author" content="FRAGRANCE OBSESSION" />
   <link rel="canonical" href="https://www.fraganceobession.com/" /><!-- Se actualiza dinámicamente desde config.js (SITE_URL) -->
@@ -23,20 +23,20 @@
   <meta property="og:site_name" content="FRAGRANCE OBSESSION" />
   <meta property="og:title" content="FRAGRANCE OBSESSION · Decants de Lujo en Lima, Perú" />
   <meta property="og:description"
-    content="Fragrance Obsession · Decants premium de perfumes árabes, de diseñador y nicho. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el Perú." />
+    content="Fragrance Obsession · Decants premium de perfumes de diseñador y nicho. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el Perú." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.fraganceobession.com/" />
   <meta property="og:image" content="https://www.fraganceobession.com/img/og-cover.webp" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Fragrance Obsession · Decants premium de fragancias árabes, de diseñador y nicho en Lima, Perú." />
+  <meta property="og:image:alt" content="Fragrance Obsession · Decants premium de fragancias de diseñador y nicho en Lima, Perú." />
   <meta property="og:locale" content="es_PE" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="FRAGRANCE OBSESSION · Decants de Lujo en Lima, Perú" />
   <meta name="twitter:description"
-    content="Fragrance Obsession · Decants premium de perfumes árabes, de diseñador y nicho. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el Perú." />
+    content="Fragrance Obsession · Decants premium de perfumes de diseñador y nicho. Prueba fragancias de lujo desde 2ml con envíos seguros a todo el Perú." />
   <meta name="twitter:image" content="https://www.fraganceobession.com/img/og-cover.webp" />
   <meta name="twitter:image:alt" content="Fragrance Obsession · Decants premium de fragancias." />
 
@@ -49,7 +49,7 @@
     "@type": "Store",
     "name": "FRAGRANCE OBSESSION",
     "alternateName": "Fragrance Obsession",
-    "description": "Fragrance Obsession · Decants premium de perfumes árabes, de diseñador y nicho en Lima, Perú.",
+    "description": "Fragrance Obsession · Decants premium de perfumes de diseñador y nicho en Lima, Perú.",
     "url": "https://www.fraganceobession.com/",
     "logo": "https://www.fraganceobession.com/logo.webp",
     "image": "https://www.fraganceobession.com/logo.webp",
@@ -259,7 +259,7 @@
           <i class="fa-solid fa-gem" aria-hidden="true"></i>
           <span>Perfumes 100% Originales · Lima, Perú</span>
         </div>
-        <h1>Descubre <em>Fragancias</em><br>Árabes, Diseñador y Nicho</h1>
+        <h1>Descubre <em>Fragancias</em><br>de Diseñador y Nicho</h1>
         <p>Cada perfume seleccionado será una experiencia por descubrir y de no olvidar.</p>
         <div class="hero-cta-group">
           <button class="btn btn-gold" onclick="navigateTo('catalogo')">
@@ -272,7 +272,7 @@
         </div>
         <div class="hero-stats">
           <div class="hero-stat">
-            <strong>+135</strong>
+            <strong id="heroStatCatalogCount">+135</strong>
             <span>Fragancias Premium</span>
           </div>
           <span class="hero-stat-divider" aria-hidden="true"></span>
@@ -302,7 +302,7 @@
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
-          <span class="stat-number">+135</span>
+          <span class="stat-number" id="statsBarCatalogCount">+135</span>
           <span class="stat-label">Fragancias Disponibles</span>
         </div>
         <div class="stat-divider"></div>
@@ -397,9 +397,11 @@
       </div>
     </section>
 
-    <!-- CONTENIDO (galería estática: miniatura + play, enlaza directo al
-         video en TikTok en pestaña nueva. Cero iframes, cero scripts de
-         terceros, cero requests a tiktok.com en ningún momento.) -->
+    <!-- CONTENIDO: poster local + play; al hacer clic se crea un iframe
+         con el embed oficial de TikTok (player/v1) y el video se
+         reproduce dentro de la sección — nunca antes de ese clic, así que
+         no hay requests a tiktok.com solo por cargar o scrollear la
+         página. Ver renderTikTokGallery() en script.js. -->
     <section class="section" id="contenido">
       <div class="section-header">
         <div class="section-eyebrow">Contenido</div>
@@ -496,7 +498,7 @@
       <!-- Búsqueda rápida -->
       <div class="search-bar" role="search">
         <i class="fa-solid fa-magnifying-glass search-bar__icon" aria-hidden="true"></i>
-        <input type="search" id="catalogSearch" placeholder="Buscar perfume, marca o nota..." autocomplete="off" spellcheck="false" aria-label="Buscar en el catálogo" />
+        <input type="search" id="catalogSearch" placeholder="Buscar perfume o marca" autocomplete="off" spellcheck="false" aria-label="Buscar en el catálogo" />
         <button type="button" class="search-bar__clear" id="searchClear" aria-label="Limpiar búsqueda" style="display:none;">
           <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
@@ -581,26 +583,21 @@
         </div>
       </div>
 
-      <!-- Promociones oficiales del catálogo -->
+      <!-- Promociones oficiales del catálogo: compactadas a una franja
+           (antes ~200px+ con encabezado + subtítulo + 3 filas propias). -->
       <section class="promo-strip" aria-label="Promociones del catálogo">
-        <div class="discount-summary">
-          <div class="discount-summary__heading">
-            <span class="discount-summary__eyebrow">Beneficios automáticos</span>
-            <strong>Descuentos por cantidad</strong>
-            <span>Decants de 1 a 10 ml · nicho y diseñador combinables</span>
-          </div>
-          <div class="discount-summary__tiers" aria-label="Descuentos por cantidad">
-            <div><strong>2–5</strong><span>5%</span></div>
-            <div><strong>6–9</strong><span>10%</span></div>
-            <div><strong>10+</strong><span>15%</span></div>
-          </div>
-          <div class="discount-summary__extra">
-            <span><strong>3+ misma marca</strong> → 10%</span>
-            <span class="discount-summary__sep">·</span>
-            <span>Excluyente: se aplica el mayor beneficio</span>
-          </div>
-          <div class="discount-summary__threshold">
-            <strong>Desde S/ 199</strong> · envío gratis + vial de nicho de regalo
+        <div class="discount-summary" id="discountSummary">
+          <span class="discount-summary__eyebrow">Beneficios automáticos</span>
+          <div class="discount-summary__strip" aria-label="Descuentos por cantidad">
+            <span><strong>2–5</strong> decants · 5%</span>
+            <span class="discount-summary__sep" aria-hidden="true">|</span>
+            <span><strong>6–9</strong> · 10%</span>
+            <span class="discount-summary__sep" aria-hidden="true">|</span>
+            <span><strong>10+</strong> · 15%</span>
+            <span class="discount-summary__sep" aria-hidden="true">|</span>
+            <span><strong>3+ misma marca</strong> · 10%</span>
+            <span class="discount-summary__sep" aria-hidden="true">|</span>
+            <span><strong>Desde S/ 199</strong> · envío + vial de regalo</span>
           </div>
         </div>
       </section>
@@ -977,6 +974,7 @@
   </script>
   <script src="descuentos.js" defer></script>
   <script src="productos.js" defer></script>
+  <script src="hero-stats.js" defer></script>
   <script src="animations.js" defer></script>
   <script src="script.js" defer></script>
   </body>
