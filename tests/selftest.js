@@ -162,6 +162,45 @@
     ok(!document.body.classList.contains("no-scroll"), "navScrollRestoredAfterBackdrop", "no-scroll=" + document.body.classList.contains("no-scroll"));
   }, 500);
 
+  /* 0d. Comentarios es un ancla real a #opiniones y funciona desde otra
+     vista sin dejar estados del drawer ni del scroll activos. */
+  step(function () {
+    window.navigateTo("catalogo");
+    var comments = document.getElementById("commentsNavLink");
+    ok(comments && comments.getAttribute("href") === "#opiniones", "commentsRealAnchor", "href=" + (comments && comments.getAttribute("href")));
+    if (comments) comments.click();
+  }, 250);
+  step(function () {
+    var section = document.getElementById("opiniones");
+    ok(document.getElementById("page-home").classList.contains("active"), "commentsReturnsHome", "home inactivo");
+    ok(!!section && section.offsetParent !== null, "commentsSectionVisible", "#opiniones oculto");
+    ok(!document.body.classList.contains("no-scroll") && !document.body.classList.contains("modal-open"), "commentsRestoresScroll", document.body.className);
+  }, 500);
+
+  /* 0e. MARCAS del navbar abre el explorer y una selección inicia un
+     catálogo nuevo: búsqueda/categoría previas no sobreviven. */
+  step(function () {
+    window.navigateTo("home");
+    var brands = document.getElementById("navBrandsBtn");
+    ok(!!brands, "navbarBrandsExists", "falta #navBrandsBtn");
+    if (brands) brands.click();
+  }, 250);
+  step(function () {
+    var overlay = document.getElementById("brandExplorerOverlay");
+    ok(overlay && overlay.classList.contains("active"), "navbarBrandExplorerOpens", "overlay inactivo");
+    ok(document.getElementById("navBrandsBtn").getAttribute("aria-expanded") === "true", "navbarBrandsExpanded", document.getElementById("navBrandsBtn").getAttribute("aria-expanded"));
+    var xerjoff = Array.prototype.find.call(document.querySelectorAll(".brand-item"), function (btn) { return btn.dataset.brand === "Xerjoff"; });
+    if (xerjoff) xerjoff.click();
+    ok(!!xerjoff, "navbarXerjoffAvailable", "Xerjoff ausente");
+  }, 250);
+  step(function () {
+    ok(document.getElementById("page-catalogo").classList.contains("active"), "navbarBrandNavigatesCatalog", "catálogo inactivo");
+    ok(document.getElementById("activeBrandLabel").textContent === "Marca: Xerjoff", "navbarBrandApplied", document.getElementById("activeBrandLabel").textContent);
+    ok(document.getElementById("catalogSearch").value === "", "navbarBrandResetsSearch", document.getElementById("catalogSearch").value);
+    var activeCat = document.querySelector('#filtersCategory .cat-pill--cat[aria-pressed="true"]');
+    ok(activeCat && activeCat.dataset.filter === "todos", "navbarBrandResetsCategory", activeCat && activeCat.dataset.filter);
+  }, 500);
+
   /* 1. catalogo: elegir categoria â†’ grid completo */
   step(function () {
     window.navigateTo("catalogo");
@@ -284,6 +323,46 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     setTimeout(clickLoadMore, 500);
   }, 5000);
 
+  /* 5b. A–Z usa exactamente el universo de la categoría activa. */
+  step(function () {
+    window.navigateTo("catalogo");
+    var primary = Array.prototype.map.call(document.querySelectorAll('#filtersCategory .cat-pill--cat[data-filter]'), function (btn) { return btn.textContent.trim(); });
+    ok(primary.length === 4 && primary.join("|") === "Todos|Nicho|Diseñador|Completos", "catalogPrimaryCategoriesExactlyFour", primary.join("|"));
+    var niche = document.querySelector('#filtersCategory [data-cat="nicho"]');
+    if (niche) niche.click();
+  }, 300);
+  step(function () {
+    var byLetter = {};
+    window.FO_PRODUCTS.filter(function (p) {
+      return (!p.type || p.type === "product") && !p.tester && !p.sealed && p.category === "nicho";
+    }).forEach(function (p) {
+      var letter = (p.brand || "").charAt(0).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+      var counts = byLetter[letter] || (byLetter[letter] = {});
+      counts[p.brand] = (counts[p.brand] || 0) + 1;
+    });
+    var letter = Object.keys(byLetter).sort()[0];
+    var expected = byLetter[letter] || {};
+    var d = document.querySelector('[data-catalog-letter="D"]');
+    ok(!!d && d.disabled === !byLetter.D, "catalogAzDEnabledForNiche", "disabled=" + (d && d.disabled) + " expected=" + !byLetter.D);
+    var target = document.querySelector('[data-catalog-letter="' + letter + '"]');
+    if (target) target.click();
+    var options = Array.prototype.map.call(document.querySelectorAll("[data-catalog-brand]"), function (btn) {
+      return [btn.dataset.catalogBrand, Number(btn.querySelector("b").textContent)];
+    });
+    ok(options.length === Object.keys(expected).length && options.every(function (pair) { return expected[pair[0]] === pair[1]; }), "catalogAzCategoryCounts", JSON.stringify(options) + " expected=" + JSON.stringify(expected));
+    var first = document.querySelector("[data-catalog-brand]");
+    window.__azExpectedCount = first ? expected[first.dataset.catalogBrand] : 0;
+    window.__azBrand = first ? first.dataset.catalogBrand : "";
+    if (first) first.click();
+  }, 300);
+  step(function () {
+    var resultText = document.getElementById("catalogResultsCount").textContent;
+    ok(document.getElementById("activeBrandLabel").textContent === "Marca: " + window.__azBrand, "catalogAzBrandApplied", document.getElementById("activeBrandLabel").textContent);
+    ok(resultText.indexOf(String(window.__azExpectedCount) + " resultado") === 0, "catalogAzResultCountMatches", resultText + " expected=" + window.__azExpectedCount);
+    document.getElementById("activeBrandClear").click();
+    ok(document.querySelector('#filtersCategory [data-cat="nicho"]').getAttribute("aria-pressed") === "true", "catalogBrandClearKeepsCategory", "Nicho dejó de estar activo");
+  }, 500);
+
   /* 6. tema + persistencia */
   step(function () {
     var t = document.getElementById("themeToggle");
@@ -360,6 +439,27 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     input.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
+  /* 8b. Tres fragancias de la misma marca aplican 10%, sin sumar el 5%. */
+  step(function () {
+    var byBrand = {};
+    Array.prototype.forEach.call(document.querySelectorAll('#comboList input[data-product-id]:not(:disabled)'), function (input) {
+      var product = window.FO_PRODUCTS.find(function (p) { return String(p.id) === input.dataset.productId; });
+      if (product) (byBrand[product.brand] || (byBrand[product.brand] = [])).push(product.id);
+    });
+    var brand = Object.keys(byBrand).find(function (name) { return byBrand[name].length >= 3; });
+    var ids = brand ? byBrand[brand].slice(0, 3) : [];
+    ids.forEach(function (id) {
+      var input = document.querySelector('#comboList input[data-product-id="' + id + '"]');
+      if (input) checkCombo(input);
+    });
+    var info = window.__FO_TEST.getComboDiscountInfo();
+    ok(ids.length === 3 && info.count === 3 && info.discountPct === 10 && info.brandWins, "comboSameBrand3Pct10", JSON.stringify(info));
+    ids.forEach(function (id) {
+      var input = document.querySelector('#comboList input[data-product-id="' + id + '"]');
+      if (input) { input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); }
+    });
+  }, 400);
+
   /* 9. Combo builder: seleccionar el minimo (3) activa el combo. No se
      fija un % exacto (5% cantidad vs 10% marca depende de que marcas
      traigan los primeros 3 productos elegibles del catalogo real, no es
@@ -373,13 +473,24 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(totalWrap && totalWrap.style.display !== "none", "comboValidAt3", "display=" + (totalWrap ? totalWrap.style.display : "sin panel"));
   }, 400);
 
-  /* 10. Combo builder: completar hasta el tope (6) bloquea seleccionar mas */
+  /* 10. Combo builder sin máximo: 6/9/10/12 siguen seleccionables y los
+     tramos comerciales cambian a 10/10/15/15. */
   step(function () {
     for (var i = 0; i < 3; i++) { var b = firstUncheckedCombo(); if (b) checkCombo(b); }
     var count = document.getElementById("comboSummaryCount");
     ok(count && count.textContent === "6 seleccionadas", "comboCount6", "count=" + (count ? count.textContent.trim() : ""));
+    ok(window.__FO_TEST.getComboDiscountInfo().discountPct === 10, "combo6Pct10", JSON.stringify(window.__FO_TEST.getComboDiscountInfo()));
     var selectable = document.querySelectorAll("#comboList .combo-item:not(.selected):not(.disabled)").length;
-    ok(selectable === 0, "comboMaxCapsSelection", "seleccionables restantes=" + selectable);
+    ok(selectable > 0, "comboMoreThan6Selectable", "seleccionables restantes=" + selectable);
+    for (var j = 0; j < 3; j++) { var c = firstUncheckedCombo(); if (c) checkCombo(c); }
+    ok(document.getElementById("comboSummaryCount").textContent === "9 seleccionadas", "comboCount9", document.getElementById("comboSummaryCount").textContent);
+    ok(window.__FO_TEST.getComboDiscountInfo().discountPct === 10, "combo9Pct10", JSON.stringify(window.__FO_TEST.getComboDiscountInfo()));
+    var tenth = firstUncheckedCombo(); if (tenth) checkCombo(tenth);
+    ok(document.getElementById("comboSummaryCount").textContent === "10 seleccionadas", "comboCount10", document.getElementById("comboSummaryCount").textContent);
+    ok(window.__FO_TEST.getComboDiscountInfo().discountPct === 15, "combo10Pct15", JSON.stringify(window.__FO_TEST.getComboDiscountInfo()));
+    for (var k = 0; k < 2; k++) { var d = firstUncheckedCombo(); if (d) checkCombo(d); }
+    ok(document.getElementById("comboSummaryCount").textContent === "12 seleccionadas", "comboCount12", document.getElementById("comboSummaryCount").textContent);
+    ok(window.__FO_TEST.getComboDiscountInfo().discountPct === 15, "combo12Pct15", JSON.stringify(window.__FO_TEST.getComboDiscountInfo()));
   }, 400);
 
   /* 11. Combo: confirmar agrega un pack temporal y lleva al checkout único. */
@@ -1042,6 +1153,12 @@ step(function () {
     ok(Array.prototype.every.call(document.querySelectorAll('#catalogGrid .product-card[data-product-id="141"], #catalogGrid .product-card[data-product-id="142"], #catalogGrid .product-card[data-product-id="143"], #catalogGrid .product-card[data-product-id="144"], #catalogGrid .product-card[data-product-id="145"], #catalogGrid .product-card[data-product-id="146"], #catalogGrid .product-card[data-product-id="147"], #catalogGrid .product-card[data-product-id="148"]'), function (card) {
       return card.querySelectorAll(".product-badge").length === 1 && card.querySelector(".price-special-label").textContent.trim() === "Precio especial";
     }), "fullBottlesSpecialPrice", "completos=" + document.querySelectorAll('#catalogGrid .product-card[data-product-id]').length);
+    var castleyPrice = document.querySelector('#catalogGrid .product-card[data-product-id="142"] .product-price');
+    ok(castleyPrice && castleyPrice.querySelector(".price-reference-label").textContent.trim() === "Precio referencial" && castleyPrice.querySelector(".price-reference-label").compareDocumentPosition(castleyPrice.querySelector(".price-special-label")) & Node.DOCUMENT_POSITION_FOLLOWING, "cardReferenceBeforeSpecial", castleyPrice && castleyPrice.textContent.trim());
+    window.openModal(142);
+    var modalPrice = document.getElementById("modalPrice");
+    ok(modalPrice.querySelector(".price-reference-label").compareDocumentPosition(modalPrice.querySelector(".price-special-label")) & Node.DOCUMENT_POSITION_FOLLOWING, "modalReferenceBeforeSpecial", modalPrice.textContent.trim());
+    window.closeModal(true);
     // WhatsApp: la condición y el precio no deben perderse al cotizar
     window.openModal(147);
   }, 300);
@@ -1188,13 +1305,13 @@ step(function () {
   step(function () {
     window.__chains += 1;
     setTimeout(function () {
-      /* 1. No nested button inside brandFilterBtn */
-      var nested = document.querySelector("#brandFilterBtn #brandClearBtn");
-      ok(!nested, "brandNoNestedButton", "nested=" + !!nested);
+      /* 1. Marcas ya no es una quinta píldora primaria. */
+      var legacyPill = document.getElementById("brandFilterBtn");
+      ok(!legacyPill, "brandNoNestedButton", "legacy pill=" + !!legacyPill);
 
-      /* 2. brandClearBtn is sibling, hidden by default */
-      var clearBtn = document.getElementById("brandClearBtn");
-      ok(clearBtn && clearBtn.style.display === "none", "brandClearHiddenByDefault", "display=" + (clearBtn && clearBtn.style.display));
+      /* 2. El chip activo vive junto al contador y empieza oculto. */
+      var activeChip = document.getElementById("activeBrandChip");
+      ok(activeChip && activeChip.hidden, "brandClearHiddenByDefault", "hidden=" + (activeChip && activeChip.hidden));
 
       /* 3. Click nicho category */
       var nichoBtn = document.querySelector('[data-cat="nicho"]');
@@ -1209,7 +1326,7 @@ step(function () {
       ok(unisexAria === "true", "unisexActivated", "aria=" + unisexAria);
 
       /* 5. Open brand explorer */
-      var brandBtn = document.getElementById("brandFilterBtn");
+      var brandBtn = document.getElementById("ocBrandBtn");
       if (brandBtn) brandBtn.click();
       var overlay = document.getElementById("brandExplorerOverlay");
       var overlayActive = overlay && overlay.classList.contains("active");
@@ -1227,16 +1344,16 @@ step(function () {
       ok(nichoStillActive, "categoryPreservedAfterExplorer", "aria=" + (nichoBtn && nichoBtn.getAttribute("aria-pressed")));
       ok(unisexStillActive, "genderPreservedAfterExplorer", "aria=" + (unisexBtn && unisexBtn.getAttribute("aria-pressed")));
 
-      /* 8. Click brandFilterBtn again - explorer opens (not clears) */
+      /* 8. El selector de marca interno vuelve a abrir el explorer. */
       if (brandBtn) brandBtn.click();
       var overlayReopened = overlay && overlay.classList.contains("active");
       ok(overlayReopened, "brandExplorerReopens", "active=" + overlayReopened);
       if (closeBtn) closeBtn.click();
 
-      /* 9. Brand pill shows label correctly */
-      var brandLabel = document.getElementById("brandFilterLabel");
+      /* 9. El control móvil conserva su etiqueta neutral. */
+      var brandLabel = document.getElementById("ocBrandLabel");
       var labelText = brandLabel ? brandLabel.textContent.trim() : "";
-      ok(labelText === "Marcas" || labelText.length > 0, "brandLabelExists", "label=" + labelText);
+      ok(labelText === "Todas las marcas" || labelText.length > 0, "brandLabelExists", "label=" + labelText);
     }, 400);
   }, 500);
 

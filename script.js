@@ -195,6 +195,8 @@
   let _catalogBrandsCache = null;
   let _brandExplorerSearch = "";
   let _brandExplorerTrigger = null;
+  let _brandExplorerSource = "catalog";
+  let _catalogBrandLetter = "";
   function getCatalogBrands() {
     if (_catalogBrandsCache) return _catalogBrandsCache;
     const brandSet = new Set();
@@ -223,7 +225,6 @@
   let comboSize = "3";
   let comboSelectedIds = [];
   let comboSearchQuery = "";
-  const COMBO_MAX = 6;
   const COMBO_MIN = 3;
   /* currentSearchTerm eliminado — búsqueda removida */
 
@@ -948,7 +949,7 @@
     const modalPromo = isFull && !isComingSoon(product.id) ? productPromoInfo(product) : null;
     const specialPrice = isFull && price && !isComingSoon(product.id);
     $("modalPrice").innerHTML = modalPromo
-      ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span><span class="price-pct">−${esc(modalPromo.pct)}%</span><span class="price-regular">${esc(formatPrice(modalPromo.regularPrice))}<em class="price-regular__caption">Precio referencial</em></span><span class="price-product-savings">Ahorras ${esc(formatPrice(modalPromo.ahorro))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
+      ? `<span class="price-reference-label">Precio referencial</span><span class="price-regular">${esc(formatPrice(modalPromo.regularPrice))}</span><span class="price-pct">−${esc(modalPromo.pct)}%</span><span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span><span class="price-product-savings">Ahorras ${esc(formatPrice(modalPromo.ahorro))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : specialPrice
       ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : price
@@ -1138,14 +1139,10 @@
 
   /* ══════════════════════════════════════════════════════════════
      ARMA TU COMBO — constructor de dos paneles en la pagina de packs.
-     Combo propio, NO reutiliza calcularDescuentos(): tramos y tope
-     distintos, pedidos explicitamente para esta funcionalidad (ver
-     HANDOFF.md Prompt 35 -- "reglas propias, explicitamente distintas
-     de calcularDescuentos()", instruccion real del negocio, no una
-     inferencia del codigo) -- 3-5 decants -> 5%, 6 decants -> 10%
-     (tope del combo); 3+ misma marca -> FO_CONFIG.DESCUENTOS.POR_MARCA
-     (mismo valor que el resto del sitio, no hardcodeado aparte); gana
-     el mayor, no se acumulan.
+     El mínimo comercial es 3 y no existe máximo: se pueden elegir todas
+     las fragancias distintas disponibles. Los tramos se leen de la misma
+     configuración que el carrito; 3+ de la misma marca compite con el
+     beneficio por cantidad y gana el porcentaje mayor, sin acumular.
      El pedido YA NO se manda directo por WhatsApp (cambio explicito de
      una ronda posterior a Prompt 35): confirmCombo() lo agrega al
      carrito como 1 item type:"pack" con el precio ya descontado, y
@@ -1169,7 +1166,9 @@
       return { brand: prod.brand, price: prod.decantSizes[comboSize] };
     }).filter(Boolean);
     const subtotal = items.reduce((s, it) => s + it.price, 0);
-    const qtyPct = count >= COMBO_MAX ? 10 : count >= COMBO_MIN ? 5 : 0;
+    const tiers = window.getQuantityDiscountTiers ? window.getQuantityDiscountTiers(COMBO_MIN) : [];
+    const qtyTier = tiers.filter((tier) => count >= tier.count).pop();
+    const qtyPct = qtyTier ? qtyTier.pct : 0;
     const brandCounts = {};
     items.forEach((it) => { brandCounts[it.brand] = (brandCounts[it.brand] || 0) + 1; });
     const marcaCfg = (FO.DESCUENTOS && FO.DESCUENTOS.POR_MARCA) || { minItems: 3, porcentaje: 10 };
@@ -1181,18 +1180,16 @@
     const isValid = count >= COMBO_MIN;
     const discountAmount = isValid ? Math.round(subtotal * discountPct) / 100 : 0;
     const total = Math.round((subtotal - discountAmount) * 100) / 100;
-    const ruleLabel = brandPct >= qtyPct && brandPct > 0 ? `${brandPct}% en ${brandName}` : (qtyPct > 0 ? `${qtyPct}% por cantidad` : "");
-    return { count, discountPct, subtotal, discountAmount, total, isValid, ruleLabel };
+    const brandWins = brandPct > qtyPct;
+    const ruleLabel = brandWins ? `${brandPct}% en ${brandName}` : (qtyPct > 0 ? `${qtyPct}% por cantidad` : "");
+    const nextTier = tiers.find((tier) => tier.count > count && tier.pct > discountPct) || null;
+    return { count, discountPct, subtotal, discountAmount, total, isValid, ruleLabel, brandWins, brandName, nextTier };
   }
   function comboToggleProduct(productId) {
     const idx = comboSelectedIds.indexOf(productId);
     if (idx > -1) {
       comboSelectedIds.splice(idx, 1);
     } else {
-      if (comboSelectedIds.length >= COMBO_MAX) {
-        showToast(`⚠️ Tu combo admite máximo ${COMBO_MAX} fragancias`);
-        return;
-      }
       const prod = getProductById(productId);
       if (!comboProductHasSize(prod, comboSize)) return;
       comboSelectedIds.push(productId);
@@ -1210,7 +1207,8 @@
     const before = comboSelectedIds.length;
     comboSelectedIds = comboSelectedIds.filter((pid) => comboProductHasSize(getProductById(pid), comboSize));
     if (comboSelectedIds.length < before) {
-      showToast(`⚠️ Algunas fragancias no tienen presentación de ${comboSize}ml y se quitaron del combo`);
+      const removed = before - comboSelectedIds.length;
+      showToast(`⚠️ ${removed} fragancia${removed === 1 ? " fue retirada" : "s fueron retiradas"} porque no ${removed === 1 ? "tiene" : "tienen"} ${comboSize}ml`);
     }
     document.querySelectorAll(".combo-size-btn").forEach((btn) => {
       const active = btn.dataset.size === comboSize;
@@ -1243,7 +1241,7 @@
     list.innerHTML = eligible.map((prod) => {
       const isSelected = comboSelectedIds.includes(prod.id);
       const hasSize = comboProductHasSize(prod, comboSize);
-      const disabled = !hasSize || (!isSelected && comboSelectedIds.length >= COMBO_MAX);
+      const disabled = !hasSize;
       const realPrice = hasSize ? prod.decantSizes[comboSize] : null;
       const priceHtml = realPrice ? formatPrice(realPrice) : `Sin ${comboSize}ml`;
       const imgSrc = prod.cardImage || cardImg(prod);
@@ -1298,7 +1296,13 @@
     }).join("");
     if (info.isValid) {
       hintEl.style.display = "block";
-      hintEl.textContent = "Tu combo está listo";
+      if (info.brandWins) {
+        hintEl.textContent = `${info.discountPct}% aplicado por 3+ fragancias de ${info.brandName}.`;
+      } else if (info.nextTier && info.nextTier.count - info.count === 1) {
+        hintEl.textContent = `${info.discountPct}% aplicado. Agrega 1 más para llegar al ${info.nextTier.pct}%.`;
+      } else {
+        hintEl.textContent = `${info.discountPct}% aplicado.`;
+      }
       totalWrap.style.display = "flex";
       discountLabelEl.textContent = info.discountPct > 0 ? `${info.discountPct}% dto (${info.ruleLabel})` : "Sin descuento aún";
       totalAmountEl.textContent = info.discountPct > 0 ? `${formatPrice(info.subtotal)} → ${formatPrice(info.total)}` : formatPrice(info.subtotal);
@@ -1309,7 +1313,7 @@
       hintEl.style.display = "block";
       const falta = COMBO_MIN - info.count;
       hintEl.textContent = info.count === 0
-        ? `Elige entre ${COMBO_MIN} y ${COMBO_MAX} fragancias`
+        ? `Elige ${COMBO_MIN} o más fragancias.`
         : `Te falta${falta === 1 ? "" : "n"} ${falta} para continuar`;
       confirmBtn.disabled = true;
       if (dockAmount) dockAmount.textContent = info.count > 0 ? formatPrice(info.subtotal) : "";
@@ -1341,7 +1345,26 @@
       btn.setAttribute("aria-pressed", String(active));
     });
     renderComboList();
+    renderComboBenefits();
     renderComboSummary();
+  }
+
+  function renderComboBenefits() {
+    const tiersEl = $("comboBenefitsTiers");
+    const thresholdEl = $("comboBenefitsThreshold");
+    const tiers = window.getQuantityDiscountTiers ? window.getQuantityDiscountTiers(COMBO_MIN) : [];
+    const brandCfg = (FO.DESCUENTOS && FO.DESCUENTOS.POR_MARCA) || {};
+    const threshold = (FO.DESCUENTOS && FO.DESCUENTOS.UMBRAL) || {};
+    if (tiersEl) {
+      tiersEl.innerHTML = tiers.map((tier, index) => {
+        const next = tiers[index + 1];
+        const range = next ? `${tier.count}–${next.count - 1} fragancias` : `${tier.count}+ fragancias`;
+        return `<span><strong>${esc(range)}</strong><b>${esc(tier.pct)}%</b></span>`;
+      }).join("") + (brandCfg.activo ? `<span><strong>${esc(brandCfg.minItems)}+ misma marca</strong><b>${esc(brandCfg.porcentaje)}%</b></span>` : "");
+    }
+    if (thresholdEl && threshold.activo) {
+      thresholdEl.innerHTML = `<strong>S/ ${esc(threshold.monto)}+</strong> · ENVÍO GRATIS${threshold.vialGratis ? " + vial de nicho" : ""}`;
+    }
   }
   /* El combo usa el mismo final de compra que el resto del sitio. */
   function confirmCombo() {
@@ -1373,8 +1396,9 @@
   /* ══════════════════════════════════════════════════════════════
      NAVIGATION
   ══════════════════════════════════════════════════════════════ */
-  function navigateTo(page) {
+  function navigateTo(page, options) {
     if (!VALID_PAGES.has(page)) return;
+    const opts = options || {};
     // La navegación es el único punto común de los links del sitio. Cierra el
     // drawer antes de cambiar la vista para que backdrop, scroll y ARIA no
     // queden desincronizados con el panel visual.
@@ -1402,9 +1426,33 @@
     if (page === "checkout") renderCheckoutPage();
     if (page === "home") renderFeatured();
     track("page_view", { page_title: "FRAGRANCE OBSESSION · " + page, page_path: "/" + (page === "home" ? "" : page) });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (opts.scroll !== false) window.scrollTo({ top: 0, behavior: "smooth" });
   }
   window.navigateTo = navigateTo;
+
+  function navigateToOpinions() {
+    navigateTo("home", { scroll: false });
+    var page = $("page-home");
+    var scroll = function (forceInstant) {
+      var section = $("opiniones");
+      if (section) section.scrollIntoView({
+        behavior: forceInstant || matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "start",
+      });
+    };
+    requestAnimationFrame(function () { requestAnimationFrame(scroll); });
+    if (page) {
+      var afterPageAnimation = function (e) {
+        if (e.target !== page) return;
+        page.removeEventListener("animationend", afterPageAnimation);
+        // La altura de Home se estabiliza al terminar pageIn; esta corrección
+        // instantánea evita que imágenes/animaciones cargadas durante el
+        // smooth-scroll dejen la sección a mitad del viewport en Chromium.
+        scroll(true);
+      };
+      page.addEventListener("animationend", afterPageAnimation);
+    }
+  }
 
   /* Condición real de un frasco completo (sellado/tester/parcial): dato
      de negocio en productos.js (product.sealedStatus + contentPercent),
@@ -1498,7 +1546,7 @@
     // Precio: promo real o precio normal
     const promo = soon ? null : productPromoInfo(product);
     const priceText = promo
-      ? `<span class="price-special-label">Precio especial</span><span class="price-regular">${esc(formatPrice(promo.regularPrice))}<em class="price-regular__caption">Precio referencial</em></span><span class="price-pct">−${promo.pct}%</span><span class="price-final">${esc(formatPrice(promo.price))}</span>`
+      ? `<span class="price-reference-label">Precio referencial</span><span class="price-regular">${esc(formatPrice(promo.regularPrice))}</span><span class="price-pct">−${promo.pct}%</span><span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(promo.price))}</span>`
       : specialPrice && minPrice
       ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(minPrice))}</span>`
       : minPrice ? `Desde ${formatPrice(minPrice)}` : "Consultar";
@@ -1542,6 +1590,59 @@
   /* ══════════════════════════════════════════════════════════════
      RENDER — CATALOG
   ══════════════════════════════════════════════════════════════ */
+  function getFilteredCatalogProducts(options) {
+    const opts = options || {};
+    const query = searchTerm.trim().toLowerCase();
+    const cat = activeFilters.category === "todos" ? null : activeFilters.category;
+    let filtered = products.filter(isProduct);
+
+    if (activeFilters.category === "tester") {
+      filtered = filtered.filter((p) => p.tester === true);
+    } else if (activeFilters.category === "completos") {
+      filtered = filtered.filter((p) => p.sealed === true);
+    } else {
+      filtered = filtered.filter((p) => !p.tester && !p.sealed);
+      if (cat) filtered = filtered.filter((p) => p.category === cat);
+    }
+    if (activeFilters.gender) filtered = filtered.filter((p) => p.gender === activeFilters.gender);
+    if (!opts.ignoreBrand && activeFilters.brand) {
+      filtered = filtered.filter((p) => p.brand && p.brand.trim() === activeFilters.brand);
+    }
+    if (quickFilter !== "todos") filtered = filtered.filter(QUICK_FILTERS[quickFilter] || (() => true));
+    if (query) {
+      filtered = filtered.filter((p) =>
+        `${p.name} ${p.brand} ${p.notes || ""} ${p.category}`.toLowerCase().includes(query),
+      );
+    }
+    return filtered;
+  }
+
+  function renderCatalogBrandIndex() {
+    const lettersEl = $("catalogBrandLetters");
+    const trayEl = $("catalogBrandTray");
+    if (!lettersEl || !trayEl) return;
+    const counts = new Map();
+    getFilteredCatalogProducts({ ignoreBrand: true }).forEach((product) => {
+      const brand = (product.brand || "").trim();
+      if (brand) counts.set(brand, (counts.get(brand) || 0) + 1);
+    });
+    const groups = getBrandGroups([...counts.keys()].sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" })));
+    if (_catalogBrandLetter && !groups[_catalogBrandLetter]) _catalogBrandLetter = "";
+    lettersEl.innerHTML = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter) => {
+      const enabled = !!groups[letter];
+      const selected = _catalogBrandLetter === letter;
+      return `<button type="button" class="catalog-brand-letter${selected ? " selected" : ""}" data-catalog-letter="${letter}" aria-label="Ver marcas con ${letter}" aria-pressed="${selected}"${enabled ? "" : " disabled aria-disabled=\"true\""}>${letter}</button>`;
+    }).join("");
+    if (!_catalogBrandLetter) {
+      trayEl.hidden = true;
+      trayEl.innerHTML = "";
+      return;
+    }
+    const brands = groups[_catalogBrandLetter] || [];
+    trayEl.hidden = false;
+    trayEl.innerHTML = `<div class="catalog-brand-index__tray-letter" aria-hidden="true">${_catalogBrandLetter}</div><div class="catalog-brand-index__options">${brands.map((brand) => `<button type="button" data-catalog-brand="${esc(brand)}"${activeFilters.brand === brand ? ' aria-pressed="true" class="selected"' : ' aria-pressed="false"'}><span>${esc(brand)}</span><b>${counts.get(brand)}</b></button>`).join("")}</div>`;
+  }
+
   function renderCatalog(isLoadMore = false) {
     const grid = $("catalogGrid");
     if (!grid) return;
@@ -1559,36 +1660,8 @@
     // franja de beneficios se compacta aún más (ver .is-compact en CSS).
     const discountSummaryEl = $("discountSummary");
     if (discountSummaryEl) discountSummaryEl.classList.toggle("is-compact", query !== "");
-    const hasQuick = query !== "" || quickFilter !== "todos";
-    // "todos" (píldora por defecto) equivale a "sin categoría": se muestran todas
-    const cat = activeFilters.category === "todos" ? null : activeFilters.category;
-
-    let filtered = products.filter(isProduct);
-
-    if (activeFilters.category === "tester") {
-      filtered = filtered.filter((p) => p.tester === true);
-    } else if (activeFilters.category === "completos") {
-      filtered = filtered.filter((p) => p.sealed === true);
-    } else {
-      filtered = filtered.filter((p) => !p.tester && !p.sealed);
-      if (cat) {
-        filtered = filtered.filter((p) => p.category === cat);
-      }
-    }
-    if (activeFilters.gender) {
-      filtered = filtered.filter((p) => p.gender === activeFilters.gender);
-    }
-    if (activeFilters.brand) {
-      filtered = filtered.filter((p) => p.brand && p.brand.trim() === activeFilters.brand);
-    }
-    if (quickFilter !== "todos") {
-      filtered = filtered.filter(QUICK_FILTERS[quickFilter] || (() => true));
-    }
-    if (query) {
-      filtered = filtered.filter((p) =>
-        `${p.name} ${p.brand} ${p.notes || ""} ${p.category}`.toLowerCase().includes(query),
-      );
-    }
+    const filtered = getFilteredCatalogProducts();
+    renderCatalogBrandIndex();
 
     // Aplica conteo progresivo: solo muestra los primeros N productos
     // para evitar crash en Safari móvil por exceso de nodos DOM
@@ -1839,8 +1912,7 @@
     const brandBtn = $("brandFilterBtn");
     const brandLabel = $("brandFilterLabel");
     const brandClear = $("brandClearBtn");
-    if (!brandBtn) return;
-    if (activeFilters.brand) {
+    if (brandBtn && activeFilters.brand) {
       brandLabel.textContent = activeFilters.brand;
       brandBtn.classList.add("active");
       brandBtn.setAttribute("aria-pressed", "true");
@@ -1848,11 +1920,17 @@
         brandClear.style.display = "inline-flex";
         brandClear.setAttribute("aria-label", "Quitar filtro de marca " + activeFilters.brand);
       }
-    } else {
+    } else if (brandBtn) {
       brandLabel.textContent = "Marcas";
       brandBtn.classList.remove("active");
       brandBtn.setAttribute("aria-pressed", "false");
       if (brandClear) brandClear.style.display = "none";
+    }
+    const activeChip = $("activeBrandChip");
+    const activeLabel = $("activeBrandLabel");
+    if (activeChip && activeLabel) {
+      activeChip.hidden = !activeFilters.brand;
+      activeLabel.textContent = activeFilters.brand ? `Marca: ${activeFilters.brand}` : "";
     }
     const ocBrandLabel = $("ocBrandLabel");
     const ocBrandClear = $("ocBrandClear");
@@ -2045,13 +2123,16 @@
     }
   }
 
-  function openBrandExplorer() {
+  function openBrandExplorer(source, returnFocusTo) {
     var overlay = $("brandExplorerOverlay");
     if (!overlay) return;
-    _brandExplorerTrigger = document.activeElement;
+    _brandExplorerSource = source || "catalog";
+    _brandExplorerTrigger = returnFocusTo || document.activeElement;
     _brandExplorerSearch = "";
     renderBrandExplorer();
     overlay.classList.add("active");
+    var navBrands = $("navBrandsBtn");
+    if (navBrands) navBrands.setAttribute("aria-expanded", "true");
     document.body.classList.add("no-scroll");
     var searchInput = $("brandSearchInput");
     if (searchInput) setTimeout(function () { searchInput.focus(); }, 100);
@@ -2062,6 +2143,8 @@
     var overlay = $("brandExplorerOverlay");
     if (!overlay) return;
     overlay.classList.remove("active");
+    var navBrands = $("navBrandsBtn");
+    if (navBrands) navBrands.setAttribute("aria-expanded", "false");
     syncBodyScrollLock();
     document.removeEventListener("keydown", brandExplorerKeydown);
     var trigger = _brandExplorerTrigger;
@@ -2083,8 +2166,27 @@
   }
 
   function selectBrand(brand) {
-    activeFilters.brand = activeFilters.brand === brand ? null : brand;
+    var fromNav = _brandExplorerSource === "nav";
     closeBrandExplorer();
+    if (fromNav) {
+      navigateTo("catalogo", { scroll: false });
+      activeFilters = { category: null, gender: null, brand: brand };
+      searchTerm = "";
+      quickFilter = "todos";
+      catalogVisibleCount = 24;
+      var search = $("catalogSearch");
+      if (search) search.value = "";
+      updateCatalogFilterButtons();
+      renderCatalog();
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          var finder = $("filtersCategory") || $("catalogSearch");
+          if (finder) finder.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+        });
+      });
+      return;
+    }
+    activeFilters.brand = activeFilters.brand === brand ? null : brand;
     updateCatalogFilterButtons();
     renderCatalog();
   }
@@ -2103,6 +2205,32 @@
       updateCatalogFilterButtons();
       renderCatalog();
       if (brandFilterBtn) brandFilterBtn.focus();
+    });
+  }
+  var activeBrandClear = $("activeBrandClear");
+  if (activeBrandClear) {
+    activeBrandClear.addEventListener("click", function () {
+      activeFilters.brand = null;
+      updateCatalogFilterButtons();
+      renderCatalog();
+    });
+  }
+
+  var catalogBrandIndex = $("catalogBrandIndex");
+  if (catalogBrandIndex) {
+    catalogBrandIndex.addEventListener("click", function (e) {
+      var letterBtn = e.target.closest("[data-catalog-letter]");
+      if (letterBtn && !letterBtn.disabled) {
+        _catalogBrandLetter = _catalogBrandLetter === letterBtn.dataset.catalogLetter ? "" : letterBtn.dataset.catalogLetter;
+        renderCatalogBrandIndex();
+        return;
+      }
+      var brandBtn = e.target.closest("[data-catalog-brand]");
+      if (brandBtn) {
+        activeFilters.brand = brandBtn.dataset.catalogBrand;
+        updateCatalogFilterButtons();
+        renderCatalog();
+      }
     });
   }
 
@@ -2141,10 +2269,19 @@
   var brandExplorerClose = $("brandExplorerClose");
   if (brandExplorerClose) brandExplorerClose.addEventListener("click", closeBrandExplorer);
 
+  var navBrandsBtn = $("navBrandsBtn");
+  if (navBrandsBtn) {
+    navBrandsBtn.addEventListener("click", function () {
+      var returnTo = window.matchMedia("(max-width: 900px)").matches ? $("hamburger") : navBrandsBtn;
+      closeNav({ restoreFocus: false, restoreScroll: false });
+      openBrandExplorer("nav", returnTo);
+    });
+  }
+
   var ocBrandBtn = $("ocBrandBtn");
   if (ocBrandBtn) {
     ocBrandBtn.addEventListener("click", function () {
-      openBrandExplorer();
+      openBrandExplorer("catalog");
     });
   }
 
@@ -2506,6 +2643,7 @@
     getUpsellCandidates: getUpsellCandidates,
     buildOrderMessage: buildOrderMessage,
     productPromoInfo: productPromoInfo,
+    getComboDiscountInfo: getComboDiscountInfo,
   };
 
   /* ══════════════════════════════════════════════════════════════
@@ -2603,6 +2741,15 @@
     navEl.querySelectorAll(".nav-links a").forEach((a) => a.addEventListener("click", closeNav));
   }
   window.closeNav = closeNav;
+
+  const commentsNavLink = $("commentsNavLink");
+  if (commentsNavLink) {
+    commentsNavLink.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (location.hash !== "#opiniones") history.pushState(null, "", "#opiniones");
+      navigateToOpinions();
+    });
+  }
 
   window.addEventListener("scroll", () => {
     const header = $("header");
@@ -2715,7 +2862,8 @@
   ══════════════════════════════════════════════════════════════ */
   function applyHashRoute() {
     const hash = (window.location.hash || "").replace("#", "");
-    if (VALID_PAGES.has(hash)) navigateTo(hash);
+    if (hash === "opiniones") navigateToOpinions();
+    else if (VALID_PAGES.has(hash)) navigateTo(hash);
   }
 
   /* ══════════════════════════════════════════════════════════════

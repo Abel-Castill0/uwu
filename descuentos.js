@@ -32,6 +32,23 @@
     return !isNaN(ml) && ml >= 1 && ml <= tamMax;
   }
 
+  /* Convierte POR_CANTIDAD.min2/min6/min10 en tramos ordenados. Así el
+     carrito y el constructor de combos leen los mismos porcentajes y
+     umbrales sin mantener una segunda tabla comercial en script.js. */
+  function getQuantityDiscountTiers(minimumCount) {
+    var cfg = (w.FO_CONFIG && w.FO_CONFIG.DESCUENTOS) || {};
+    var pc = cfg.POR_CANTIDAD || {};
+    var floor = Number(minimumCount) || 0;
+    return Object.keys(pc).map(function (key) {
+      var match = /^min(\d+)$/.exec(key);
+      return match && typeof pc[key] === "number"
+        ? { count: Math.max(Number(match[1]), floor), pct: pc[key] }
+        : null;
+    }).filter(Boolean).sort(function (a, b) { return a.count - b.count; }).filter(function (tier, index, tiers) {
+      return index === tiers.length - 1 || tier.count !== tiers[index + 1].count;
+    });
+  }
+
   function calcularDescuentos(items) {
     var cfg = (w.FO_CONFIG && w.FO_CONFIG.DESCUENTOS) || {};
     var out = {
@@ -87,10 +104,10 @@
       });
       var cantElegible = decantsElegibles.reduce(function (s, it) { return s + it.qty; }, 0);
       out.cantDecantsElegibles = cantElegible;
-      if (cantElegible >= 2) {
-        var pctCant = cantElegible >= 10 ? cfg.POR_CANTIDAD.min10
-          : cantElegible >= 6 ? cfg.POR_CANTIDAD.min6
-          : cfg.POR_CANTIDAD.min2;
+      var tiers = getQuantityDiscountTiers();
+      var tier = tiers.filter(function (candidate) { return cantElegible >= candidate.count; }).pop();
+      if (tier) {
+        var pctCant = tier.pct;
         var baseCant = subtotalDe(decantsElegibles);
         out.descuentoCantidad = redondear(baseCant * (pctCant / 100));
         out.detalleCantidad = {
@@ -179,11 +196,7 @@
       appliedDetail = d.detalleMarcas[0];
     }
 
-    var tiers = [
-      { count: 2, pct: pc.min2 },
-      { count: 6, pct: pc.min6 },
-      { count: 10, pct: pc.min10 },
-    ].filter(function (tier) {
+    var tiers = getQuantityDiscountTiers().filter(function (tier) {
       return typeof tier.pct === "number" && tier.pct > appliedPct && tier.count > d.cantDecantsElegibles;
     });
     var nextTier = tiers.length ? tiers[0] : null;
@@ -233,6 +246,7 @@
   w.calcularDescuentos = calcularDescuentos;
   w.FO_CALCULAR_DESCUENTOS = calcularDescuentos;
   w.isDiscountEligibleSize = isDiscountEligibleSize;
+  w.getQuantityDiscountTiers = getQuantityDiscountTiers;
   w.getCartPromoUXState = getCartPromoUXState;
   w.calcularPrecioPromo = calcularPrecioPromo;
 })(window);

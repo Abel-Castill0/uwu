@@ -197,7 +197,9 @@
         <div class="nav-links">
           <a href="#home" class="active" data-page="home" onclick="navigateTo('home')">Inicio</a>
           <a href="#catalogo" data-page="catalogo" onclick="navigateTo('catalogo')">Catálogo</a>
+          <button type="button" class="nav-link nav-brands" id="navBrandsBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="brandExplorerOverlay">Marcas</button>
           <a href="#promos" data-page="promos" onclick="navigateTo('promos')">Combos</a>
+          <a href="#opiniones" id="commentsNavLink">Comentarios</a>
         </div>
         <!-- Utilidades: trasladadas aqui desde el header (WhatsApp, TikTok,
              tema). Solo visibles dentro del drawer movil; en desktop el
@@ -384,7 +386,7 @@
     </section>
 
     <!-- RESEÑAS / TESTIMONIOS — Senja (formulario + widget públicos, sin API/backend) -->
-    <section class="section section-reviews" id="resenas">
+    <section class="section section-reviews" id="opiniones">
       <div class="section-header">
         <div class="section-eyebrow">TU EXPERIENCIA CUENTA</div>
         <h2 class="section-title">Opiniones de Clientes</h2>
@@ -522,10 +524,6 @@
             <button class="filter-btn cat-pill cat-pill--cat" data-filter="disenador" data-cat="disenador" aria-pressed="false"><i class="fa-solid fa-gem" aria-hidden="true"></i><span>Diseñador</span></button>
             <button class="filter-btn cat-pill cat-pill--cat" data-filter="completos" data-cat="completos" aria-pressed="false"><i class="fa-solid fa-bottle-droplet" aria-hidden="true"></i><span>Completos</span></button>
             <span class="cat-filter-divider" aria-hidden="true"></span>
-            <div class="brand-filter-control" id="brandFilterControl">
-              <button class="filter-btn cat-pill cat-pill--brand" id="brandFilterBtn" type="button" aria-pressed="false"><i class="fa-solid fa-tag" aria-hidden="true"></i><span id="brandFilterLabel">Marcas</span></button>
-              <button class="brand-clear-btn" id="brandClearBtn" type="button" aria-label="Quitar filtro de marca" style="display:none">&times;</button>
-            </div>
             <div class="cat-filter-gender" id="filtersGender" role="group" aria-label="Filtrar por género">
               <button class="filter-btn cat-pill cat-pill--gender" data-filter="masculino" aria-pressed="false"><i class="fa-solid fa-mars" aria-hidden="true"></i><span>Masculino</span></button>
               <button class="filter-btn cat-pill cat-pill--gender" data-filter="femenino" aria-pressed="false"><i class="fa-solid fa-venus" aria-hidden="true"></i><span>Femenino</span></button>
@@ -533,6 +531,10 @@
             </div>
           </div>
           <p class="catalog-results" id="catalogResultsCount" role="status" aria-live="polite"></p>
+          <div class="active-brand-chip" id="activeBrandChip" hidden>
+            <span id="activeBrandLabel"></span>
+            <button type="button" id="activeBrandClear" aria-label="Quitar filtro de marca">&times;</button>
+          </div>
           <button class="btn-filters-mobile" id="btnFiltersMobile" type="button" aria-expanded="false" aria-controls="filtersOffcanvas">
             <i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Filtros</span>
           </button>
@@ -576,22 +578,6 @@
       </div>
       <div class="filters-offcanvas__backdrop" id="filtersBackdrop"></div>
 
-      <!-- Brand explorer modal -->
-      <div class="brand-explorer-overlay" id="brandExplorerOverlay" role="dialog" aria-modal="true" aria-label="Explorar por marca">
-        <div class="brand-explorer" id="brandExplorer">
-          <div class="brand-explorer__head">
-            <h3>Explorar por marca</h3>
-            <button class="modal-close" id="brandExplorerClose" type="button" aria-label="Cerrar explorador de marcas"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-          </div>
-          <div class="brand-explorer__search">
-            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-            <input type="search" id="brandSearchInput" placeholder="Buscar marca..." autocomplete="off" spellcheck="false" aria-label="Buscar marca" />
-          </div>
-          <div class="brand-explorer__az" id="brandAzIndex" role="toolbar" aria-label="Índice alfabético"></div>
-          <div class="brand-explorer__body" id="brandGroupsList"></div>
-        </div>
-      </div>
-
       <!-- Promociones oficiales del catálogo: compactadas a una franja
            (antes ~200px+ con encabezado + subtítulo + 3 filas propias). -->
       <section class="promo-strip" aria-label="Promociones del catálogo">
@@ -611,9 +597,38 @@
         </div>
       </section>
 
+      <section class="catalog-brand-index" id="catalogBrandIndex" aria-labelledby="catalogBrandIndexTitle">
+        <div class="catalog-brand-index__head">
+          <h3 id="catalogBrandIndexTitle">Explorar por marca</h3>
+          <p>Elige una letra para ver las marcas disponibles.</p>
+        </div>
+        <div class="catalog-brand-index__letters" id="catalogBrandLetters" role="toolbar" aria-label="Marcas por letra"></div>
+        <div class="catalog-brand-index__tray" id="catalogBrandTray" hidden></div>
+      </section>
+
       <!-- Grid de productos (vacío hasta que se elija categoría) -->
       <div class="product-grid" id="catalogGrid"></div>
     </section>
+  </div>
+
+  <!-- Brand explorer modal: fuera de .page a propósito -- MARCAS en el
+       navbar puede abrirlo desde cualquier página (Inicio, Combos...),
+       y un position:fixed hijo de un .page inactivo (display:none) no
+       se pinta ni mide nada (ver nota del "containing block" arriba en
+       el CSS de .page). Vive a nivel de documento, como cartSidebar. -->
+  <div class="brand-explorer-overlay" id="brandExplorerOverlay" role="dialog" aria-modal="true" aria-label="Explorar por marca">
+    <div class="brand-explorer" id="brandExplorer">
+      <div class="brand-explorer__head">
+        <h3>Explorar por marca</h3>
+        <button class="modal-close" id="brandExplorerClose" type="button" aria-label="Cerrar explorador de marcas"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </div>
+      <div class="brand-explorer__search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input type="search" id="brandSearchInput" placeholder="Buscar marca..." autocomplete="off" spellcheck="false" aria-label="Buscar marca" />
+      </div>
+      <div class="brand-explorer__az" id="brandAzIndex" role="toolbar" aria-label="Índice alfabético"></div>
+      <div class="brand-explorer__body" id="brandGroupsList"></div>
+    </div>
   </div>
 
   <!-- ============ ARMA TU COMBO ============ -->
@@ -625,8 +640,17 @@
       <div class="page-hero-content">
         <div class="section-eyebrow page-hero-eyebrow">Descuento Automático</div>
         <h2 class="section-title page-hero-title">Arma tu Combo</h2>
-        <p class="section-subtitle page-hero-subtitle">Elige de 3 a 6 fragancias del mismo tamaño, revisa tu selección y continúa al checkout.</p>
+        <p class="section-subtitle page-hero-subtitle">Elige 3 o más fragancias del mismo tamaño, revisa tu selección y continúa al checkout.</p>
       </div>
+    </section>
+
+    <section class="combo-benefits" id="comboBenefits" aria-labelledby="comboBenefitsTitle">
+      <div>
+        <span class="combo-benefits__eyebrow">Beneficios de tu combo</span>
+        <h3 id="comboBenefitsTitle">Mientras más eliges, más ahorras</h3>
+      </div>
+      <div class="combo-benefits__tiers" id="comboBenefitsTiers"></div>
+      <p class="combo-benefits__threshold" id="comboBenefitsThreshold"></p>
     </section>
 
     <!-- Constructor: panel de catálogo (izquierda) + resumen sticky (derecha/abajo en móvil) -->
@@ -660,7 +684,7 @@
           <h3 class="combo-summary-title">Tu combo</h3>
           <p class="combo-summary-count" id="comboSummaryCount">0 seleccionadas</p>
           <div class="combo-summary-chips" id="comboSummaryChips"></div>
-          <p class="combo-summary-hint" id="comboSummaryHint">Elige entre 3 y 6 fragancias</p>
+          <p class="combo-summary-hint" id="comboSummaryHint">Elige 3 o más fragancias.</p>
           <div class="combo-summary-total" id="comboSummaryTotal" style="display:none;">
             <span class="combo-summary-total__label" id="comboDiscountLabel"></span>
             <span class="combo-summary-total__amount" id="comboTotalAmount"></span>

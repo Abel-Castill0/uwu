@@ -73,7 +73,7 @@ async function navigateTo(page, route) {
     await hamburger.click();
     await page.waitForSelector('#nav.open', { timeout: 3000 });
   }
-  await page.click(`[data-page="${route}"]`);
+  await page.click(`#nav [data-page="${route}"]`);
   await page.waitForSelector(`#page-${route}.active`, { timeout: 5000 });
 }
 
@@ -117,6 +117,29 @@ test.describe('Home Page', () => {
   test('navegación a packs funciona', async ({ page }) => {
     await navigateTo(page, 'promos');
     await expect(page.locator('#page-promos.active')).toBeVisible();
+  });
+
+  test('Comentarios vuelve a Home, cierra el drawer y enfoca la sección', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await navigateTo(page, 'catalogo');
+    await page.click('#hamburger');
+    await page.click('#commentsNavLink');
+    await expect(page.locator('#page-home.active')).toBeVisible();
+    await expect(page.locator('#nav')).not.toHaveClass(/open/);
+    await expect(page.locator('#hamburger')).toHaveAttribute('aria-expanded', 'false');
+    await page.waitForFunction(() => {
+      const section = document.querySelector('#opiniones').getBoundingClientRect();
+      return section.top >= -1 && section.top < innerHeight * 0.5;
+    });
+    const locks = await page.evaluate(() => ({
+      body: document.body.className,
+      html: document.documentElement.className,
+      scrollMarginTop: parseFloat(getComputedStyle(document.querySelector('#opiniones')).scrollMarginTop),
+    }));
+    expect(locks.body).not.toContain('no-scroll');
+    expect(locks.body).not.toContain('modal-open');
+    expect(locks.html).not.toContain('modal-open');
+    expect(locks.scrollMarginTop).toBeGreaterThanOrEqual(100);
   });
 
   test('stats bar se anima al hacer scroll', async ({ page }) => {
@@ -332,6 +355,48 @@ test.describe('Catálogo', () => {
     await page.waitForTimeout(1000);
     const newCount = await cards.count();
     expect(newCount).toBeGreaterThanOrEqual(initialCount);
+  });
+
+  test('MARCAS del navbar inicia una búsqueda limpia por marca', async ({ page }) => {
+    await page.fill('#catalogSearch', 'Naxos');
+    await page.click('[data-filter="nicho"]');
+    await page.evaluate(() => window.navigateTo('home'));
+    if (await page.locator('#hamburger').isVisible()) {
+      await page.click('#hamburger');
+      await page.waitForSelector('#nav.open', { timeout: 3000 });
+    }
+    await page.click('#navBrandsBtn');
+    await expect(page.locator('#brandExplorerOverlay')).toHaveClass(/active/);
+    await expect(page.locator('#navBrandsBtn')).toHaveAttribute('aria-expanded', 'true');
+    await page.locator('.brand-item[data-brand="Xerjoff"]').click();
+    await expect(page.locator('#page-catalogo.active')).toBeVisible();
+    await expect(page.locator('#activeBrandLabel')).toHaveText('Marca: Xerjoff');
+    await expect(page.locator('#catalogSearch')).toHaveValue('');
+    await expect(page.locator('#filtersCategory [data-filter="todos"]')).toHaveAttribute('aria-pressed', 'true');
+    await page.waitForFunction(() => Array.from(document.querySelectorAll('#catalogGrid .product-brand')).length > 0 && Array.from(document.querySelectorAll('#catalogGrid .product-brand')).every((brand) => brand.textContent.trim() === 'Xerjoff'));
+    const brands = await page.locator('#catalogGrid .product-brand').allTextContents();
+    expect(brands.length).toBeGreaterThan(0);
+    expect(brands.every((brand) => brand.trim() === 'Xerjoff')).toBe(true);
+  });
+
+  test('A–Z muestra solo marcas de la categoría y counts exactos', async ({ page }) => {
+    await page.click('#filtersCategory [data-filter="disenador"]');
+    await page.waitForTimeout(300);
+    const expected = await page.evaluate(() => {
+      const counts = {};
+      window.FO_PRODUCTS.filter((p) => (!p.type || p.type === 'product') && !p.tester && !p.sealed && p.category === 'disenador' && /^D/i.test(p.brand || '')).forEach((p) => {
+        counts[p.brand] = (counts[p.brand] || 0) + 1;
+      });
+      return counts;
+    });
+    await page.click('[data-catalog-letter="D"]');
+    const actual = await page.locator('[data-catalog-brand]').evaluateAll((buttons) => Object.fromEntries(buttons.map((button) => [button.dataset.catalogBrand, Number(button.querySelector('b').textContent)])));
+    expect(actual).toEqual(expected);
+    const firstBrand = Object.keys(expected)[0];
+    await page.locator(`[data-catalog-brand="${firstBrand}"]`).click();
+    await expect(page.locator('#catalogResultsCount')).toHaveText(new RegExp(`^${expected[firstBrand]} resultado`));
+    await page.click('#activeBrandClear');
+    await expect(page.locator('#filtersCategory [data-filter="disenador"]')).toHaveAttribute('aria-pressed', 'true');
   });
 });
 
@@ -578,6 +643,21 @@ test.describe('Combo', () => {
     await navigateTo(page, 'promos');
   });
 
+  async function selectComboCount(page, target) {
+    return page.evaluate((wanted) => {
+      let attempts = 0;
+      const count = () => Number.parseInt(document.querySelector('#comboSummaryCount').textContent, 10) || 0;
+      while (count() < wanted && attempts < wanted + 8) {
+        const input = document.querySelector('#comboList input[type="checkbox"]:not(:checked):not(:disabled)');
+        if (!input) break;
+        input.checked = true;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        attempts += 1;
+      }
+      return count();
+    }, target);
+  }
+
   test('seleccionar el minimo confirma el combo y lleva a Checkout', async ({ page }) => {
     const checkboxes = page.locator('#comboList input[type="checkbox"]:not(:disabled)');
     await expect(checkboxes.first()).toBeVisible({ timeout: 10000 });
@@ -588,15 +668,7 @@ test.describe('Combo', () => {
     // estabilidad visual) entra en carrera con ese re-render y nunca
     // converge. Se dispara el evento change directo, igual que el otro
     // suite (CDP) ya hace con exito para este mismo componente.
-    for (let i = 0; i < 3; i++) {
-      await page.evaluate(() => {
-        const input = document.querySelector('#comboList input[type="checkbox"]:not(:checked):not(:disabled)');
-        if (!input) return;
-        input.checked = true;
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-      });
-      await page.waitForTimeout(200);
-    }
+    expect(await selectComboCount(page, 3)).toBe(3);
     await expect(page.locator('#comboSummaryCount')).toHaveText('3 seleccionadas');
     const confirmBtn = page.locator('#comboConfirmBtn');
     await expect(confirmBtn).toBeEnabled();
@@ -605,6 +677,15 @@ test.describe('Combo', () => {
     // El combo NO abre WhatsApp directo: aterriza en Checkout como un item
     // mas del carrito (type:"pack"), mismo CTA final que el resto del sitio.
     await expect(page.locator('#checkoutSummaryItems')).toBeVisible();
+  });
+
+  test('permite 12 fragancias y aplica 15% desde la décima', async ({ page }) => {
+    const selected = await selectComboCount(page, 12);
+    expect(selected).toBe(12);
+    await expect(page.locator('#comboSummaryCount')).toHaveText('12 seleccionadas');
+    await expect(page.locator('#comboDiscountLabel')).toContainText('15%');
+    await expect(page.locator('#comboConfirmBtn')).toBeEnabled();
+    await expect(page.locator('#comboList input[type="checkbox"]:not(:checked):not(:disabled)').first()).toBeAttached();
   });
 });
 

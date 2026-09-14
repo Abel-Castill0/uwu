@@ -15,6 +15,7 @@ require(path.join(ROOT, "descuentos.js"));
 
 const calcular = window.FO_CALCULAR_DESCUENTOS;
 const promoState = window.getCartPromoUXState;
+const quantityTiers = window.getQuantityDiscountTiers;
 const cfg = window.FO_CONFIG.DESCUENTOS;
 
 let passed = 0;
@@ -24,6 +25,23 @@ function check(name, cond, detail) {
   else { failed++; console.log("FAIL " + name + (detail ? " — " + detail : "")); }
 }
 function r2(n) { return Math.round(n * 100) / 100; }
+
+/* El combo eleva solo el primer umbral al mínimo 3; los demás tramos y
+   porcentajes siguen viniendo de la misma configuración del carrito. */
+{
+  const tiers = quantityTiers(3);
+  check("comboTiersFromConfig", JSON.stringify(tiers) === JSON.stringify([
+    { count: 3, pct: cfg.POR_CANTIDAD.min2 },
+    { count: 6, pct: cfg.POR_CANTIDAD.min6 },
+    { count: 10, pct: cfg.POR_CANTIDAD.min10 },
+  ]), JSON.stringify(tiers));
+  [
+    [3, 5], [6, 10], [9, 10], [10, 15], [12, 15],
+  ].forEach(function (sample) {
+    const tier = tiers.filter(function (candidate) { return sample[0] >= candidate.count; }).pop();
+    check("comboTier" + sample[0] + "Pct" + sample[1], tier && tier.pct === sample[1], JSON.stringify(tier));
+  });
+}
 
 /* ── Caso 1: 2 decants premium → 5% por cantidad ── */
 {

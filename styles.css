@@ -141,7 +141,14 @@
     --shadow-md:      0 12px 40px rgba(0,0,0,.6);
   }
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-  html { scroll-behavior:smooth; font-size:16px; -webkit-text-size-adjust:100%; }
+  html {
+    scroll-behavior:smooth;
+    font-size:16px;
+    -webkit-text-size-adjust:100%;
+    /* Recorta paneles off-canvas cerrados sin crear un scroll container
+       que desactive el header sticky (a diferencia de overflow-x:hidden). */
+    overflow-x: clip;
+  }
   body {
     font-family: var(--font-body);
     background: var(--cream-1);
@@ -287,22 +294,22 @@
     color: var(--gold-light); text-transform: uppercase; white-space: nowrap; opacity: .8;
   }
   /* â”€â”€ Nav â”€â”€ */
-  .nav { display: flex; gap: 2.2rem; align-items: center; list-style: none; }
+  .nav { display: flex; gap: clamp(.9rem, 2vw, 2.2rem); align-items: center; list-style: none; }
   /* En desktop .nav-links no debe pintar caja propia: sus <a> deben seguir
      siendo hijos flex directos de .nav (mismo layout de siempre). El
      drawer movil le da su propio display:flex/column (ver media query). */
   .nav-links { display: contents; }
-  .nav a {
+  .nav a, .nav-link {
     color: rgba(255,255,255,.72); font-size: .82rem; font-weight: 500;
     letter-spacing: .08em; text-transform: uppercase; transition: color var(--t-base);
     position: relative; padding: .4rem 0; background: none; border: none;
   }
-  .nav a::after {
+  .nav a::after, .nav-link::after {
     content: ''; position: absolute; bottom: -1px; left: 0; width: 0; height: 1.5px;
     background: var(--gold-light); transition: width var(--t-spring);
   }
-  .nav a:hover, .nav a.active { color: #fff; }
-  .nav a:hover::after, .nav a.active::after { width: 100%; }
+  .nav a:hover, .nav a.active, .nav-link:hover, .nav-link[aria-expanded="true"] { color: #fff; }
+  .nav a:hover::after, .nav a.active::after, .nav-link:hover::after, .nav-link[aria-expanded="true"]::after { width: 100%; }
   /* â”€â”€ Header actions â”€â”€ */
   .header-actions { display: flex; align-items: center; gap: .4rem; }
   .btn-icon {
@@ -558,14 +565,9 @@
     text-decoration: line-through; text-decoration-color: rgba(150,120,90,.55);
     order: 1;
   }
-  /* "Precio referencial" (nunca "Antes": no confirmamos que haya sido un
-     precio propio anterior de la tienda — puede ser MSRP/PVP/mercado).
-     Va DEBAJO del precio tachado, no dentro del tachado (line-through no
-     debe cruzar la etiqueta). */
-  .price-regular__caption {
-    display: block; font-style: normal; font-size: .58rem; font-weight: 600;
-    letter-spacing: .04em; text-transform: uppercase; text-decoration: none;
-    color: var(--text-light);
+  .price-reference-label {
+    order: 0; flex-basis: 100%; font-size: .58rem; font-weight: 600;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--text-light);
   }
   .price-pct {
     font-size: .68rem; font-weight: 600; color: var(--gold-deep);
@@ -573,10 +575,10 @@
   }
   .price-final {
     font-size: 1.1rem; font-weight: 700; color: var(--gold-deep);
-    order: 3; flex-basis: 100%;
+    order: 4; flex-basis: 100%;
   }
   .price-special-label {
-    order: 0; flex-basis: 100%; font-size: .62rem; font-weight: 700;
+    order: 3; flex-basis: 100%; font-size: .62rem; font-weight: 700;
     letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted);
   }
   /* ── Decant promo badge ───────────────────────────────────── */
@@ -1290,13 +1292,13 @@
     }
     .nav-close:hover { background: var(--surface-warm); color: var(--gold-deep); }
     .nav-links { display: flex; flex-direction: column; padding: .6rem 1.4rem 0; gap: .1rem; }
-    .nav a {
+    .nav a, .nav-link {
       font-size: 1rem; font-weight: 600; letter-spacing: .02em; text-transform: none;
       padding: .85rem 0; color: var(--text-primary); min-height: 44px;
       display: flex; align-items: center;
     }
-    .nav a::after { background: var(--gold); }
-    .nav a:hover, .nav a.active { color: var(--gold-deep); }
+    .nav a::after, .nav-link::after { background: var(--gold); }
+    .nav a:hover, .nav a.active, .nav-link:hover, .nav-link[aria-expanded="true"] { color: var(--gold-deep); }
     .nav-divider { display: block; height: 1px; background: var(--border-light); margin: .8rem 1.4rem; }
     .nav-utilities { display: flex; flex-direction: column; padding: 0 1.4rem; gap: .1rem; }
     .nav-util-link {
@@ -1742,7 +1744,7 @@
   /* --section-pad-lg (hasta 160px arriba Y abajo) dejaba demasiado espacio
      vacío antes de que aparecieran las tarjetas reales. --section-pad
      (hasta 128px) mantiene el respiro "quiet luxury" sin sentirse vacío. */
-  .section-reviews { background: var(--surface-alt); padding: var(--section-pad) 0; }
+  .section-reviews { background: var(--surface-alt); padding: var(--section-pad) 0; scroll-margin-top: 7rem; }
   .section-reviews .section-header { margin-bottom: 2.2rem; }
 
   /* CTA "Dejar una Opinión" */
@@ -4102,11 +4104,11 @@ backdrop-filter: blur(6px);
     border-left: 1px solid var(--border-light);
     box-shadow: -18px 0 50px rgba(0,0,0,.4);
     display: flex; flex-direction: column;
-    transform: translateX(105%);
-    transition: transform .35s cubic-bezier(.32,.72,.28,1);
+    transform: none;
     visibility: hidden;
   }
-  .filters-offcanvas.open { transform: translateX(0); visibility: visible; }
+  .filters-offcanvas:not(.open) { display: none; }
+  .filters-offcanvas.open { visibility: visible; }
   .filters-offcanvas__head {
     display: flex; align-items: center; justify-content: space-between;
     padding: 1.1rem 1.2rem; border-bottom: 1px solid var(--border-light);
@@ -4234,6 +4236,63 @@ backdrop-filter: blur(6px);
     font-size: .85rem;
   }
   [data-theme="dark"] .brand-no-results__clear { color: var(--gold-light); }
+
+  /* Índice A–Z secundario del catálogo: refina la misma grilla y nunca
+     compite visualmente con las cuatro categorías primarias. */
+  .catalog-brand-index {
+    max-width: var(--max-w); margin: 0 auto 2rem; padding: .95rem 1.5rem;
+    border-block: 1px solid var(--border-light); background: var(--surface-warm);
+  }
+  .catalog-brand-index__head { display: flex; align-items: baseline; gap: .8rem; margin-bottom: .6rem; }
+  .catalog-brand-index__head h3 {
+    margin: 0; font-family: var(--font-body); font-size: .65rem; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--gold-deep);
+  }
+  .catalog-brand-index__head p { margin: 0; font-size: .72rem; color: var(--text-muted); }
+  .catalog-brand-index__letters { display: flex; align-items: center; gap: .15rem; }
+  .catalog-brand-letter {
+    flex: 1 1 36px; min-width: 30px; min-height: 36px; padding: 0;
+    border: 0; border-bottom: 1px solid transparent; background: transparent;
+    color: var(--text-secondary); font-size: .72rem; font-weight: 600;
+    transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+  }
+  .catalog-brand-letter:hover:not(:disabled), .catalog-brand-letter.selected {
+    color: var(--gold-deep); border-color: var(--gold); background: rgba(201,155,95,.08);
+  }
+  .catalog-brand-letter:disabled { color: var(--text-light); opacity: .28; cursor: default; }
+  .catalog-brand-index__tray { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: .75rem; padding-top: .8rem; }
+  .catalog-brand-index__tray[hidden] { display: none; }
+  .catalog-brand-index__tray-letter { font-family: var(--font-display); font-size: 2rem; color: var(--gold-deep); }
+  .catalog-brand-index__options { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .25rem .8rem; }
+  .catalog-brand-index__options button {
+    display: flex; align-items: center; justify-content: space-between; gap: .8rem;
+    min-height: 40px; padding: .45rem .65rem; border: 0; border-bottom: 1px solid var(--border-light);
+    background: transparent; color: var(--text-secondary); text-align: left; font-size: .82rem;
+  }
+  .catalog-brand-index__options button:hover, .catalog-brand-index__options button.selected { color: var(--gold-deep); background: var(--gold-pale); }
+  .catalog-brand-index__options b { font-variant-numeric: tabular-nums; color: var(--text-muted); }
+  .active-brand-chip {
+    display: inline-flex; align-items: center; gap: .45rem; padding: .28rem .4rem .28rem .65rem;
+    border: 1px solid rgba(201,155,95,.35); background: var(--gold-pale); color: var(--text-primary);
+    border-radius: var(--r-pill); font-size: .72rem; white-space: nowrap;
+  }
+  .active-brand-chip[hidden] { display: none; }
+  .active-brand-chip button {
+    width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent;
+    color: var(--text-muted); font-size: 1rem; line-height: 1;
+  }
+  .active-brand-chip button:hover { color: var(--danger); background: rgba(0,0,0,.06); }
+
+  @media (max-width: 900px) {
+    .catalog-brand-index { padding-inline: 1rem; }
+    .catalog-brand-index__head { display: block; }
+    .catalog-brand-index__head p { margin-top: .25rem; }
+    .catalog-brand-index__letters { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding-bottom: .2rem; }
+    .catalog-brand-index__letters::-webkit-scrollbar { display: none; }
+    .catalog-brand-letter { flex: 0 0 40px; min-height: 40px; }
+    .catalog-brand-index__tray { grid-template-columns: 32px minmax(0, 1fr); }
+    .catalog-brand-index__options { grid-template-columns: 1fr; }
+  }
 
   /* ---------- FABs agrupados (WhatsApp + Instagram, esquina inferior derecha) ---------- */
 
@@ -5441,6 +5500,20 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
    una vez la animacion pageIn deja de aplicar transform/filter, ver fix
    de la ronda anterior; se oculta solo al navegar porque .page:not(.active)
    ya es display:none, sin JS extra). */
+.combo-benefits {
+  max-width: var(--max-w); margin: 2rem auto 0; padding: 1rem 1.5rem;
+  display: grid; grid-template-columns: minmax(180px, .8fr) 1.6fr auto; align-items: center; gap: 1.2rem;
+  border-block: 1px solid var(--border-light); background: var(--surface-warm);
+}
+.combo-benefits__eyebrow { font-size: .6rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-deep); }
+.combo-benefits h3 { margin: .2rem 0 0; font-family: var(--font-display); font-size: 1.1rem; font-weight: 500; color: var(--text-primary); }
+.combo-benefits__tiers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .45rem; }
+.combo-benefits__tiers span { display: flex; flex-direction: column; padding-left: .7rem; border-left: 1px solid var(--border); }
+.combo-benefits__tiers strong { font-size: .67rem; font-weight: 500; color: var(--text-muted); }
+.combo-benefits__tiers b { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; color: var(--gold-deep); }
+.combo-benefits__threshold { margin: 0; max-width: 180px; font-size: .7rem; line-height: 1.4; color: var(--text-secondary); }
+.combo-benefits__threshold strong { color: var(--gold-deep); }
+
 .combo-builder {
   max-width: var(--max-w); margin: 0 auto; padding: 2.4rem 1.5rem 4rem;
   display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 1.6rem; align-items: start;
@@ -5530,6 +5603,9 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
 .combo-dock-trigger { display: none; }
 
 @media (max-width: 767px) {
+  .combo-benefits { grid-template-columns: 1fr; margin-top: 1.4rem; padding-inline: 1rem; gap: .8rem; }
+  .combo-benefits__tiers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .combo-benefits__threshold { max-width: none; }
   /* Bug real: "1fr" solo (== minmax(auto,1fr)) no limita el minimo del
      track al ancho del contenedor -- si el contenido interno (texto sin
      wrap, un input, una fila larga) pide mas min-content del que hay
