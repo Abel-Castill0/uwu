@@ -3140,10 +3140,16 @@
     const check = () => {
       if (settled) return;
       settled = true;
-      // El widget (data-mode="shadow") se pinta dentro de un shadow root;
-      // si tras cargar el script sigue sin alto, no hay nada que mostrar.
+      // El widget (data-mode="shadow") se pinta dentro de un shadow root.
+      // Senja siempre inyecta ahí su propio wrapper/estilos y el badge
+      // "Powered by Senja" aunque no haya testimonios aprobados, así que
+      // childElementCount (o el alto del host) es > 0 incluso vacío y
+      // nunca detecta ese caso. ".sj-card" es la tarjeta real de cada
+      // testimonio (compartida por todos los layouts de widget de Senja:
+      // masonry, marquee, carousel), así que es la señal fiable de que
+      // sí hay contenido pintado.
       const rendered = wrap.shadowRoot
-        ? wrap.shadowRoot.childElementCount > 0
+        ? wrap.shadowRoot.querySelectorAll(".sj-card").length > 0
         : wrap.getBoundingClientRect().height > 4;
       if (!rendered) showEmpty();
     };
