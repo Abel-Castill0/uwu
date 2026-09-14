@@ -512,6 +512,36 @@
     PRODUCT CARDS
   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
   .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.7rem; align-items: stretch; grid-auto-rows: 1fr; }
+
+  /* ── FEATURED (Home): carousel scroll-snap, solo para esta sección ──
+     12 fragancias destacadas en orden fijo (FO_CONFIG.FEATURED_PRODUCT_IDS)
+     generan un muro de 3+ filas con el grid normal: aquí se convierte en
+     una fila horizontal con snap, ~4 visibles en desktop. */
+  .featured-carousel-wrap { position: relative; display: flex; align-items: center; gap: .5rem; }
+  .product-grid.featured-carousel {
+    display: flex; flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x mandatory;
+    gap: 1.4rem; padding-block: .3rem .9rem; scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; scrollbar-width: thin;
+  }
+  .product-grid.featured-carousel .product-card {
+    scroll-snap-align: start; flex: 0 0 calc((100% - 3 * 1.4rem) / 4); min-width: 240px;
+  }
+  .featured-carousel-arrow {
+    flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border-light);
+    background: var(--surface); box-shadow: var(--shadow-xs); cursor: pointer; display: flex;
+    align-items: center; justify-content: center; color: var(--ink); transition: opacity .2s ease, transform .2s ease;
+    z-index: 2;
+  }
+  .featured-carousel-arrow:hover { transform: scale(1.06); }
+  .featured-carousel-arrow:disabled { opacity: .35; cursor: default; pointer-events: none; }
+  @media (max-width: 1024px) {
+    .product-grid.featured-carousel .product-card { flex: 0 0 calc((100% - 1.4rem) / 2.4); }
+  }
+  @media (max-width: 640px) {
+    .featured-carousel-arrow { display: none; }
+    .product-grid.featured-carousel { gap: 1rem; margin-inline: -1rem; padding-inline: 1rem; }
+    .product-grid.featured-carousel .product-card { flex: 0 0 78%; min-width: 210px; }
+  }
   .product-card {
     background: var(--surface); border-radius: var(--r-lg); overflow: hidden;
     border: 1px solid var(--border-light);

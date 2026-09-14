@@ -327,7 +327,11 @@
         <h2 class="section-title">Fragancias Destacadas</h2>
         <p class="section-subtitle">Selecciones premium que definen el carácter de nuestra colección.</p>
       </div>
-      <div class="product-grid" id="featuredGrid"></div>
+      <div class="featured-carousel-wrap">
+        <button type="button" class="featured-carousel-arrow featured-carousel-arrow--prev" id="featuredPrev" aria-label="Anteriores destacadas"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+        <div class="product-grid" id="featuredGrid"></div>
+        <button type="button" class="featured-carousel-arrow featured-carousel-arrow--next" id="featuredNext" aria-label="Siguientes destacadas"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+      </div>
       <div class="section-cta">
         <button class="btn btn-outline-dark" onclick="navigateTo('catalogo')">
           Ver Catálogo Completo <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>

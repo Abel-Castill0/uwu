@@ -141,6 +141,33 @@ console.log("\n=== NO PACO ===");
 const scriptSrc = fs.readFileSync(path.join(ROOT, "script.js"), "utf8");
 check("no PACO_PRODUCTS fallback", !scriptSrc.includes("PACO_PRODUCTS"), "");
 
+// 9. Featured 12 (Home) — orden y set exactos confirmados por el cliente
+console.log("\n=== FEATURED 12 ===");
+const featLine = cfg.split("\n").find(l => l.trim().startsWith("FEATURED_PRODUCT_IDS:"));
+const featArr = featLine ? featLine.match(/\[([^\]]+)\]/)[1].split(",").map(s => Number(s.trim())) : [];
+const featExpectedOrder = [
+  "Avanguardia", "Fierezza", "P*rnst*r", "Oud Maracuja", "God of Fire",
+  "Mangomacumba", "Blue Talisman EDP", "Wild Rush", "Vibrato",
+  "Gris Charnel Extrait", "Babycat", "Gris Dior",
+];
+check("featuredCount === 12", featArr.length === 12, "count=" + featArr.length);
+check("featured unique === 12", new Set(featArr).size === 12, "unique=" + new Set(featArr).size);
+const featProducts = featArr.map(findProduct);
+check("every featured ID resolves to a product", featProducts.every(Boolean), JSON.stringify(featArr.filter((id, i) => !featProducts[i])));
+featExpectedOrder.forEach(function (expectName, i) {
+  const p = featProducts[i];
+  check("featured[" + i + "] = " + expectName, !!p && p.name === expectName, "got=" + (p ? p.name : "NOT FOUND"));
+});
+
+// 10. Disponibles ahora — Narcotic Delight y Castley (última confirmación cliente)
+console.log("\n=== DISPONIBLES AHORA ===");
+check("Narcotic Delight decant(62) NOT in PROXIMAMENTE", !proxArr.includes(62), "");
+check("Narcotic Delight sellado(144) NOT in PROXIMAMENTE", !proxArr.includes(144), "");
+check("Castley decant(100) NOT in PROXIMAMENTE", !proxArr.includes(100), "");
+check("Castley sellado(142) NOT in PROXIMAMENTE", !proxArr.includes(142), "");
+// No cambia la disponibilidad de otros productos ya en PROXIMAMENTE
+check("Fierezza(140) still in PROXIMAMENTE (destacada != disponible)", proxArr.includes(140), "");
+
 console.log("\n=== RESULTADO ===");
 console.log(passed + " PASS | " + failed + " FAIL");
 process.exit(failed > 0 ? 1 : 0);

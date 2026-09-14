@@ -153,7 +153,17 @@ window.FO_CONFIG = {
      a la venta: se mostrarán con el badge "Próximamente", botón
      deshabilitado y aviso de reserva en el modal.
      Ejemplo: PROXIMAMENTE: [42, 73] */
-  PROXIMAMENTE: [9, 10, 19, 37, 40, 41, 51, 60, 63, 64, 79, 95, 100, 101, 103, 137, 138, 140], // Ichigo Ichie, Last Birthday Cake, Mango Kiss, Que Chimba, Speachless, Evil Angel, Birth of Venus, Tropikalys Karma, Musk Therapy, Paragon, Grand Soir, Wulong Cha X, Castley, Sedley, Malibú Party, Toucan, Loverbird, Fierezza
+  PROXIMAMENTE: [9, 10, 19, 37, 40, 41, 51, 60, 63, 64, 79, 95, 101, 103, 137, 138, 140], // Ichigo Ichie, Last Birthday Cake, Mango Kiss, Que Chimba, Speachless, Evil Angel, Birth of Venus, Tropikalys Karma, Musk Therapy, Paragon, Grand Soir, Wulong Cha X, Sedley, Malibú Party, Toucan, Loverbird, Fierezza
+  /* Castley (id 100, decant) y Narcotic Delight (id 62) disponibles ahora:
+     confirmación más reciente del cliente. El sellado de Castley (id 142) y
+     el sellado de Narcotic Delight (id 144) ya no estaban en la lista. */
+
+  /* ── FRAGANCIAS DESTACADAS (Home) ────────────────────────────────
+     Orden EXACTO confirmado por el cliente. Se renderiza vía
+     FO_PRODUCTS.find(id) en renderFeatured() — no duplica objetos.
+     "Destacado" NO implica disponible: si el producto sigue en
+     PROXIMAMENTE, conserva su badge normalmente. */
+  FEATURED_PRODUCT_IDS: [32, 140, 8, 15, 17, 24, 56, 66, 68, 82, 149, 123], // Avanguardia, Fierezza, P*rnst*r, Oud Maracuja, God of Fire, Mangomacumba, Blue Talisman EDP, Wild Rush, Vibrato, Gris Charnel Extrait, Babycat, Gris Dior
 
   /* ── CONTENIDO: VIDEOS DE TIKTOK (embed oficial, click-to-play) ──
      Cada tarjeta muestra un "thumbnail" local con botón de play; al

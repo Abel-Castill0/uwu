@@ -536,3 +536,36 @@ node cdp-shots17.js   # → %TEMP%\opencode\shots\v17-*.png
 # Logo + OG
 node tools/gen-logo.js; node tools/gen-og.js
 ```
+
+## Reconciliación final del cliente (Featured 12 + disponibilidad)
+
+Continuación del trabajo local sin commitear de Codex (Comentarios en nav,
+Marcas/Brand Explorer, A–Z category-aware, combo sin tope 6, orden de
+etiquetas de precio) — todo eso ya estaba implementado en el working tree
+y se preservó tal cual.
+
+Añadido en esta ronda:
+
+- `config.js`: `FEATURED_PRODUCT_IDS` (12 ids, orden exacto confirmado por
+  el cliente) y remoción de Castley decant (id 100) de `PROXIMAMENTE`
+  (Castley sellado id 142 y Narcotic Delight ids 62/144 ya no estaban).
+- `script.js`: `renderFeatured()` ahora resuelve por
+  `FEATURED_PRODUCT_IDS` vía `getProductById`, no por el flag `.featured`
+  (ese flag se deja intacto, solo controla el pill "Destacado" del
+  catálogo). Se agregó carrusel scroll-snap (`setupFeaturedCarousel`,
+  `scrollFeaturedCarousel`) solo para la sección Home — el resto del
+  sitio sigue usando `.product-grid` normal.
+- `index.html` / `styles.css`: flechas `#featuredPrev`/`#featuredNext` +
+  `.featured-carousel-wrap`/`.featured-carousel` (4 visibles desktop,
+  ~2.4 tablet, ~1.3 mobile con flechas ocultas).
+- `tests/qa-catalog.js`: contrato de tests para Featured 12 (count,
+  únicos, orden exacto por nombre real) y disponibilidad de Castley /
+  Narcotic Delight.
+
+Nota para el cliente: el widget de Opiniones (Senja, `data-id` real) hoy
+muestra una reseña de "María G." — coincide en nombre con una de las
+reseñas demo que se pidió eliminar, pero proviene del embed público de
+Senja (no de datos locales/hardcodeados: se buscó `María G.` en todo el
+repo y no aparece). Conviene que el cliente revise el panel de Senja para
+confirmar si es una reseña real aprobada o si quedó una demo de Senja sin
+moderar.

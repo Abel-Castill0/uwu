@@ -1580,12 +1580,45 @@
   function renderFeatured() {
     const grid = $("featuredGrid");
     if (!grid) return;
-    const featured = products
-      .filter((p) => p.featured);
+    // Orden y set exactos confirmados por el cliente: viven en
+    // FO_CONFIG.FEATURED_PRODUCT_IDS (config.js), no en el flag .featured
+    // de cada producto (ese flag sigue usándose solo para el pill
+    // "Destacado" dentro del catálogo). "Destacado" no implica disponible:
+    // un producto en PROXIMAMENTE conserva su badge normalmente.
+    const ids = Array.isArray(FO.FEATURED_PRODUCT_IDS) ? FO.FEATURED_PRODUCT_IDS : [];
+    const seen = new Set();
+    const featured = ids
+      .map((id) => getProductById(id))
+      .filter((p) => {
+        if (!p || seen.has(p.id)) return false;
+        seen.add(p.id);
+        return true;
+      });
     grid.innerHTML = featured.map(createProductCard).join("");
+    grid.classList.toggle("featured-carousel", featured.length > 0);
     observeRevealElements();
     window.FraganceAnimations?.refresh?.();
+    updateFeaturedCarouselArrows();
   }
+
+  function updateFeaturedCarouselArrows() {
+    const grid = $("featuredGrid");
+    const prevBtn = $("featuredPrev");
+    const nextBtn = $("featuredNext");
+    if (!grid || !prevBtn || !nextBtn) return;
+    const maxScroll = grid.scrollWidth - grid.clientWidth;
+    prevBtn.disabled = grid.scrollLeft <= 4;
+    nextBtn.disabled = grid.scrollLeft >= maxScroll - 4;
+  }
+
+  function scrollFeaturedCarousel(direction) {
+    const grid = $("featuredGrid");
+    if (!grid) return;
+    const card = grid.querySelector(".product-card");
+    const step = card ? card.getBoundingClientRect().width + 20 : grid.clientWidth * 0.8;
+    grid.scrollBy({ left: direction * step, behavior: "smooth" });
+  }
+  window.scrollFeaturedCarousel = scrollFeaturedCarousel;
 
   /* ══════════════════════════════════════════════════════════════
      RENDER — CATALOG
@@ -3539,10 +3572,22 @@
      INIT
   ══════════════════════════════════════════════════════════════ */
 
+  function setupFeaturedCarousel() {
+    const grid = $("featuredGrid");
+    const prevBtn = $("featuredPrev");
+    const nextBtn = $("featuredNext");
+    if (!grid) return;
+    grid.addEventListener("scroll", () => updateFeaturedCarouselArrows(), { passive: true });
+    window.addEventListener("resize", () => updateFeaturedCarouselArrows());
+    prevBtn?.addEventListener("click", () => scrollFeaturedCarousel(-1));
+    nextBtn?.addEventListener("click", () => scrollFeaturedCarousel(1));
+  }
+
   function init() {
     snapshotMeta();
     setupHeroMobile();
     renderFeatured();
+    setupFeaturedCarousel();
     updateCartUI();
     if (removedFromCartCount > 0) {
       showToast(
