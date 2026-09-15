@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "test": "node tests/run-suite.js",
+    "test:release": "node tests/release-coherence.js",
     "smoke": "node tests/run-smoke.js",
     "audit:images": "node tools/audit-images.js"
   },

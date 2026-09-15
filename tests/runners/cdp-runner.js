@@ -62,7 +62,13 @@ if (!edge) throw new Error("Microsoft Edge no está disponible. Define EDGE_PATH
     ws.onmessage = ({ data }) => {
       const message = JSON.parse(data);
       if (message.id && pending.has(message.id)) { pending.get(message.id)(message.result); pending.delete(message.id); }
-      if (message.method === "Runtime.exceptionThrown") errors.push(message.params.exceptionDetails.text);
+      if (message.method === "Runtime.exceptionThrown") {
+        const details = message.params.exceptionDetails;
+        const frame = details.stackTrace && details.stackTrace.callFrames && details.stackTrace.callFrames[0];
+        const source = frame ? `${frame.url}:${frame.lineNumber + 1}` : `${details.url || "unknown"}:${(details.lineNumber || 0) + 1}`;
+        const description = details.exception && details.exception.description;
+        errors.push(`${description || details.text} @ ${source}`);
+      }
     };
     // Igual que send(): sin timeout ni onerror, un socket que nunca abre (o
     // que falla al conectar) dejaba este await colgado para siempre -- el
@@ -72,7 +78,12 @@ if (!edge) throw new Error("Microsoft Edge no está disponible. Define EDGE_PATH
       ws.onopen = () => { clearTimeout(timer); resolve(); };
       ws.onerror = (err) => { clearTimeout(timer); reject(new Error(`CDP WebSocket error: ${err && err.message ? err.message : err}`)); };
     });
-    await send("Page.enable"); await send("Runtime.enable");
+    await send("Page.enable"); await send("Runtime.enable"); await send("Network.enable");
+    // Senja actualmente lanza una excepción interna en platform.js cuando el
+    // widget público no tiene tarjetas aprobadas. El estado vacío y el render
+    // tardío se prueban de forma determinista en release-coherence.js; aquí
+    // aislamos ese tercero para que no oculte excepciones propias del sitio.
+    await send("Network.setBlockedURLs", { urls: ["*://widget.senja.io/*"] });
     // Viewport determinista: sin esto, la primera navegación puede medir
     // columnas del CSS como si fuera una ventana angosta y falsear
     // catalog5Cols. Emulation.setDeviceMetricsOverride fija 1280x900.

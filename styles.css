@@ -300,9 +300,10 @@
      drawer movil le da su propio display:flex/column (ver media query). */
   .nav-links { display: contents; }
   .nav a, .nav-link {
+    appearance: none; -webkit-appearance: none; box-shadow: none; margin: 0; font-family: inherit;
     color: rgba(255,255,255,.72); font-size: .82rem; font-weight: 500;
-    letter-spacing: .08em; text-transform: uppercase; transition: color var(--t-base);
-    position: relative; padding: .4rem 0; background: none; border: none;
+    letter-spacing: .08em; line-height: 1.2; text-transform: uppercase; transition: color var(--t-base);
+    position: relative; padding: .4rem 0; background: transparent; border: 0;
   }
   .nav a::after, .nav-link::after {
     content: ''; position: absolute; bottom: -1px; left: 0; width: 0; height: 1.5px;
@@ -1778,7 +1779,8 @@
   .section-reviews .section-header { margin-bottom: 2.2rem; }
 
   /* CTA "Dejar una Opinión" */
-  .reviews-cta-row { display: flex; justify-content: center; margin-bottom: 2.4rem; }
+  .reviews-cta-row { display: flex; justify-content: center; padding: 0 1.25rem; margin-bottom: 2.4rem; }
+  .reviews-cta-row .btn { width: min(100%, 260px); justify-content: center; white-space: nowrap; }
 
   /* Widget de testimonios aprobados (Senja) + estado honesto sin reseñas */
   .reviews-widget-wrap { max-width: var(--max-w); margin: 0 auto; min-height: 0; }
@@ -2254,9 +2256,9 @@
   .header.scrolled { box-shadow: 0 4px 32px rgba(0,0,0,.4); }
   .logo-slogan { color: rgba(255,255,255,.6); }
   .logo-name span { color: rgba(255,255,255,.9); font-weight: 600; }
-  .nav a { color: rgba(255,255,255,.65); font-size: .79rem; letter-spacing: .1em; }
-  .nav a:hover, .nav a.active { color: #fff; }
-  .nav a::after { background: #fff; }
+  .nav a, .nav-link { color: rgba(255,255,255,.65); font-size: .79rem; letter-spacing: .1em; }
+  .nav a:hover, .nav a.active, .nav-link:hover, .nav-link[aria-expanded="true"] { color: #fff; }
+  .nav a::after, .nav-link::after { background: #fff; }
 
   /* â”€â”€ 4. BOTONES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   /* btn-gold: blanco en hero (fondo oscuro) */
@@ -3310,8 +3312,8 @@
     en el dropdown â‰¤900px (fondo claro). Restauramos el color
     correcto del tema para el menÃº abierto en mobile/tablet. â”€â”€ */
   @media (max-width: 900px) {
-    .nav a { color: var(--text-secondary); }
-    .nav a:hover, .nav a.active { color: var(--gold); }
+    .nav a, .nav-link { color: var(--text-secondary); }
+    .nav a:hover, .nav a.active, .nav-link:hover, .nav-link[aria-expanded="true"] { color: var(--gold); }
   }
 
   /* â”€â”€ T. BUG REAL â€” FAB de Instagram tapa el botÃ³n "Ir al
@@ -5795,9 +5797,11 @@ body:has(#comboSummary.visible) .wa-fab { display: none; }
   .nav .nav-drawer-head,
   .nav .nav-divider { border-color: rgba(248, 241, 231, .13); }
   .nav .nav-drawer-title,
-  .nav a { color: #f8f1e7; }
+  .nav a, .nav-link { color: #f8f1e7; }
   .nav a:hover,
-  .nav a.active { color: var(--gold-light); }
+  .nav a.active,
+  .nav-link:hover,
+  .nav-link[aria-expanded="true"] { color: var(--gold-light); }
   .nav .nav-close { color: rgba(248, 241, 231, .76); min-width: 44px; min-height: 44px; }
   .nav .nav-close:hover { background: rgba(255, 255, 255, .08); color: #fff; }
   .nav .nav-util-link,

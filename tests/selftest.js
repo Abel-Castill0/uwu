@@ -183,6 +183,12 @@
     window.navigateTo("home");
     var brands = document.getElementById("navBrandsBtn");
     ok(!!brands, "navbarBrandsExists", "falta #navBrandsBtn");
+    var navItems = Array.prototype.map.call(document.querySelectorAll("#nav .nav-links > a, #nav .nav-links > button"), function (item) { return item.textContent.trim(); });
+    ok(navItems.join("|") === "Inicio|Catálogo|Marcas|Combos|Comentarios", "navbarExactOrder", navItems.join("|"));
+    var navAnchor = document.querySelector("#nav .nav-links > a");
+    var brandStyle = brands && getComputedStyle(brands);
+    var anchorStyle = navAnchor && getComputedStyle(navAnchor);
+    ok(!!brandStyle && !!anchorStyle && brandStyle.backgroundColor === anchorStyle.backgroundColor && brandStyle.borderTopWidth === anchorStyle.borderTopWidth && brandStyle.fontSize === anchorStyle.fontSize && brandStyle.letterSpacing === anchorStyle.letterSpacing, "navbarBrandsStyleParity", brandStyle ? brandStyle.cssText : "sin estilo");
     if (brands) brands.click();
   }, 250);
   step(function () {
@@ -391,6 +397,12 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
       var text = priceEl ? priceEl.textContent.trim() : "";
       return text.indexOf("S/") !== -1;
     }), "featuredKeepsRealPrice", "precios=" + Array.prototype.map.call(cards, function (card) { return card.querySelector(".product-price").textContent.trim(); }).join("|"));
+    var itemList = Array.prototype.map.call(document.querySelectorAll('script[type="application/ld+json"]'), function (node) {
+      try { return JSON.parse(node.textContent); } catch (e) { return null; }
+    }).find(function (data) { return data && data["@type"] === "ItemList"; });
+    var visibleNames = Array.prototype.map.call(cards, function (card) { return card.querySelector(".product-name").textContent.trim(); });
+    var seoNames = itemList ? itemList.itemListElement.map(function (item) { return item.name; }) : [];
+    ok(ids.length === 12 && seoNames.join("|") === visibleNames.join("|"), "featuredSeoMatchesVisibleOrder", "visible=" + visibleNames.join("|") + ";seo=" + seoNames.join("|"));
     var img = document.querySelector(".logo-img");
     ok(img && img.complete && img.naturalWidth > 0, "logoOk", "naturalWidth=" + (img ? img.naturalWidth : "sin img"));
     var logoLink = document.querySelector("a.logo");
@@ -659,7 +671,8 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(!document.querySelector("#reviewsTrack"), "noOldReviewsTrack", "#reviewsTrack todavía existe");
     // CTA + modal accesible
     var cta = document.getElementById("leaveReviewBtn");
-    ok(!!cta && cta.tagName === "BUTTON", "reviewCtaPresent", "botón 'Dejar una Opinión' no encontrado");
+    ok(!!cta && cta.tagName === "A", "reviewCtaPresent", "enlace 'Dejar una Opinión' no encontrado");
+    ok(cta && cta.getAttribute("href") === "https://senja.io/p/fragrance-obsession/r/ZY90RH", "reviewCtaPublicFallback", "href=" + (cta && cta.getAttribute("href")));
     ok(cta && cta.getAttribute("aria-haspopup") === "dialog", "reviewCtaAriaHaspopup", "falta aria-haspopup");
     var overlay = document.getElementById("reviewModalOverlay");
     ok(!!overlay && overlay.getAttribute("role") === "dialog" && overlay.getAttribute("aria-modal") === "true", "reviewModalDialog", "modal sin role=dialog/aria-modal");

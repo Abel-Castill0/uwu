@@ -60,11 +60,10 @@ function createServer() {
 
     const cases = [
       { w: 320, h: 568, touch: true }, { w: 360, h: 800, touch: true },
-      { w: 390, h: 844, touch: true }, { w: 412, h: 915, touch: true },
-      { w: 768, h: 1024, touch: false }, { w: 1024, h: 900, touch: false },
-      { w: 1280, h: 900, touch: false }, { w: 1366, h: 900, touch: false },
-      { w: 1440, h: 900, touch: false }, { w: 1600, h: 900, touch: false },
-      { w: 1920, h: 1080, touch: false },
+      { w: 375, h: 812, touch: true }, { w: 390, h: 844, touch: true },
+      { w: 430, h: 932, touch: true }, { w: 768, h: 1024, touch: false },
+      { w: 900, h: 900, touch: false }, { w: 1024, h: 900, touch: false },
+      { w: 1366, h: 900, touch: false }, { w: 1440, h: 900, touch: false },
     ];
     let fails = 0;
     for (const c of cases) {
@@ -117,9 +116,10 @@ function createServer() {
       await evalv("var __cl=document.querySelector('.cart-close'); if(__cl) __cl.click();");
       await delay(300);
 
-      // maxHeight en px debe ser ≈ 92% del alto del viewport (92vh/92dvh)
+      // El modal usa 96dvh en teléfonos <=600px y 90dvh desde tablet.
       const ratio = parseFloat(modalMaxH) / c.h;
-      const modalOk = modalActive && Math.abs(ratio - 0.92) < 0.02;
+      const expectedRatio = c.w <= 600 ? 0.96 : 0.90;
+      const modalOk = modalActive && Math.abs(ratio - expectedRatio) < 0.01;
       const cartOk = cartActive;
       const overOk = !overX;
       const closeOk = (c.touch && closeH >= 44) || (!c.touch && closeH >= 34);

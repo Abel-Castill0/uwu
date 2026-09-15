@@ -119,6 +119,50 @@ test.describe('Home Page', () => {
     await expect(page.locator('#page-promos.active')).toBeVisible();
   });
 
+  test('navbar conserva orden exacto y Marcas comparte estilo y foco', async ({ page }) => {
+    const items = page.locator('#nav .nav-links > a, #nav .nav-links > button');
+    await expect(items).toHaveText(['Inicio', 'Catálogo', 'Marcas', 'Combos', 'Comentarios']);
+    const parity = await page.evaluate(() => {
+      const anchor = getComputedStyle(document.querySelector('#nav .nav-links > a'));
+      const brands = getComputedStyle(document.querySelector('#navBrandsBtn'));
+      const keys = ['appearance', 'backgroundColor', 'borderTopWidth', 'boxShadow', 'fontSize', 'fontWeight', 'letterSpacing', 'lineHeight', 'paddingTop'];
+      return keys.every((key) => anchor[key] === brands[key]);
+    });
+    expect(parity).toBe(true);
+    if (await page.locator('#hamburger').isVisible()) await page.locator('#hamburger').click();
+    await page.locator('#navBrandsBtn').click();
+    await expect(page.locator('#brandExplorerOverlay')).toHaveClass(/active/);
+    await expect(page.locator('#navBrandsBtn')).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#brandExplorerOverlay')).not.toHaveClass(/active/);
+    await expect(page.locator('#navBrandsBtn')).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator((await page.locator('#hamburger').isVisible()) ? '#hamburger' : '#navBrandsBtn')).toBeFocused();
+  });
+
+  test('CTA de opinión tiene fallback real y ciclo modal completo', async ({ page }) => {
+    const cta = page.locator('#leaveReviewBtn');
+    await expect(cta).toHaveAttribute('href', 'https://senja.io/p/fragrance-obsession/r/ZY90RH');
+    // WebKit cancela el click si el scroll automático coincide con la
+    // animación de entrada de la sección. Un usuario llega aquí después de
+    // desplazar la página, así que estabilizamos ese mismo estado primero.
+    await cta.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+    await cta.click();
+    await expect(page.locator('#reviewModalOverlay')).toHaveClass(/active/);
+    await expect(page.locator('#reviewModal')).toBeFocused();
+    await expect(page.locator('#senja-collector-iframe')).toHaveAttribute('src', /senja\.io/);
+    expect(await page.evaluate(() => getComputedStyle(document.body).overflow)).toBe('hidden');
+    await page.locator('#reviewModalClose').click();
+    await expect(cta).toBeFocused();
+    expect(await page.evaluate(() => getComputedStyle(document.body).overflow)).not.toBe('hidden');
+    await cta.click();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#reviewModalOverlay')).not.toHaveClass(/active/);
+    await cta.click();
+    await page.locator('#reviewModalOverlay').click({ position: { x: 2, y: 2 } });
+    await expect(page.locator('#reviewModalOverlay')).not.toHaveClass(/active/);
+  });
+
   test('Comentarios vuelve a Home, cierra el drawer y enfoca la sección', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await navigateTo(page, 'catalogo');
@@ -799,6 +843,20 @@ test.describe('SEO & Meta', () => {
     const ld = page.locator('script[type="application/ld+json"]');
     const count = await ld.count();
     expect(count).toBeGreaterThanOrEqual(2); // Store + BreadcrumbList + FAQPage
+  });
+
+  test('ItemList coincide con las 12 fragancias destacadas visibles', async ({ page }) => {
+    await page.goto('/');
+    await waitForHydration(page);
+    const result = await page.evaluate(() => {
+      const visible = Array.from(document.querySelectorAll('#featuredGrid .product-card .product-name')).map((node) => node.textContent.trim());
+      const itemList = Array.from(document.querySelectorAll('script[type="application/ld+json"]'))
+        .map((node) => { try { return JSON.parse(node.textContent); } catch { return null; } })
+        .find((data) => data && data['@type'] === 'ItemList');
+      return { visible, seo: itemList ? itemList.itemListElement.map((item) => item.name) : [] };
+    });
+    expect(result.visible).toHaveLength(12);
+    expect(result.seo).toEqual(result.visible);
   });
 
   test('Sitemap.xml y robots.txt accesibles', async ({ page }) => {

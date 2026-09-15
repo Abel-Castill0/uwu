@@ -1399,6 +1399,7 @@
   function navigateTo(page, options) {
     if (!VALID_PAGES.has(page)) return;
     const opts = options || {};
+    const previousPage = currentPage;
     // La navegación es el único punto común de los links del sitio. Cierra el
     // drawer antes de cambiar la vista para que backdrop, scroll y ARIA no
     // queden desincronizados con el panel visual.
@@ -1420,7 +1421,7 @@
       updateCatalogFilterButtons();
       renderCatalog();
     }
-    if (page === "promos") {
+    if (page === "promos" && previousPage !== "promos") {
       initComboBuilder();
     }
     if (page === "checkout") renderCheckoutPage();
@@ -1577,6 +1578,18 @@
   /* ══════════════════════════════════════════════════════════════
      RENDER — FEATURED
   ══════════════════════════════════════════════════════════════ */
+  function getFeaturedProducts() {
+    const ids = Array.isArray(FO.FEATURED_PRODUCT_IDS) ? FO.FEATURED_PRODUCT_IDS : [];
+    const seen = new Set();
+    return ids
+      .map((id) => getProductById(id))
+      .filter((p) => {
+        if (!p || seen.has(p.id)) return false;
+        seen.add(p.id);
+        return true;
+      });
+  }
+
   function renderFeatured() {
     const grid = $("featuredGrid");
     if (!grid) return;
@@ -1585,15 +1598,7 @@
     // de cada producto (ese flag sigue usándose solo para el pill
     // "Destacado" dentro del catálogo). "Destacado" no implica disponible:
     // un producto en PROXIMAMENTE conserva su badge normalmente.
-    const ids = Array.isArray(FO.FEATURED_PRODUCT_IDS) ? FO.FEATURED_PRODUCT_IDS : [];
-    const seen = new Set();
-    const featured = ids
-      .map((id) => getProductById(id))
-      .filter((p) => {
-        if (!p || seen.has(p.id)) return false;
-        seen.add(p.id);
-        return true;
-      });
+    const featured = getFeaturedProducts();
     grid.innerHTML = featured.map(createProductCard).join("");
     grid.classList.toggle("featured-carousel", featured.length > 0);
     observeRevealElements();
@@ -3128,37 +3133,43 @@
     const wrap = $("senjaWidget");
     const empty = $("reviewsEmptyState");
     if (!wrap || !empty) return;
-    const showEmpty = () => {
-      wrap.style.display = "none";
-      empty.hidden = false;
+    let fallbackReady = false;
+    const syncState = () => {
+      const root = wrap.shadowRoot || wrap;
+      const rendered = !!root.querySelector(".sj-card");
+      if (rendered) {
+        wrap.style.display = "block";
+        empty.hidden = true;
+      } else if (fallbackReady) {
+        wrap.style.display = "none";
+        empty.hidden = false;
+      }
+      return rendered;
     };
     const platformSrc = (FO.SENJA && FO.SENJA.WIDGET_PLATFORM_SRC) || "";
     const script = platformSrc
       ? document.querySelector(`script[src="${platformSrc}"]`)
       : null;
-    let settled = false;
-    const check = () => {
-      if (settled) return;
-      settled = true;
-      // El widget (data-mode="shadow") se pinta dentro de un shadow root.
-      // Senja siempre inyecta ahí su propio wrapper/estilos y el badge
-      // "Powered by Senja" aunque no haya testimonios aprobados, así que
-      // childElementCount (o el alto del host) es > 0 incluso vacío y
-      // nunca detecta ese caso. ".sj-card" es la tarjeta real de cada
-      // testimonio (compartida por todos los layouts de widget de Senja:
-      // masonry, marquee, carousel), así que es la señal fiable de que
-      // sí hay contenido pintado.
-      const rendered = wrap.shadowRoot
-        ? wrap.shadowRoot.querySelectorAll(".sj-card").length > 0
-        : wrap.getBoundingClientRect().height > 4;
-      if (!rendered) showEmpty();
+    let observer = null;
+    let observedRoot = null;
+    const observeCards = () => {
+      const root = wrap.shadowRoot || wrap;
+      if (observer && observedRoot === root) return;
+      if (observer) observer.disconnect();
+      observer = new MutationObserver(syncState);
+      observedRoot = root;
+      observer.observe(root, { childList: true, subtree: true });
+      syncState();
     };
-    if (script) script.addEventListener("error", showEmpty, { once: true });
-    // Da tiempo al script a cargar y al widget a pintar sus testimonios.
-    setTimeout(check, 3000);
-    // Si el script ni siquiera llegó a cargar tras un tiempo razonable
-    // (bloqueado, sin red, etc.), no dejamos el hueco esperando para siempre.
-    setTimeout(() => { if (!settled) check(); }, 7000);
+    observeCards();
+    const rootTimer = setInterval(observeCards, 100);
+    if (script) script.addEventListener("error", () => { fallbackReady = true; syncState(); }, { once: true });
+    setTimeout(() => { fallbackReady = true; syncState(); }, 3000);
+    setTimeout(() => {
+      clearInterval(rootTimer);
+      observeCards();
+      if (observer) observer.disconnect();
+    }, 15000);
   }
 
   /* Modal "Dejar una Opinión": inyecta el iframe del formulario de Senja
@@ -3253,7 +3264,9 @@
     const overlay = $("reviewModalOverlay");
     const closeBtn = $("reviewModalClose");
     if (!btn || !overlay) return;
-    btn.addEventListener("click", openReviewModal);
+    const formUrl = FO.SENJA && FO.SENJA.FORM_URL;
+    if (formUrl) btn.href = formUrl;
+    btn.addEventListener("click", (e) => { e.preventDefault(); openReviewModal(); });
     if (closeBtn) closeBtn.addEventListener("click", () => closeReviewModal());
     overlay.addEventListener("click", (e) => { if (e.target === overlay) closeReviewModal(); });
     document.addEventListener("keydown", (e) => {
@@ -3476,7 +3489,7 @@
 
   // Datos estructurados ItemList de los destacados (SEO)
   function injectItemList() {
-    const featured = products.filter((p) => p.featured).slice(0, 12);
+    const featured = getFeaturedProducts();
     if (!featured.length) return;
     const data = {
       "@context": "https://schema.org",
@@ -3502,7 +3515,7 @@
     window.addEventListener("load", () => {
       // Ruta y alcance relativos: funcionan tanto en subcarpeta (GitHub Pages)
       // como en localhost.
-      navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch((e) => { if (IS_DEV) console.warn("SW:", e); });
+      navigator.serviceWorker.register("./sw.js", { scope: "./", updateViaCache: "none" }).catch((e) => { if (IS_DEV) console.warn("SW:", e); });
     });
   }
 
