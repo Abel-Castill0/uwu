@@ -1024,13 +1024,9 @@
       : Object.keys(product.fullSizes || {})[0];
     const price = sizeForPrice ? product.fullSizes[sizeForPrice] : null;
     const priceText = typeof price === "number" ? formatPrice(price) : "";
-    let msg = typeof FO.WHATSAPP_COTIZAR_MSG === "function"
+    const msg = typeof FO.WHATSAPP_COTIZAR_MSG === "function"
       ? FO.WHATSAPP_COTIZAR_MSG(product.name, product.brand, condition, priceText)
       : `Hola, quiero cotizar el frasco completo de ${product.name} (${product.brand}). ¿Me pueden dar más información?`;
-    const promo = productPromoInfo(product);
-    if (promo) {
-      msg += `\n\nPrecio especial: ${formatPrice(promo.price)}\nPrecio referencial: ${formatPrice(promo.regularPrice)}\nDescuento real: ${promo.pct}%\nAhorro: ${formatPrice(promo.ahorro)}`;
-    }
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
     const win = window.open(url, "_blank");
     if (!win) location.href = url;
