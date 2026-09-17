@@ -9,7 +9,8 @@
      (edita ese archivo para agregar/quitar perfumes, no este)
   ══════════════════════════════════════════════════════════════ */
   if (!window.FO_PRODUCTS) { console.error("FO_PRODUCTS not loaded"); }
-  const products = window.FO_PRODUCTS || [];
+  // Conserva los datos históricos de productos retirados del inventario público.
+  const products = (window.FO_PRODUCTS || []).filter((p) => p.public !== false);
   // Única fuente de verdad para rutas de la SPA. Las vistas auxiliares se
   // conservan porque los modales informativos las usan internamente.
   const VALID_PAGES = new Set([
@@ -1405,15 +1406,18 @@
     const target = $("page-" + page);
     if (target) target.classList.add("active");
     document.querySelectorAll(".nav a").forEach((a) => a.classList.remove("active"));
-    const navLink = document.querySelector(`.nav a[data-page="${page}"]`);
+    const navPage = page === "catalogo" && opts.category === "completos" ? "completos" : page;
+    const navLink = document.querySelector(`.nav a[data-page="${navPage}"]`);
     if (navLink) navLink.classList.add("active");
     renderStickyCartVisibility();
     if (page === "catalogo") {
-      activeFilters = { category: null, gender: null, brand: null };
+      activeFilters = { category: opts.category === "completos" ? "completos" : null, gender: null, brand: null };
       searchTerm = "";
       quickFilter = "todos";
       const searchEl = $("catalogSearch");
       if (searchEl) searchEl.value = "";
+      const searchClear = $("searchClear");
+      if (searchClear) searchClear.style.display = "none";
       updateCatalogFilterButtons();
       renderCatalog();
     }
@@ -1918,6 +1922,11 @@
   ══════════════════════════════════════════════════════════════ */
   function updateCatalogFilterButtons() {
     const cat = activeFilters.category || "todos";
+    if (currentPage === "catalogo") {
+      document.querySelectorAll('.nav a[data-page="catalogo"], .nav a[data-page="completos"]').forEach((link) => {
+        link.classList.toggle("active", link.dataset.page === (cat === "completos" ? "completos" : "catalogo"));
+      });
+    }
     document.querySelectorAll("#filtersCategory .cat-pill--cat[data-filter]").forEach((btn) => {
       const active = cat === btn.dataset.filter;
       btn.classList.toggle("active", active);
@@ -2769,10 +2778,16 @@
   if (navBackdrop) navBackdrop.addEventListener("click", closeNav);
   if (navEl) {
     navEl.addEventListener("keydown", (e) => trapTabFocus(navEl, e));
-    // Los links de navegación ya llaman a navigateTo() vía onclick; solo
-    // falta cerrar el drawer al elegir uno (en desktop .nav no es drawer,
-    // closeNav() es un no-op porque nunca tuvo la clase "open").
-    navEl.querySelectorAll(".nav-links a").forEach((a) => a.addEventListener("click", closeNav));
+    // El catálogo se abre una sola vez y conserva el historial del navegador.
+    // Los demás enlaces mantienen su navegación existente y cierran el drawer.
+    navEl.querySelectorAll(".nav-links a").forEach((a) => a.addEventListener("click", (event) => {
+      if (a.dataset.page === "catalogo" || a.dataset.page === "completos") {
+        // Un solo render: hashchange no debe borrar una búsqueda recién escrita.
+        event.preventDefault();
+        if (location.hash !== a.hash) history.pushState(null, "", a.hash);
+        navigateTo("catalogo", { category: a.dataset.page === "completos" ? "completos" : null });
+      } else closeNav();
+    }));
   }
   window.closeNav = closeNav;
 
@@ -2896,7 +2911,8 @@
   ══════════════════════════════════════════════════════════════ */
   function applyHashRoute() {
     const hash = (window.location.hash || "").replace("#", "");
-    if (hash === "opiniones") navigateToOpinions();
+    if (hash === "completos") navigateTo("catalogo", { category: "completos" });
+    else if (hash === "opiniones") navigateToOpinions();
     else if (VALID_PAGES.has(hash)) navigateTo(hash);
   }
 

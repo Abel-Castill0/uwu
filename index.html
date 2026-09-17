@@ -138,7 +138,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="styles.css?v=20260915" />
+  <link rel="stylesheet" href="styles.css?v=20260917" />
 </head>
 <body>
   <!-- Loading Screen -->
@@ -196,8 +196,9 @@
         </div>
         <div class="nav-links">
           <a href="#home" class="active" data-page="home" onclick="navigateTo('home')">Inicio</a>
-          <a href="#catalogo" data-page="catalogo" onclick="navigateTo('catalogo')">Catálogo</a>
+          <a href="#catalogo" data-page="catalogo">Catálogo</a>
           <button type="button" class="nav-link nav-brands" id="navBrandsBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="brandExplorerOverlay">Marcas</button>
+          <a href="#completos" data-page="completos">Completos</a>
           <a href="#promos" data-page="promos" onclick="navigateTo('promos')">Combos</a>
           <a href="#opiniones" id="commentsNavLink">Comentarios</a>
         </div>
@@ -1017,7 +1018,7 @@
   <!-- Animation libraries (orden importa: GSAP → ScrollTrigger → app → animations) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
-  <script src="config.js?v=20260915" defer></script>
+  <script src="config.js?v=20260917" defer></script>
   <script>
     /* URLs canónicas dinámicas: respetan la URL real (GitHub Pages, localhost o dominio propio). */
     (function () {
@@ -1031,11 +1032,11 @@
       } catch (e) {}
     })();
   </script>
-  <script src="descuentos.js?v=20260915" defer></script>
-  <script src="productos.js?v=20260915" defer></script>
-  <script src="hero-stats.js?v=20260915" defer></script>
-  <script src="animations.js?v=20260915" defer></script>
-  <script src="script.js?v=20260915" defer></script>
+  <script src="descuentos.js?v=20260917" defer></script>
+  <script src="productos.js?v=20260917" defer></script>
+  <script src="hero-stats.js?v=20260917" defer></script>
+  <script src="animations.js?v=20260917" defer></script>
+  <script src="script.js?v=20260917" defer></script>
 
   <!-- Senja (reseñas reales): terceros, script público, async, se carga una
        sola vez y no bloquea el first paint. iframeResizer solo ajusta la

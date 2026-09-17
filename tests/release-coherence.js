@@ -5,7 +5,7 @@ const http = require("http");
 const path = require("path");
 
 const root = path.resolve(__dirname, "..");
-const release = "20260915";
+const release = "20260917";
 const critical = ["styles.css", "config.js", "descuentos.js", "productos.js", "hero-stats.js", "animations.js", "script.js"];
 const legacyAssets = Object.fromEntries(critical.map((file) => [file, file.endsWith(".css") ? "button{font:caption}" : "window.LEGACY_APP=true"]));
 const legacyWorker = `
@@ -87,7 +87,7 @@ function send(res, body, extension) {
       iframeSrc: document.querySelector("#senja-collector-iframe")?.src || "",
     };
   });
-  assert.deepStrictEqual(state.nav, ["Inicio", "Catálogo", "Marcas", "Combos", "Comentarios"]);
+  assert.deepStrictEqual(state.nav, ["Inicio", "Catálogo", "Marcas", "Completos", "Combos", "Comentarios"]);
   assert.deepStrictEqual(state.brandStyle, state.linkStyle);
   assert.strictEqual(state.reviewOpened, true);
   assert.strictEqual(state.scrollLocked, true);
@@ -108,7 +108,7 @@ function send(res, body, extension) {
   await offlineContext.setOffline(true);
   await offlinePage.reload({ waitUntil: "domcontentloaded" });
   assert.strictEqual(await offlinePage.locator(".off-title").innerText(), "Estás sin conexión");
-  assert.strictEqual(await offlinePage.locator('link[href="styles.css?v=20260915"]').evaluate((element) => !!element.sheet), true);
+  assert.strictEqual(await offlinePage.locator('link[href="styles.css?v=20260917"]').evaluate((element) => !!element.sheet), true);
   await offlineContext.setOffline(false);
 
   const noJs = await browser.newContext({ javaScriptEnabled: false, serviceWorkers: "block" });

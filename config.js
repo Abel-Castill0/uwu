@@ -153,10 +153,11 @@ window.FO_CONFIG = {
      a la venta: se mostrarán con el badge "Próximamente", botón
      deshabilitado y aviso de reserva en el modal.
      Ejemplo: PROXIMAMENTE: [42, 73] */
-  PROXIMAMENTE: [9, 10, 19, 37, 40, 41, 51, 60, 63, 64, 79, 95, 101, 103, 137, 138, 140], // Ichigo Ichie, Last Birthday Cake, Mango Kiss, Que Chimba, Speachless, Evil Angel, Birth of Venus, Tropikalys Karma, Musk Therapy, Paragon, Grand Soir, Wulong Cha X, Sedley, Malibú Party, Toucan, Loverbird, Fierezza
-  /* Castley (id 100, decant) y Narcotic Delight (id 62) disponibles ahora:
-     confirmación más reciente del cliente. El sellado de Castley (id 142) y
-     el sellado de Narcotic Delight (id 144) ya no estaban en la lista. */
+  PROXIMAMENTE: [9, 10, 19, 37, 40, 41, 51, 55, 60, 63, 64, 78, 79, 95, 101, 103, 137, 138], // Ichigo Ichie, Last Birthday Cake, Mango Kiss, Que Chimba, Speachless, Evil Angel, Birth of Venus, Porthole, Tropikalys Karma, Musk Therapy, Paragon, Gentle Fluidity Silver, Grand Soir, Wulong Cha X, Sedley, Malibú Party, Toucan, Loverbird
+  /* Disponibles: Fierezza (140), Gris Charnel EDP (81), Ani (90), Castley
+     decant (100) y sellado (142), y Narcotic Delight decant (62).
+     Narcotic Delight sellado (144) se conserva como dato histórico y está
+     retirado del inventario público mediante public: false en productos.js. */
 
   /* ── FRAGANCIAS DESTACADAS (Home) ────────────────────────────────
      Orden EXACTO confirmado por el cliente. Se renderiza vía

@@ -121,7 +121,7 @@ test.describe('Home Page', () => {
 
   test('navbar conserva orden exacto y Marcas comparte estilo y foco', async ({ page }) => {
     const items = page.locator('#nav .nav-links > a, #nav .nav-links > button');
-    await expect(items).toHaveText(['Inicio', 'Catálogo', 'Marcas', 'Combos', 'Comentarios']);
+    await expect(items).toHaveText(['Inicio', 'Catálogo', 'Marcas', 'Completos', 'Combos', 'Comentarios']);
     const parity = await page.evaluate(() => {
       const anchor = getComputedStyle(document.querySelector('#nav .nav-links > a'));
       const brands = getComputedStyle(document.querySelector('#navBrandsBtn'));

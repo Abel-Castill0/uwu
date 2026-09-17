@@ -38,17 +38,16 @@ function findProduct(id) {
   return null;
 }
 
-// 1. Check 6 requested products
+// 1. Previously confirmed available decants (Porthole is now unavailable).
 const checks = [
   { id: 62, expect: "Narcotic Delight" },
-  { id: 55, expect: "Porthole" },
   { id: 72, expect: "Mezzo" },
   { id: 83, expect: "Pas Ce Soir Extrait" },
   { id: 81, expect: "Gris Charnel EDP" },
   { id: 90, expect: "ANI" },
 ];
 
-console.log("\n=== 6 DISPONIBLES ===");
+console.log("\n=== DISPONIBLES CONFIRMADOS ===");
 checks.forEach(function(c) {
   const p = findProduct(c.id);
   const inProx = proxArr.includes(c.id);
@@ -165,8 +164,28 @@ check("Narcotic Delight decant(62) NOT in PROXIMAMENTE", !proxArr.includes(62), 
 check("Narcotic Delight sellado(144) NOT in PROXIMAMENTE", !proxArr.includes(144), "");
 check("Castley decant(100) NOT in PROXIMAMENTE", !proxArr.includes(100), "");
 check("Castley sellado(142) NOT in PROXIMAMENTE", !proxArr.includes(142), "");
-// No cambia la disponibilidad de otros productos ya en PROXIMAMENTE
-check("Fierezza(140) still in PROXIMAMENTE (destacada != disponible)", proxArr.includes(140), "");
+// Fierezza pasa a disponible manteniendo su lugar en Featured.
+check("Fierezza(140) available and still featured", !proxArr.includes(140) && featArr.includes(140), "");
+
+// Inventario confirmado el 17/09: evalúa el mapa canónico aplicado al catálogo.
+const vm = require("vm");
+const catalogWindow = {};
+vm.runInNewContext(src, { window: catalogWindow });
+const inventory = catalogWindow.FO_PRODUCTS;
+const requested = [
+  [140, "Fierezza", false], [55, "Porthole", true],
+  [78, "Gentle Fluidity Silver", true], [81, "Gris Charnel EDP", false],
+  [90, "Ani", false], [100, "Castley", false],
+];
+requested.forEach(([id, name, soon]) => {
+  const product = inventory.find((p) => p.id === id);
+  check(`${name} identity and availability`, product && product.name === name && proxArr.includes(id) === soon, "");
+  const images = product ? [product.cardImage, product.fullImage, product.decantImage, ...Object.values(product.sizeImages)] : [];
+  check(`${name} canonical images exist`, images.length > 0 && images.every((file) => file && fs.existsSync(path.join(ROOT, file))), "");
+});
+check("Narcotic full bottle retained as historical data", inventory.some((p) => p.id === 144 && p.fullSizes[90] === 860), "");
+check("Narcotic full bottle absent from public inventory", !inventory.filter((p) => p.public !== false && p.sealed).some((p) => p.id === 144), "");
+check("Narcotic decant stays public", inventory.some((p) => p.id === 62 && p.public !== false && Object.keys(p.decantSizes).length > 0), "");
 
 console.log("\n=== RESULTADO ===");
 console.log(passed + " PASS | " + failed + " FAIL");

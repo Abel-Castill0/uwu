@@ -311,6 +311,12 @@
   }
   .nav a:hover, .nav a.active, .nav-link:hover, .nav-link[aria-expanded="true"] { color: #fff; }
   .nav a:hover::after, .nav a.active::after, .nav-link:hover::after, .nav-link[aria-expanded="true"]::after { width: 100%; }
+  @media (min-width: 901px) and (max-width: 1100px) {
+    .nav { gap: .65rem; }
+    .header-inner .logo { min-width: 0; max-width: 100%; }
+    .header-inner .logo-text { min-width: 0; }
+    .header-inner .logo-name, .header-inner .logo-slogan { overflow: hidden; text-overflow: ellipsis; }
+  }
   /* â”€â”€ Header actions â”€â”€ */
   .header-actions { display: flex; align-items: center; gap: .4rem; }
   .btn-icon {

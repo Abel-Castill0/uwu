@@ -184,7 +184,7 @@
     var brands = document.getElementById("navBrandsBtn");
     ok(!!brands, "navbarBrandsExists", "falta #navBrandsBtn");
     var navItems = Array.prototype.map.call(document.querySelectorAll("#nav .nav-links > a, #nav .nav-links > button"), function (item) { return item.textContent.trim(); });
-    ok(navItems.join("|") === "Inicio|Catálogo|Marcas|Combos|Comentarios", "navbarExactOrder", navItems.join("|"));
+    ok(navItems.join("|") === "Inicio|Catálogo|Marcas|Completos|Combos|Comentarios", "navbarExactOrder", navItems.join("|"));
     var navAnchor = document.querySelector("#nav .nav-links > a");
     var brandStyle = brands && getComputedStyle(brands);
     var anchorStyle = navAnchor && getComputedStyle(navAnchor);
