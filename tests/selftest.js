@@ -505,6 +505,58 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(window.__FO_TEST.getComboDiscountInfo().discountPct === 15, "combo12Pct15", JSON.stringify(window.__FO_TEST.getComboDiscountInfo()));
   }, 400);
 
+  /* 10b. Regression: combo invalid-size dock state. Seleccionar 3
+     productos solo disponibles en 2/3/5 ml, cambiar a 10ml (que no
+     tienen), verificar que las selecciones se preservan, el dock
+     muestra incompatibilidad y el confirm está deshabilitado. */
+  step(function () {
+    /* Reset: force different sizes to trigger re-renders */
+    window.comboSetSize("1");
+    window.comboSelectedIds.length = 0;
+    window.comboSetSize("2");
+
+    /* Verify products 113, 114, 116 are available at 2ml */
+    var p113 = document.querySelector('#comboList input[data-product-id="113"]');
+    ok(p113 && !p113.disabled, "invalidSize_113enabledAt2ml", "disabled=" + (p113 ? p113.disabled : "sin"));
+
+    /* Select them by checking the DOM checkboxes */
+    ["113", "114", "116"].forEach(function (id) {
+      var inp = document.querySelector('#comboList input[data-product-id="' + id + '"]');
+      if (inp && !inp.disabled) { inp.checked = true; inp.dispatchEvent(new Event("change", { bubbles: true })); }
+    });
+
+    var info = window.__FO_TEST.getComboDiscountInfo();
+    ok(info.count === 3, "invalidSize_count3", "count=" + info.count);
+    ok(info.allSelectedHaveSize, "invalidSize_allHaveSize2ml", "allHaveSize=" + info.allSelectedHaveSize);
+
+    /* Switch to 10ml — they should become unavailable */
+    window.comboSetSize("10");
+
+    info = window.__FO_TEST.getComboDiscountInfo();
+    ok(window.comboSelectedIds.length === 3, "invalidSize_preserveSelection", "selected=" + window.comboSelectedIds.length);
+    ok(!info.allSelectedHaveSize, "invalidSize_incompatible", "allHaveSize=" + info.allSelectedHaveSize);
+    ok(info.unavailableSelectedIds.length === 3, "invalidSize_3unavailable", "unavail=" + info.unavailableSelectedIds.length);
+
+    var comboBtn = document.getElementById("comboConfirmBtn");
+    ok(comboBtn && comboBtn.disabled, "invalidSize_confirmDisabled", "disabled=" + (comboBtn ? comboBtn.disabled : "sin boton"));
+
+    var dockText = document.getElementById("comboDockText");
+    ok(dockText && dockText.textContent.includes("sin"), "invalidSize_dockShowsIncompat", "dock=" + (dockText ? dockText.textContent : "sin elemento"));
+
+    var dockAmount = document.getElementById("comboDockAmount");
+    ok(dockAmount && dockAmount.textContent.trim() === "", "invalidSize_dockAmountEmpty", "amount=" + (dockAmount ? dockAmount.textContent : "sin elemento"));
+
+    /* Switch back to 2ml: confirm re-enables */
+    window.comboSetSize("2");
+    info = window.__FO_TEST.getComboDiscountInfo();
+    ok(info.allSelectedHaveSize, "invalidSize_restored", "allHaveSize=" + info.allSelectedHaveSize);
+
+    /* Restore state: re-select products that work at 10ml for step 11 */
+    window.comboSelectedIds.length = 0;
+    window.comboSetSize("10");
+    for (var r = 0; r < 12; r++) { var rb = firstUncheckedCombo(); if (rb) checkCombo(rb); }
+  }, 600);
+
   /* 11. Combo: confirmar agrega un pack temporal y lleva al checkout único. */
   step(function () {
     var comboBtn = document.getElementById("comboConfirmBtn");

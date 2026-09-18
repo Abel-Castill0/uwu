@@ -1215,6 +1215,8 @@
     renderComboSummary();
   }
   window.comboSetSize = comboSetSize;
+  window.comboSelectedIds = comboSelectedIds;
+  window.getComboSize = function () { return comboSize; };
   function renderComboList() {
     const list = $("comboList");
     if (!list) return;
@@ -1280,6 +1282,10 @@
     const info = getComboDiscountInfo();
     if (dockText) {
       if (comboSelectedIds.length === 0) dockText.textContent = "0 seleccionadas";
+      else if (!info.allSelectedHaveSize) {
+        const unavailCount = info.unavailableSelectedIds.length;
+        dockText.textContent = `${comboSelectedIds.length} seleccionada${comboSelectedIds.length === 1 ? "" : "s"} · ${unavailCount} sin ${comboSize} ml`;
+      }
       else if (comboSelectedIds.length >= COMBO_MIN) dockText.textContent = `${info.count} seleccionadas · ${formatPrice(info.total)}`;
       else {
         const falta = COMBO_MIN - comboSelectedIds.length;
@@ -1321,7 +1327,7 @@
           : `Te falta${falta === 1 ? "" : "n"} ${falta} para continuar`;
       }
       confirmBtn.disabled = true;
-      if (dockAmount) dockAmount.textContent = info.count > 0 ? formatPrice(info.subtotal) : "";
+      if (dockAmount) dockAmount.textContent = (!info.allSelectedHaveSize || info.count === 0) ? "" : formatPrice(info.subtotal);
     }
   }
   /* Dock compacto <-> bottom sheet (solo tiene efecto visual en movil,
@@ -1340,7 +1346,7 @@
   window.comboToggleSheet = comboToggleSheet;
   function initComboBuilder() {
     comboSize = "3";
-    comboSelectedIds = [];
+    comboSelectedIds.length = 0;
     comboSearchQuery = "";
     const searchEl = $("comboSearchInput");
     if (searchEl) searchEl.value = "";
