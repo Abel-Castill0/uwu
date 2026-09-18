@@ -46,7 +46,7 @@ window.FO_CONFIG = {
     "5% OFF en 2-5 decants (1-10ml)",
     "10% OFF en 6-9 decants · 15% OFF desde 10",
     "10% OFF en 3 decants de la misma marca",
-    "ENVÍO GRATIS + vial de nicho desde S/ 199",
+    "ENVÍO GRATIS + vial de nicho de regalo desde S/ 199",
   ],
 
   /* ── RESEÑAS DE CLIENTES (Senja) ──────────────────────────────

@@ -1157,11 +1157,17 @@
   }
   function getComboDiscountInfo() {
     const count = comboSelectedIds.length;
-    const items = comboSelectedIds.map((pid) => {
-      const prod = getProductById(pid);
-      if (!comboProductHasSize(prod, comboSize)) return null;
-      return { brand: prod.brand, price: prod.decantSizes[comboSize] };
-    }).filter(Boolean);
+    const selectedProducts = comboSelectedIds.map((pid) => getProductById(pid)).filter(Boolean);
+    const unavailableSelectedIds = [];
+    const items = [];
+    selectedProducts.forEach((prod) => {
+      if (comboProductHasSize(prod, comboSize)) {
+        items.push({ brand: prod.brand, price: prod.decantSizes[comboSize], id: prod.id });
+      } else {
+        unavailableSelectedIds.push(prod.id);
+      }
+    });
+    const allSelectedHaveSize = unavailableSelectedIds.length === 0;
     const subtotal = items.reduce((s, it) => s + it.price, 0);
     const tiers = window.getQuantityDiscountTiers ? window.getQuantityDiscountTiers(COMBO_MIN) : [];
     const qtyTier = tiers.filter((tier) => count >= tier.count).pop();
@@ -1174,13 +1180,13 @@
       if (brandCounts[b] >= marcaCfg.minItems && marcaCfg.porcentaje > brandPct) { brandPct = marcaCfg.porcentaje; brandName = b; }
     });
     const discountPct = Math.max(qtyPct, brandPct);
-    const isValid = count >= COMBO_MIN;
+    const isValid = count >= COMBO_MIN && allSelectedHaveSize;
     const discountAmount = isValid ? Math.round(subtotal * discountPct) / 100 : 0;
     const total = Math.round((subtotal - discountAmount) * 100) / 100;
     const brandWins = brandPct > qtyPct;
     const ruleLabel = brandWins ? `${brandPct}% en ${brandName}` : (qtyPct > 0 ? `${qtyPct}% por cantidad` : "");
     const nextTier = tiers.find((tier) => tier.count > count && tier.pct > discountPct) || null;
-    return { count, discountPct, subtotal, discountAmount, total, isValid, ruleLabel, brandWins, brandName, nextTier };
+    return { count, discountPct, subtotal, discountAmount, total, isValid, ruleLabel, brandWins, brandName, nextTier, unavailableSelectedIds, allSelectedHaveSize };
   }
   function comboToggleProduct(productId) {
     const idx = comboSelectedIds.indexOf(productId);
@@ -1198,15 +1204,8 @@
   function comboSetSize(size) {
     if (comboSize === size) return;
     comboSize = size;
-    /* Cambiar el tamano global re-evalua elegibilidad: un producto sin
-       esa talla sale del combo (con aviso); el resto recalcula precio a
-       la nueva talla automaticamente en getComboDiscountInfo(). */
-    const before = comboSelectedIds.length;
-    comboSelectedIds = comboSelectedIds.filter((pid) => comboProductHasSize(getProductById(pid), comboSize));
-    if (comboSelectedIds.length < before) {
-      const removed = before - comboSelectedIds.length;
-      showToast(`⚠️ ${removed} fragancia${removed === 1 ? " fue retirada" : "s fueron retiradas"} porque no ${removed === 1 ? "tiene" : "tienen"} ${comboSize}ml`);
-    }
+    /* Cambiar el tamano NO elimina selecciones: las preserva y muestra
+       cuales no estan disponibles en la nueva talla. */
     document.querySelectorAll(".combo-size-btn").forEach((btn) => {
       const active = btn.dataset.size === comboSize;
       btn.classList.toggle("active", active);
@@ -1238,11 +1237,12 @@
     list.innerHTML = eligible.map((prod) => {
       const isSelected = comboSelectedIds.includes(prod.id);
       const hasSize = comboProductHasSize(prod, comboSize);
-      const disabled = !hasSize;
+      const unavail = isSelected && !hasSize;
+      const disabled = !hasSize && !isSelected;
       const realPrice = hasSize ? prod.decantSizes[comboSize] : null;
       const priceHtml = realPrice ? formatPrice(realPrice) : `Sin ${comboSize}ml`;
       const imgSrc = prod.cardImage || cardImg(prod);
-      return `<label class="combo-item${isSelected ? " selected" : ""}${disabled ? " disabled" : ""}">
+      return `<label class="combo-item${isSelected ? " selected" : ""}${unavail ? " unavail" : ""}${!isSelected && !hasSize ? " disabled" : ""}">
         <input type="checkbox" data-product-id="${prod.id}"${isSelected ? " checked" : ""}${disabled ? " disabled" : ""} />
         <span class="combo-item__check" aria-hidden="true"></span>
         <img class="combo-item__img" src="${esc(imgSrc)}" alt="" loading="lazy" decoding="async"
@@ -1251,7 +1251,7 @@
           <span class="combo-item__brand">${esc(prod.brand)}</span>
           <span class="combo-item__name">${esc(prod.name)}</span>
         </span>
-        <span class="combo-item__price">${priceHtml}</span>
+        <span class="combo-item__price${unavail ? " combo-item__price--unavail" : ""}">${priceHtml}</span>
       </label>`;
     }).join("");
   }
@@ -1289,7 +1289,10 @@
     chipsEl.innerHTML = comboSelectedIds.map((pid) => {
       const prod = getProductById(pid);
       if (!prod) return "";
-      return `<span class="combo-chip">${esc(prod.name)} <button type="button" class="combo-chip-x" onclick="comboToggleProduct(${pid})" aria-label="Quitar ${esc(prod.name)}">&times;</button></span>`;
+      const hasSize = comboProductHasSize(prod, comboSize);
+      const unavailClass = hasSize ? "" : " combo-chip--unavail";
+      const label = hasSize ? esc(prod.name) : `${esc(prod.name)} (sin ${comboSize}ml)`;
+      return `<span class="combo-chip${unavailClass}">${label} <button type="button" class="combo-chip-x" onclick="comboToggleProduct(${pid})" aria-label="Quitar ${esc(prod.name)}">&times;</button></span>`;
     }).join("");
     if (info.isValid) {
       hintEl.style.display = "block";
@@ -1308,10 +1311,15 @@
     } else {
       totalWrap.style.display = "none";
       hintEl.style.display = "block";
-      const falta = COMBO_MIN - info.count;
-      hintEl.textContent = info.count === 0
-        ? `Elige ${COMBO_MIN} o más fragancias.`
-        : `Te falta${falta === 1 ? "" : "n"} ${falta} para continuar`;
+      if (info.count >= COMBO_MIN && !info.allSelectedHaveSize) {
+        const unavailCount = info.unavailableSelectedIds.length;
+        hintEl.textContent = `${unavailCount} fragancia${unavailCount === 1 ? " seleccionada no está" : "s seleccionadas no están"} disponible${unavailCount === 1 ? "" : "s"} en ${comboSize} ml. Cambia la presentación o reemplázal${unavailCount === 1 ? "a" : "as"} para continuar.`;
+      } else {
+        const falta = COMBO_MIN - info.count;
+        hintEl.textContent = info.count === 0
+          ? `Elige ${COMBO_MIN} o más fragancias.`
+          : `Te falta${falta === 1 ? "" : "n"} ${falta} para continuar`;
+      }
       confirmBtn.disabled = true;
       if (dockAmount) dockAmount.textContent = info.count > 0 ? formatPrice(info.subtotal) : "";
     }
@@ -1360,14 +1368,18 @@
       }).join("") + (brandCfg.activo ? `<span><strong>${esc(brandCfg.minItems)}+ misma marca</strong><b>${esc(brandCfg.porcentaje)}%</b></span>` : "");
     }
     if (thresholdEl && threshold.activo) {
-      thresholdEl.innerHTML = `<strong>S/ ${esc(threshold.monto)}+</strong> · ENVÍO GRATIS${threshold.vialGratis ? " + vial de nicho" : ""}`;
+      thresholdEl.innerHTML = `<strong>S/ ${esc(threshold.monto)}+</strong> · ENVÍO GRATIS${threshold.vialGratis ? " + vial de nicho de regalo" : ""}`;
     }
   }
   /* El combo usa el mismo final de compra que el resto del sitio. */
   function confirmCombo() {
     const info = getComboDiscountInfo();
     if (!info.isValid) {
-      showToast(`⚠️ Elige al menos ${COMBO_MIN} fragancias para tu combo`);
+      if (info.count >= COMBO_MIN && !info.allSelectedHaveSize) {
+        showToast(`⚠️ ${info.unavailableSelectedIds.length} fragancia${info.unavailableSelectedIds.length === 1 ? " no está" : "s no están"} disponible${info.unavailableSelectedIds.length === 1 ? "" : "s"} en ${comboSize} ml. Cambia la presentación o reemplázal${info.unavailableSelectedIds.length === 1 ? "a" : "as"}.`);
+      } else {
+        showToast(`⚠️ Elige al menos ${COMBO_MIN} fragancias para tu combo`);
+      }
       return;
     }
     const includedProducts = comboSelectedIds.map((pid) => {
@@ -1600,30 +1612,11 @@
     // un producto en PROXIMAMENTE conserva su badge normalmente.
     const featured = getFeaturedProducts();
     grid.innerHTML = featured.map(createProductCard).join("");
-    grid.classList.toggle("featured-carousel", featured.length > 0);
     observeRevealElements();
     window.FraganceAnimations?.refresh?.();
-    updateFeaturedCarouselArrows();
   }
 
-  function updateFeaturedCarouselArrows() {
-    const grid = $("featuredGrid");
-    const prevBtn = $("featuredPrev");
-    const nextBtn = $("featuredNext");
-    if (!grid || !prevBtn || !nextBtn) return;
-    const maxScroll = grid.scrollWidth - grid.clientWidth;
-    prevBtn.disabled = grid.scrollLeft <= 4;
-    nextBtn.disabled = grid.scrollLeft >= maxScroll - 4;
-  }
 
-  function scrollFeaturedCarousel(direction) {
-    const grid = $("featuredGrid");
-    if (!grid) return;
-    const card = grid.querySelector(".product-card");
-    const step = card ? card.getBoundingClientRect().width + 20 : grid.clientWidth * 0.8;
-    grid.scrollBy({ left: direction * step, behavior: "smooth" });
-  }
-  window.scrollFeaturedCarousel = scrollFeaturedCarousel;
 
   /* ══════════════════════════════════════════════════════════════
      RENDER — CATALOG
@@ -3603,22 +3596,12 @@
      INIT
   ══════════════════════════════════════════════════════════════ */
 
-  function setupFeaturedCarousel() {
-    const grid = $("featuredGrid");
-    const prevBtn = $("featuredPrev");
-    const nextBtn = $("featuredNext");
-    if (!grid) return;
-    grid.addEventListener("scroll", () => updateFeaturedCarouselArrows(), { passive: true });
-    window.addEventListener("resize", () => updateFeaturedCarouselArrows());
-    prevBtn?.addEventListener("click", () => scrollFeaturedCarousel(-1));
-    nextBtn?.addEventListener("click", () => scrollFeaturedCarousel(1));
-  }
+
 
   function init() {
     snapshotMeta();
     setupHeroMobile();
     renderFeatured();
-    setupFeaturedCarousel();
     updateCartUI();
     if (removedFromCartCount > 0) {
       showToast(
