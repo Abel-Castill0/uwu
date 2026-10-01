@@ -237,7 +237,7 @@ step(function () {
         // tarjetas, sin duplicados (ver bug de load-more/slice corregido
         // en renderCatalog).
         var filteredCount = window.FO_PRODUCTS.filter(function (p) {
-          return (!p.type || p.type === "product") && !p.tester && !p.sealed && p.category === "nicho";
+          return (!p.type || p.type === "product") && p.public !== false && !p.tester && !p.sealed && p.category === "nicho";
         }).length;
         ok(gridCount() === filteredCount, "catalogNichoFiltered", "grid=" + gridCount() + " esperado=" + filteredCount);
         const cardCount = document.querySelectorAll("#catalogGrid .product-card").length;
@@ -321,7 +321,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
         window.__chains -= 1;
         // vuelta a nicho: mismo comportamiento incremental, mismo total real
         var filteredCount = window.FO_PRODUCTS.filter(function (p) {
-          return (!p.type || p.type === "product") && !p.tester && !p.sealed && p.category === "nicho";
+          return (!p.type || p.type === "product") && p.public !== false && !p.tester && !p.sealed && p.category === "nicho";
         }).length;
         ok(gridCount() === filteredCount, "catalogBackFiltered", "grid=" + gridCount() + " esperado=" + filteredCount);
       }
@@ -340,7 +340,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
   step(function () {
     var byLetter = {};
     window.FO_PRODUCTS.filter(function (p) {
-      return (!p.type || p.type === "product") && !p.tester && !p.sealed && p.category === "nicho";
+      return (!p.type || p.type === "product") && p.public !== false && !p.tester && !p.sealed && p.category === "nicho";
     }).forEach(function (p) {
       var letter = (p.brand || "").charAt(0).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
       var counts = byLetter[letter] || (byLetter[letter] = {});

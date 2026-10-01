@@ -24,8 +24,8 @@ test('Completos nav clears stale filters, wraps vertically and survives Back/For
   await expect(page.locator('#nav')).not.toHaveClass(/open/);
   await expect(page.locator('#filtersCategory [data-filter="completos"]')).toHaveAttribute('aria-pressed', 'true');
   const cards = page.locator('#catalogGrid .product-card');
-  await expect(cards).toHaveCount(7);
-  expect(await cards.evaluateAll((els) => els.map((el) => Number(el.dataset.productId)))).toEqual([141, 142, 143, 145, 146, 147, 148]);
+  await expect(cards).toHaveCount(10);
+  expect(await cards.evaluateAll((els) => els.map((el) => Number(el.dataset.productId)))).toEqual([141, 142, 143, 145, 146, 147, 148, 151, 152, 153]);
   const layout = await page.locator('#catalogGrid').evaluate((el) => {
     const style = getComputedStyle(el);
     const rows = new Set([...el.querySelectorAll('.product-card')].map((card) => Math.round(card.getBoundingClientRect().top)));
@@ -36,11 +36,11 @@ test('Completos nav clears stale filters, wraps vertically and survives Back/For
   await page.goBack();
   await expect(page.locator('#filtersCategory [data-filter="todos"]')).toHaveAttribute('aria-pressed', 'true');
   await page.goForward();
-  await expect(cards).toHaveCount(7);
+  await expect(cards).toHaveCount(10);
   await expect(page.locator('#filtersCategory [data-filter="completos"]')).toHaveAttribute('aria-pressed', 'true');
   await page.reload();
   await expect(page.locator('#loadingScreen')).toBeHidden({ timeout: 5000 });
-  await expect(cards).toHaveCount(7);
+  await expect(cards).toHaveCount(10);
   await openNavLink(page, 'Inicio');
   await openNavLink(page, 'Completos');
   await page.locator('#catalogGrid [data-product-id="142"]').click();
@@ -48,7 +48,8 @@ test('Completos nav clears stale filters, wraps vertically and survives Back/For
 });
 
 test('Six affected decants share availability and canonical photos in cards and modals', async ({ page }) => {
-  const requested = [[140, 'Fierezza', false], [55, 'Porthole', true], [78, 'Gentle Fluidity Silver', true], [81, 'Gris Charnel EDP', false], [90, 'Ani', false], [100, 'Castley', false]];
+  test.setTimeout(120000); // 8 fichas × catálogo + modal: en WebKit móvil excede los 60 s por defecto
+  const requested = [[140, 'Fierezza', false], [55, 'Porthole', true], [78, 'Gentle Fluidity Silver', true], [81, 'Gris Charnel EDP', false], [100, 'Castley', false], [51, 'Birth of Venus', false], [64, 'Paragon', false], [137, 'Toucan', false], [150, 'Mefisto Gentiluomo', true]];
   const fierezza = page.locator('#featuredGrid [data-product-id="140"]');
   await expect(fierezza.locator('.btn-add')).toBeEnabled();
   await expect(fierezza.locator('.product-badge').filter({ hasText: 'Próximamente' })).toHaveCount(0);
@@ -74,6 +75,8 @@ test('Six affected decants share availability and canonical photos in cards and 
     await page.locator('#modalOverlay .modal-close').click();
   }
   await openNavLink(page, 'Catálogo');
+  await page.locator('#catalogSearch').fill('Ani');
+  await expect(page.locator('#catalogGrid [data-product-id="90"]')).toHaveCount(0); // Ani: NO DISPONIBLE (cliente 01/10)
   await page.locator('#catalogSearch').fill('Narcotic Delight');
   await expect(page.locator('#catalogGrid [data-product-id="62"]')).toBeVisible();
   await expect(page.locator('#catalogGrid [data-product-id="144"]')).toHaveCount(0);
@@ -84,7 +87,7 @@ test('Header fits and Completos wraps across the requested responsive widths', a
   for (const width of [320, 360, 390, 430, 768, 900, 1024, 1280, 1366, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await openNavLink(page, 'Completos');
-    await expect(page.locator('#catalogGrid .product-card')).toHaveCount(7);
+    await expect(page.locator('#catalogGrid .product-card')).toHaveCount(10);
     const header = await page.evaluate(() => {
       const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
       const logo = rect('.header-inner .logo'), nav = rect('#nav'), actions = rect('.header-actions');

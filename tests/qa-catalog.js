@@ -44,7 +44,9 @@ const checks = [
   { id: 72, expect: "Mezzo" },
   { id: 83, expect: "Pas Ce Soir Extrait" },
   { id: 81, expect: "Gris Charnel EDP" },
-  { id: 90, expect: "ANI" },
+  { id: 51, expect: "Birth of Venus" },
+  { id: 64, expect: "Paragon" },
+  { id: 137, expect: "Toucan" },
 ];
 
 console.log("\n=== DISPONIBLES CONFIRMADOS ===");
@@ -58,9 +60,9 @@ checks.forEach(function(c) {
     "name=" + (p ? p.name : "NOT FOUND") + " brand=" + (p ? p.brand : "?") + " prox=" + inProx + " purchasable=" + purchasable);
 });
 
-// 2. Paragon should be back in PROXIMAMENTE
+// 2. Paragon disponible (cliente 01/10)
 console.log("\n=== PARAGON ===");
-check("Paragon(64) in PROXIMAMENTE", proxArr.includes(64), "");
+check("Paragon(64) NOT in PROXIMAMENTE", !proxArr.includes(64), "");
 
 // 3. Babycat
 console.log("\n=== BABYCAT ===");
@@ -81,7 +83,7 @@ console.log("\n=== MEFISTO ===");
 const m = findProduct(150);
 const mProx = proxArr.includes(150);
 check("Mefisto(150) exists", !!m, "");
-check("Mefisto NOT in PROXIMAMENTE", !mProx, "prox=" + mProx);
+check("Mefisto in PROXIMAMENTE (cliente 01/10)", mProx, "prox=" + mProx);
 check("Mefisto brand=Xerjoff", m && m.brand === "Xerjoff", "brand=" + (m ? m.brand : "?"));
 check("Mefisto has decants", m && m.hasDecants, "");
 // El catálogo del cliente confirmó "Mefisto Gentiluomo" (línea Casamorati
@@ -112,7 +114,6 @@ const imgChecks = [
   [72, "Mezzo.webp"],
   [83, "PAS CE SOIR EXRAIT.webp"],
   [81, "GRIS CHARNEL EDP.webp"],
-  [90, "ANI.webp"],
 ];
 imgChecks.forEach(function([id, file]) {
   check("img " + id + " " + file, fs.existsSync(path.join(imgDir, file)), file);
@@ -175,7 +176,8 @@ const inventory = catalogWindow.FO_PRODUCTS;
 const requested = [
   [140, "Fierezza", false], [55, "Porthole", true],
   [78, "Gentle Fluidity Silver", true], [81, "Gris Charnel EDP", false],
-  [90, "Ani", false], [100, "Castley", false],
+  [100, "Castley", false], [51, "Birth of Venus", false], [64, "Paragon", false],
+  [137, "Toucan", false], [150, "Mefisto Gentiluomo", true],
 ];
 requested.forEach(([id, name, soon]) => {
   const product = inventory.find((p) => p.id === id);
@@ -185,6 +187,13 @@ requested.forEach(([id, name, soon]) => {
 });
 check("Narcotic full bottle retained as historical data", inventory.some((p) => p.id === 144 && p.fullSizes[90] === 860), "");
 check("Narcotic full bottle absent from public inventory", !inventory.filter((p) => p.public !== false && p.sealed).some((p) => p.id === 144), "");
+check("Ani(90) NO DISPONIBLE: retirado del inventario público", inventory.some((p) => p.id === 90 && p.public === false) && !proxArr.includes(90), "");
+check("Toucan 20ml (decant) with its own image", inventory.some((p) => p.id === 137 && p.decantSizes[20] && /Toucan 20ml\.webp$/.test(p.sizeImages["20"])), "");
+[[151, "Birth of Venus", "Argos", 100, 950], [152, "Dream Sea", "Lorenzo Pazzaglia", 50, 675], [153, "Gris Charnel EDP", "BDK Parfums", 100, 799]].forEach(([id, name, brand, ml, price]) => {
+  const p = inventory.find((x) => x.id === id);
+  check(`Sealed ${name} ${ml}ml S/${price}`, !!p && p.name === name && p.brand === brand && p.sealed && p.sealedStatus === "sellado" && p.sealedSize === ml + "ml" && p.fullSizes[ml] === price && p.public !== false && !proxArr.includes(id), "");
+  check(`Sealed ${name} image exists`, !!p && fs.existsSync(path.join(ROOT, p.cardImage)), "");
+});
 check("Narcotic decant stays public", inventory.some((p) => p.id === 62 && p.public !== false && Object.keys(p.decantSizes).length > 0), "");
 
 console.log("\n=== RESULTADO ===");
