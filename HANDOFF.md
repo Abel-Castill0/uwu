@@ -661,3 +661,27 @@ bloqueada para cualquier compra (reemplaza el viejo `public:false`).
   `img/perfumes_optimized/Mefisto Xerjoff*.webp` (nuevas) + 3 webp de
   Gris Charnel Extrait modificados.
 
+
+### Cierre de la ronda
+
+- Precio por línea en toda la cadena: helper includedProductPrice()
+  (precio congelado o recalculado desde catálogo con la talla individual)
+  → carrito (.cart-pack-info / .cart-pack-meta = "<talla>ml · S/ xx.xx"),
+  resumen de checkout (• Nombre · 2ml · S/ 35.00) y mensaje de WhatsApp
+  (• Nombre (2ml) · S/ 35.00).
+- Nueva suite 	ests/e2e/combo-mixed.spec.js (4 tests x 3 proyectos):
+  flujo desktop de 16 pasos con tallas 2/3/5/10ml y cambios aislados,
+  variante movil 390x844 con dock (expand/colapsar esperando la
+  transición), carrito/checkout/WhatsApp con perfume+talla+precio por
+  línea, y Ani (badge NO DISPONIBLE, public sin definir en
+  productos.js, modal sin tallas, click no agrega al carrito, ausente
+  de #comboList).
+- Resultado final: 
+px playwright test **178 passed / 2 skipped /
+  0 failed** (180 tests, 3 proyectos; incluidos los 12 del spec nuevo),
+  
+pm test **303 PASS | 0 FAIL x 6**, smoke 14/14, qa-catalog 90/90,
+  test-descuentos 86/86, release-coherence PASS (20261001 intacto).
+- Commit 2e57270 pushado a origin/master (980698d..2e57270):
+  solo archivos de esta tarea; las imágenes ajenas (Mefisto x4 nuevas,
+  Gris Charnel x3 modificadas) quedan sin commitear.
