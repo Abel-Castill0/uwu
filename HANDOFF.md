@@ -685,3 +685,128 @@ pm test **303 PASS | 0 FAIL x 6**, smoke 14/14, qa-catalog 90/90,
 - Commit 2e57270 pushado a origin/master (980698d..2e57270):
   solo archivos de esta tarea; las imágenes ajenas (Mefisto x4 nuevas,
   Gris Charnel x3 modificadas) quedan sin commitear.
+
+
+## Ronda 2026-10-02 — Forma de envío obligatoria, DNI sin duplicar,
+terminología de presentación y sellados 142/152 retirados
+
+Pedido del cliente (4 puntos):
+1. NO duplicar el DNI (ya existe; conservarlo tal cual).
+2. Campo "Forma de envío" **obligatorio** en DATOS DE ENTREGA, con línea
+   `🚚 Forma de envío:` y `💸 Costo de envío:` en el mensaje de WhatsApp.
+3. Terminología visible del combo: "talla" → "presentación" (sin tocar
+   APIs ni estado).
+4. Retirar del catálogo público Castley sellado (142) y Dream Sea sellado
+   (152), conservando sus datos históricos y el decant Castley (100).
+
+### 1. DNI — campo existente, se conserva, NO se persiste
+
+- **No se creó ningún campo nuevo**: `index.html` ya tenía `#chDNI`
+  etiquetado "DNI (opcional)" con su regla en `setupCheckoutValidation()`
+  (`vacío | 8 dígitos | 9-12 alfanuméricos`). Se dejó intacto.
+- Añadida la MISMA regla en `confirmarCompra()` (segunda defensa, igual
+  que el teléfono): si trae valor inválido corta el pedido con toast y
+  foco; vacío sigue confirmando igual (opcional).
+- Privacidad verificada: el DNI solo viaja en el mensaje de WhatsApp —
+  no se escribe en `localStorage` (`fo_cart_v4`, `fo_theme`), ni en
+  `sessionStorage` (`fo_cart_reminded`), ni en cookies, ni en `track()`.
+  Hay test E2E que lo comprueba después de confirmar.
+
+### 2. Forma de envío (nueva, obligatoria)
+
+- `index.html`: `<fieldset class="form-group ship-method" id="shipGroup">`
+  con `legend "Forma de envío *"`, `role="radiogroup"` y 3 radios
+  `name="chEnvio"` (**motorizado | olva | shalom**), dentro de "Datos de
+  entrega", DESPUÉS de Referencia y ANTES de `.checkout-summary` (no junto
+  al bloque de pago).
+- `script.js`: `SHIP_METHODS` (Object.freeze), `getSelectedShipMethod()`
+  (lee el radio marcado y valida contra el catálogo cerrado: un valor
+  desconocido cuenta como "sin elegir") y `setShipMethodInvalid()` (pinta
+  `is-invalid` sobre el fieldset, ya que no es un `.form-group` de input).
+- Validación en las DOS capas:
+  - `setupCheckoutValidation()`: `allValid() = othersValid() && !!getSelectedShipMethod()`;
+    `refreshButton()` alterna `is-disabled`/`aria-disabled` y marca el
+    group en cuanto el resto del formulario queda listo (el botón es
+    inerte con `pointer-events:none`, así que el aviso no podía esperar
+    al click). Listeners `change` en los radios.
+  - `confirmarCompra()`: corta DESPUÉS de `sanitizeCartAvailability()`
+    (para no alterar el orden de bloqueo existente) y ANTES de
+    `buildOrderMessage()`/`window.open`.
+- Mensaje: bloque nuevo `\n🚚 *Forma de envío:* Motorizado|Olva|Shalom`
+  (solo si hay selección) y la línea de costo se renombró de
+  `🚚 *Envío:*` a `💸 *Costo de envío:*` con el MISMO valor que ya
+  calculaba (`GRATIS` si aplica envío gratis / `A coordinar (Lima
+  Metropolitana)`). **Las reglas de envío no se tocaron**: gratis ≥ S/199
+  sigue saliendo de `calcularDescuentos()`; en el total del pedido no se
+  suma ningún importe nuevo.
+- `styles.css`: `.ship-method*` / `.ship-option*` (grid
+  `repeat(auto-fit, minmax(84px,1fr))`, tarjeta con radio dibujado,
+  estado activo dorado, `:focus-visible`, `is-invalid` y
+  `.ship-method__error`), más ajuste ≤360px.
+
+### 3. Terminología del combo: "talla" → "presentación" (solo visible)
+
+- Textos cambiados (UI copy): "presentaciones mixtas", "Sin presentación",
+  "Elegir presentación", `aria-label="Presentación de X"`, dock
+  "… sin presentación elegida", chip "(sin presentación)", hint
+  "Elige la presentación de …" / "con su propia presentación", toast
+  "… su presentación. Elige la presentación de …" y el subtítulo del
+  combo en `index.html`.
+- **NO se tocó**: `comboSelections`, `includedProducts[].size`,
+  `COMBO_SIZES`, `COMBO_SIZE_PREFERENCE`, `packSizesLabel`,
+  `getComboDiscountInfo`, `combo-item__size`, `window.comboSelectedIds`
+  ni nada del precio/estado (la "talla" interna sigue llamándose size).
+
+### 4. Sellados retirados (142 Castley / 152 Dream Sea)
+
+- `productos.js`: `public: false` en ambos. Sus datos (precio,
+  `regularPrice`, `sealedStatus`, imagen) siguen en el archivo como
+  histórico, igual que Narcotic (144).
+- Efecto real por los guards existentes: no aparecen en catálogo, no
+  abren ficha (`openModal` resuelve contra inventario público),
+  `addToCart` los rechaza y `sanitizeCartAvailability` los retira de
+  carritos viejos (2 retirados, el resto intacto).
+- **Castley decant (100) NO se tocó** (`public` sin definir, sigue
+  comprable, su ficha abre) y tampoco Dream Sea decant (58).
+- Inventario público de sellados resultante: **8** (141, 143, 145, 146,
+  147, 148, 151, 153) — los tests lo derivan de `FO_PRODUCTS`, no de un
+  número escrito a mano. `config.js` solo cambió el comentario de
+  disponibilidad; `NO_DISPONIBLE: [90]` y `PROXIMAMENTE` intactos.
+
+### Tests y resultados de esta ronda
+
+- `tests/selftest.js` (+30 aserciones): step **13b0** nuevo (catálogo
+  exacto de 3 modalidades, sin selección → botón inválido +
+  `confirmarCompra()` no abre wa.me + `is-invalid`, DNI vacío inválido y
+  ausente del mensaje, DNI `123` bloqueado, DNI `12345678` en el mensaje,
+  las 3 modalidades con su línea `🚚`/`💸` y sin `🚚 *Envío:*`), step 13
+  selecciona envío antes de confirmar (aserción extra sobre el URL), y
+  step 15b con el set de Completos **derivado** del inventario (8),
+  142/152 ausentes, 100 fuera de Completos pero con ficha abrible, card
+  y modal ahora sobre **143 (Erba Gold)** y modal de 142 que NO abre.
+  Regex/dock de "Sin talla" → "Sin presentación".
+- `tests/e2e/checkout-shipping.spec.js` **NUEVO** (5 tests × 3 proyectos):
+  DNI opcional/no persistido/bloqueo inválido; catálogo cerrado de 3
+  modalidades + bloqueo sin selección; costo GRATIS ≥ S/199 y A coordinar
+  por debajo; el fieldset dentro de "Datos de entrega" y antes del pago;
+  responsive 320/360/390/430/768/1024/1280 sin desborde.
+- `combo.spec.js`: dock "sin presentación" y texto exacto
+  "3 seleccionadas · 1 sin presentación elegida".
+- `combo-mixed.spec.js`: elige forma de envío antes de `#payConfirmBtn`
+  (si no, el botón es inerte) y asertá `🚚 *Forma de envío:* Motorizado`
+  + `💸 *Costo de envío:*` en el mensaje.
+- `completos.spec.js` y `qa-catalog.js`: set de sellados públicos
+  derivado (8) + bloque de retiro (142,152: dato histórico, fuera del
+  inventario público, fuera de PROXIMAMENTE/NO_DISPONIBLE, imagen
+  conservada; decants 100 y 58 siguen públicos).
+- **Resultados**: `npm test` **333 PASS | 0 FAIL × 6 corridas**;
+  `npx playwright test` **196 passed / 2 skipped / 0 failed** (198 tests,
+  3 proyectos); `npm run smoke` 14/14; `node tests/qa-catalog.js`
+  **101/101**; `node test-descuentos.js` **86/86** (descuentos intactos);
+  `node tests/release-coherence.js` PASS.
+- Release bumpeada **20261001 → 20261002** en `index.html` (7), `admin.html`
+  (2), `offline.html` (1), `sw.js` (RELEASE) y `tests/release-coherence.js`
+  (2); SW `fo-v85-client-availability` → **`fo-v86-checkout-shipping`**.
+- Imágenes sin relación con esta tarea sin commitear:
+  `img/perfumes_optimized/Mefisto Xerjoff*.webp` (4 nuevas) + 3 webp de
+  Gris Charnel Extrait modificadas.

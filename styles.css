@@ -1510,6 +1510,106 @@
     pointer-events: none;
   }
 
+  /* ── Forma de envío (checkout) ────────────────────────────────────
+     Logística, NO método de pago: mismo lenguaje visual que las cards
+     de pago (borde + dorado activo) pero en un bloque propio dentro de
+     "Datos de entrega". Selección única (radio group accesible). */
+  .ship-method {
+    border: 0; padding: 0; margin: 0 0 1.1rem; min-width: 0;
+  }
+  .ship-method__legend {
+    padding: 0;
+    font-size: .73rem; font-weight: 600; color: var(--text-muted);
+    margin-bottom: .45rem; letter-spacing: .01em;
+  }
+  .ship-method__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+    gap: .55rem;
+  }
+  .ship-option {
+    position: relative;
+    display: block;
+    cursor: pointer;
+    min-width: 0;
+  }
+  .ship-option input {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .ship-option__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    min-height: 56px;
+    padding: .55rem .4rem;
+    background: var(--surface);
+    border: 1.5px solid var(--color-border-strong);
+    border-radius: var(--r-md);
+    text-align: center;
+    transition: all var(--t-fast);
+  }
+  .ship-option:hover .ship-option__card {
+    border-color: var(--gold-light);
+    transform: translateY(-1px);
+  }
+  .ship-option__radio {
+    width: 15px; height: 15px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1.5px solid var(--text-light);
+    background: transparent;
+    transition: all var(--t-fast);
+  }
+  .ship-option__name {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+    word-break: break-word;
+  }
+  .ship-option input:checked + .ship-option__card {
+    border-color: var(--gold);
+    background: linear-gradient(135deg, var(--gold-pale) 0%, rgba(230,233,236,.35) 100%);
+    box-shadow: 0 0 0 3px rgba(201,155,95,.16);
+  }
+  [data-theme="dark"] .ship-option input:checked + .ship-option__card {
+    background: rgba(201,155,95,.12);
+    border-color: var(--gold-light);
+  }
+  .ship-option input:checked + .ship-option__card .ship-option__radio {
+    border-color: var(--gold);
+    background: var(--gold);
+    box-shadow: inset 0 0 0 3px var(--surface);
+  }
+  .ship-option input:focus-visible + .ship-option__card {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+  /* Estado inválido: el botón de confirmación queda inerte, así que el
+     grupo avisa por su cuenta (borde rojo + mensaje). */
+  .ship-method.is-invalid .ship-option__card { border-color: #d24b4b; }
+  .ship-method.is-invalid .ship-option__radio { border-color: #d24b4b; }
+  .ship-method__error {
+    display: none;
+    font-size: .72rem;
+    color: #d24b4b;
+    margin: .45rem 0 0;
+    line-height: 1.5;
+  }
+  .ship-method.is-invalid .ship-method__error { display: block; }
+
+  @media (max-width: 360px) {
+    .ship-method__grid { grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); }
+    .ship-option__name { font-size: .74rem; }
+  }
+
   /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     CATALOG HINT (gÃ©nero sin categorÃ­a)
   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */

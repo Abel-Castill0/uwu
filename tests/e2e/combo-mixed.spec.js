@@ -267,6 +267,10 @@ test('carrito/checkout/WhatsApp conservan perfume, talla y precio por línea', a
   ]) {
     await page.locator(`#${id}`).fill(value);
   }
+  // Forma de envío (02/10): obligatoria para habilitar el botón.
+  await page.locator('label.ship-option:has(input[name="chEnvio"][value="motorizado"])').click();
+  await expect(page.locator('input[name="chEnvio"][value="motorizado"]')).toBeChecked();
+  await expect(page.locator('#payConfirmBtn')).toHaveAttribute('aria-disabled', 'false');
   await page.locator('#payConfirmBtn').click();
   const url = await page.evaluate(() => window.__opened);
   expect(url).toBeTruthy();
@@ -277,6 +281,8 @@ test('carrito/checkout/WhatsApp conservan perfume, talla y precio por línea', a
   }
   expect(msg).toContain('Combo curado · 4 fragancias (Pack 2ml / 3ml / 5ml / 10ml)');
   expect(msg).toContain('Precio: ');
+  expect(msg).toContain('🚚 *Forma de envío:* Motorizado');
+  expect(msg).toMatch(/💸 \*Costo de envío:\* (GRATIS|A coordinar \(Lima Metropolitana\))/);
 });
 
 test('Ani (90): NO DISPONIBLE en catálogo, sin compra y fuera del combo', async ({ page }) => {

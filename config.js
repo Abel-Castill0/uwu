@@ -156,9 +156,11 @@ window.FO_CONFIG = {
   PROXIMAMENTE: [9, 10, 19, 37, 40, 41, 55, 60, 63, 78, 79, 95, 101, 103, 138, 150], // Ichigo Ichie, Last Birthday Cake, Mango Kiss, Que Chimba, Speachless, Evil Angel, Porthole, Tropikalys Karma, Musk Therapy, Gentle Fluidity Silver, Grand Soir, Wulong Cha X, Sedley, Malibú Party, Loverbird, Mefisto Gentiluomo
   /* Disponibles: Fierezza (140), Gris Charnel EDP (81), Birth of Venus (51),
      Paragon (64), Toucan (137, 20 ml), Castley
-     decant (100) y sellado (142), y Narcotic Delight decant (62).
-     Narcotic Delight sellado (144) se conserva como dato histórico y está
-     retirado del inventario público mediante public: false en productos.js. */
+     decant (100) y Narcotic Delight decant (62).
+     Narcotic Delight sellado (144), Castley sellado (142) y Dream Sea
+     sellado (152) se conservan como dato histórico y están retirados del
+     inventario público mediante public: false en productos.js
+     (cliente 02/10). El decant de Castley (100) NO está afectado. */
 
   /* ── NO DISPONIBLE (visible, pero sin venta) ──────────────────
      A diferencia de PROXIMAMENTE y de public:false, estos ids SIGUEN en

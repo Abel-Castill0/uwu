@@ -159,7 +159,7 @@ test('dejar un perfume sin talla conserva la selección y bloquea confirmar', as
   expect(s.unavailable).toEqual([ids[1]]);
   expect(s.valid).toBe(false);
   expect(s.confirmDisabled).toBe(true);
-  expect(s.dock).toContain('sin talla');
+  expect(s.dock).toContain('sin presentación');
   await expect(page.locator('.combo-chip--unavail')).toHaveCount(1);
   await expect(page.locator(`#comboList .combo-item:has(input[data-product-id="${ids[1]}"])`)).toHaveClass(/pending/);
 
@@ -178,7 +178,7 @@ test('móvil: el dock muestra la talla pendiente sin overflow', async ({ page })
   const ids = [partial[0], ...full.slice(0, 2)];
   for (const id of ids) await pick(page, id);
   await setRowSize(page, ids[0], '');
-  await expect(page.locator('#comboDockText')).toHaveText('3 seleccionadas · 1 sin talla elegida');
+  await expect(page.locator('#comboDockText')).toHaveText('3 seleccionadas · 1 sin presentación elegida');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(page.locator('#comboConfirmBtn')).toBeDisabled();
 });

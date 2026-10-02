@@ -198,11 +198,28 @@ check("Narcotic full bottle absent from public inventory", !inventory.filter((p)
 check("Ani(90) visible en el inventario público", inventory.some((p) => p.id === 90 && p.public !== false), "");
 check("Ani(90) NO DISPONIBLE listado y fuera de PROXIMAMENTE", noDispArr.includes(90) && !proxArr.includes(90), "noDisp=" + JSON.stringify(noDispArr));
 check("Toucan 20ml (decant) with its own image", inventory.some((p) => p.id === 137 && p.decantSizes[20] && /Toucan 20ml\.webp$/.test(p.sizeImages["20"])), "");
-[[151, "Birth of Venus", "Argos", 100, 950], [152, "Dream Sea", "Lorenzo Pazzaglia", 50, 675], [153, "Gris Charnel EDP", "BDK Parfums", 100, 799]].forEach(([id, name, brand, ml, price]) => {
+[[151, "Birth of Venus", "Argos", 100, 950], [153, "Gris Charnel EDP", "BDK Parfums", 100, 799]].forEach(([id, name, brand, ml, price]) => {
   const p = inventory.find((x) => x.id === id);
   check(`Sealed ${name} ${ml}ml S/${price}`, !!p && p.name === name && p.brand === brand && p.sealed && p.sealedStatus === "sellado" && p.sealedSize === ml + "ml" && p.fullSizes[ml] === price && p.public !== false && !proxArr.includes(id), "");
   check(`Sealed ${name} image exists`, !!p && fs.existsSync(path.join(ROOT, p.cardImage)), "");
 });
+/* Sellados RETIRADOS del inventario público (cliente 02/10): Castley
+   sellado (142) y Dream Sea sellado (152). Los datos históricos siguen en
+   productos.js con public:false — mismo mecanismo que Narcotic Delight
+   sellado (144). El mecanismo NO es PROXIMAMENTE (siguen fuera de esa
+   lista) ni un borrado del catálogo. */
+[142, 152].forEach((id) => {
+  const p = inventory.find((x) => x.id === id);
+  check(`Sealed ${id} kept as historical data`, !!p && p.sealed && p.sealedStatus === "sellado" && typeof p.fullSizes[Object.keys(p.fullSizes)[0]] === "number", "");
+  check(`Sealed ${id} retired from public inventory`, !inventory.filter((x) => x.public !== false).some((x) => x.id === id), "");
+  check(`Sealed ${id} not in PROXIMAMENTE`, !proxArr.includes(id), "");
+  check(`Sealed ${id} not in NO_DISPONIBLE`, !noDispArr.includes(id), "");
+  check(`Sealed ${id} image kept`, !!p && fs.existsSync(path.join(ROOT, p.cardImage)), "");
+});
+/* Los decants de esos nombres NO se tocaron. */
+check("Castley decant(100) still public", inventory.some((p) => p.id === 100 && p.public !== false && Object.keys(p.decantSizes).length > 0), "");
+check("Dream Sea decant(58) still public", inventory.some((p) => p.id === 58 && p.public !== false && Object.keys(p.decantSizes).length > 0), "");
+check("public sealed inventory = 8", inventory.filter((p) => p.sealed === true && p.public !== false).length === 8, "count=" + inventory.filter((p) => p.sealed === true && p.public !== false).length);
 check("Narcotic decant stays public", inventory.some((p) => p.id === 62 && p.public !== false && Object.keys(p.decantSizes).length > 0), "");
 
 console.log("\n=== RESULTADO ===");

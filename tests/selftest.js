@@ -434,7 +434,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(items.length > 0, "comboItemsRendered", "items=" + items.length);
     ok(Array.prototype.every.call(items, function (item) {
       var price = item.querySelector(".combo-item__price");
-      return price && price.children.length === 0 && /^(S\/ |—$|Sin talla$)/.test(price.textContent.trim());
+      return price && price.children.length === 0 && /^(S\/ |—$|Sin presentación$)/.test(price.textContent.trim());
     }), "comboRowsOnlyCurrentPrice", "filas=" + items.length);
     /* El selector global de tamaño ya NO existe: cada fila tiene el suyo. */
     ok(!document.querySelector(".combo-size-select, .combo-size-btn"), "comboNoGlobalSizeSelector", "quedó un selector global");
@@ -443,7 +443,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     }), "comboRowsHaveOwnSizeSelect", "filas=" + items.length);
     ok(Array.prototype.every.call(document.querySelectorAll("#comboList select.combo-item__size"), function (sel) {
       return sel.options.length >= 2 && sel.querySelector('option[value=""]');
-    }), "comboSizeSelectHasSizes", "sin opcion de talla");
+    }), "comboSizeSelectHasSizes", "sin opcion de presentacion");
   }, 500);
 
   /* comboToggleProduct() re-renderiza toda la lista (innerHTML) en cada
@@ -568,7 +568,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     var comboBtnPending = document.getElementById("comboConfirmBtn");
     ok(comboBtnPending && comboBtnPending.disabled, "perSizePendingConfirmDisabled", "sin boton");
     var dockText = document.getElementById("comboDockText");
-    ok(dockText && dockText.textContent.indexOf("sin talla") !== -1, "perSizePendingDock", dockText ? dockText.textContent : "sin dock");
+    ok(dockText && dockText.textContent.indexOf("sin presentación") !== -1, "perSizePendingDock", dockText ? dockText.textContent : "sin dock");
     var dockAmount = document.getElementById("comboDockAmount");
     ok(dockAmount && dockAmount.textContent.trim() === "", "perSizePendingDockAmountEmpty", "amount=" + (dockAmount ? dockAmount.textContent : "sin elemento"));
 
@@ -1139,6 +1139,89 @@ step(function () {
     if (btn) { btn.click(); }
   }, 500);
 
+  /* 13b0. CHECKOUT — DNI (opcional, ya existente) + FORMA DE ENVÍO (nueva).
+     Cubre las dos reglas del cliente sin inventar nada: el DNI conserva su
+     carácter de OPCIONAL (vacío = válido) pero si trae valor debe cumplir la
+     misma regla que setupCheckoutValidation(); y la forma de envío es
+     OBLIGATORIA, con catálogo cerrado (motorizado | olva | shalom) que se
+     refleja en el mensaje de WhatsApp SIN tocar el cálculo de costo. */
+  step(function () {
+    var confirmBtn = document.getElementById("payConfirmBtn");
+    var shipRadios = function () { return document.querySelectorAll('input[name="chEnvio"]'); };
+    var fillForm = function () {
+      ["chNombre", "chApellido", "chTelefono", "chDepartamento", "chProvincia", "chDireccion", "chDistrito"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.value = id === "chTelefono" ? "999888777" : "Test";
+      });
+      var last = document.getElementById("chDistrito");
+      if (last) last.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    var setDni = function (value) {
+      var el = document.getElementById("chDNI");
+      if (!el) return;
+      el.value = value;
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    var setShip = function (value) {
+      Array.prototype.forEach.call(shipRadios(), function (r) { r.checked = r.value === value; });
+      Array.prototype.forEach.call(shipRadios(), function (r) { if (r.checked) r.dispatchEvent(new Event("change", { bubbles: true })); });
+    };
+    var aria = function () { return confirmBtn ? confirmBtn.getAttribute("aria-disabled") : null; };
+    var msg = function () { return window.__FO_TEST.buildOrderMessage(); };
+
+    fillForm();
+
+    /* 1) Catálogo cerrado: exactamente tres radios con esos valores. */
+    var values = Array.prototype.map.call(shipRadios(), function (r) { return r.value; });
+    ok(shipRadios().length === 3 && values.join(",") === "motorizado,olva,shalom", "shipMethodsCatalog", values.join(","));
+
+    /* 2) Sin forma de envío: botón inválido + confirmarCompra() cortado
+          (no abre WhatsApp) + validación visible en el grupo. */
+    setShip(null);
+    setDni("");
+    ok(aria() === "true", "shipMissingDisablesConfirm", "aria=" + aria());
+    var shipGroup = document.getElementById("shipGroup");
+    ok(!!shipGroup && shipGroup.classList.contains("is-invalid"), "shipMissingShowsValidation", "sin is-invalid");
+    window.__opened = null;
+    window.confirmarCompra();
+    ok(window.__opened === null, "shipMissingBlocksOrder", "window.open=" + window.__opened);
+
+    /* 3) DNI vacío: sigue permitiendo confirmar (opcional) y NO se emite. */
+    setShip("motorizado");
+    ok(aria() === "false", "dniEmptyKeepsConfirmEnabled", "aria=" + aria());
+    var noDni = msg();
+    ok(noDni.indexOf("DNI") === -1, "dniEmptyOmittedFromMessage", noDni.slice(0, 260));
+    ok(noDni.indexOf("🚚 *Forma de envío:* Motorizado") !== -1, "shipMotorizadoInMessage", noDni.slice(-320));
+
+    /* 4) DNI inválido: la regla actual lo rechaza y NO genera pedido. */
+    setDni("123");
+    ok(aria() === "true", "dniInvalidDisablesConfirm", "aria=" + aria());
+    window.__opened = null;
+    window.confirmarCompra();
+    ok(window.__opened === null, "dniInvalidBlocksOrder", "window.open=" + window.__opened);
+
+    /* 5) DNI válido: viaja al mensaje de WhatsApp. */
+    setDni("12345678");
+    ok(aria() === "false", "dniValidEnablesConfirm", "aria=" + aria());
+    ok(msg().indexOf("*DNI:* 12345678") !== -1, "dniValidInMessage", msg().slice(0, 260));
+
+    /* 6) Las tres modalidades: cada una aparece en el mensaje y el COSTO
+          sigue saliendo de calcularDescuentos() (reglas intactas). */
+    ["motorizado", "olva", "shalom"].forEach(function (value) {
+      setShip(value);
+      var text = msg();
+      var label = value.charAt(0).toUpperCase() + value.slice(1);
+      ok(text.indexOf("🚚 *Forma de envío:* " + label) !== -1, "shipMethodInMessage_" + value, text.slice(-360));
+      ok(/💸 \*Costo de envío:\* (GRATIS|A coordinar \(Lima Metropolitana\))/.test(text), "shippingCostRuleUnchanged_" + value, text.slice(-360));
+      ok(text.indexOf("🚚 *Envío:*") === -1, "oldShippingLineRemoved_" + value, text.slice(-360));
+      ok(aria() === "false", "shipMethodEnablesConfirm_" + value, "aria=" + aria());
+    });
+
+    /* Estado limpio para el paso siguiente (13b confirma el pedido). */
+    setDni("");
+    setShip("motorizado");
+  }, 450);
+
   step(function () {
     var confirm = document.getElementById("payConfirmBtn");
     ok(!!confirm, "checkoutPage", "sin #payConfirmBtn");
@@ -1164,8 +1247,13 @@ step(function () {
       var el = document.getElementById(id);
       if (el) { el.value = id === "chTelefono" ? "999888777" : "Test"; }
     });
+    // Forma de envío obligatoria: sin ella el pedido no se confirma.
+    var shipRadio = document.querySelector('input[name="chEnvio"][value="motorizado"]');
+    if (shipRadio) { shipRadio.checked = true; shipRadio.dispatchEvent(new Event("change", { bubbles: true })); }
+    ok(!!shipRadio && confirm.getAttribute("aria-disabled") === "false", "checkoutReadyToConfirm", "aria=" + confirm.getAttribute("aria-disabled"));
     if (confirm) { confirm.click(); }
     ok(!!window.__opened && window.__opened.indexOf("https://wa.me/") === 0, "checkoutWa", "window.open=" + window.__opened);
+    ok(decodeURIComponent(window.__opened || "").indexOf("*Forma de envío:* Motorizado") !== -1, "checkoutWaHasShipMethod", decodeURIComponent(window.__opened || "").slice(-500));
     ok(!document.querySelector(".pay-method--mp, .mp-option, #mpCard, [data-pay='mp']"), "mpOculto", "controles MP presentes");
   }, 450);
 
@@ -1259,14 +1347,39 @@ step(function () {
     ok(badge(147) === "Parcial · 99% de contenido", "condParcial147", "badge=" + badge(147));
     ok(badge(148) === "Parcial · 99% de contenido", "condParcial148", "badge=" + badge(148));
     ok(badge(141) === "Frasco completo", "condSelladoNormal141", "badge=" + badge(141));
-    ok(Array.prototype.every.call(document.querySelectorAll('#catalogGrid .product-card[data-product-id="141"], #catalogGrid .product-card[data-product-id="142"], #catalogGrid .product-card[data-product-id="143"], #catalogGrid .product-card[data-product-id="144"], #catalogGrid .product-card[data-product-id="145"], #catalogGrid .product-card[data-product-id="146"], #catalogGrid .product-card[data-product-id="147"], #catalogGrid .product-card[data-product-id="148"]'), function (card) {
+    /* Set DERIVADO del inventario público: sellados con public !== false.
+       Tras la retirada del 02/10 quedan 8 (142 Castley y 152 Dream Sea ya
+       no aparecen) — el número no se fija a mano. */
+    var visibleIds = Array.prototype.map.call(document.querySelectorAll('#catalogGrid .product-card[data-product-id]'), function (card) {
+      return Number(card.dataset.productId);
+    });
+    var expectedIds = (window.FO_PRODUCTS || []).filter(function (p) {
+      return p.sealed === true && p.public !== false;
+    }).map(function (p) { return p.id; });
+    var sortNums = function (a, b) { return a - b; };
+    ok(JSON.stringify(visibleIds.slice().sort(sortNums)) === JSON.stringify(expectedIds.slice().sort(sortNums)) && expectedIds.length === 8,
+      "fullBottlesSetMatchesInventory", "visibles=" + visibleIds.join(",") + " esperado=" + expectedIds.join(","));
+    ok(visibleIds.indexOf(142) === -1 && visibleIds.indexOf(152) === -1, "sealedRetiredNotInGrid", "visibles=" + visibleIds.join(","));
+    // El DECANT de Castley (100) no es sellado: no entra en Completos…
+    ok(visibleIds.indexOf(100) === -1, "castleyDecantNotInCompletos", "visibles=" + visibleIds.join(","));
+    ok(Array.prototype.every.call(document.querySelectorAll('#catalogGrid .product-card[data-product-id="141"], #catalogGrid .product-card[data-product-id="143"], #catalogGrid .product-card[data-product-id="145"], #catalogGrid .product-card[data-product-id="146"], #catalogGrid .product-card[data-product-id="147"], #catalogGrid .product-card[data-product-id="148"]'), function (card) {
       return card.querySelectorAll(".product-badge").length === 1 && card.querySelector(".price-special-label").textContent.trim() === "Precio especial";
     }), "fullBottlesSpecialPrice", "completos=" + document.querySelectorAll('#catalogGrid .product-card[data-product-id]').length);
-    var castleyPrice = document.querySelector('#catalogGrid .product-card[data-product-id="142"] .product-price');
-    ok(castleyPrice && castleyPrice.querySelector(".price-reference-label").textContent.trim() === "Precio referencial" && castleyPrice.querySelector(".price-reference-label").compareDocumentPosition(castleyPrice.querySelector(".price-special-label")) & Node.DOCUMENT_POSITION_FOLLOWING, "cardReferenceBeforeSpecial", castleyPrice && castleyPrice.textContent.trim());
-    window.openModal(142);
+    var selladoPrice = document.querySelector('#catalogGrid .product-card[data-product-id="143"] .product-price');
+    ok(selladoPrice && selladoPrice.querySelector(".price-reference-label").textContent.trim() === "Precio referencial" && selladoPrice.querySelector(".price-reference-label").compareDocumentPosition(selladoPrice.querySelector(".price-special-label")) & Node.DOCUMENT_POSITION_FOLLOWING, "cardReferenceBeforeSpecial", selladoPrice && selladoPrice.textContent.trim());
+    // …y su FICHA sigue abriéndose (openModal resuelve contra el inventario
+    // público: el decant 100 es public, a diferencia de los sellados 142/152).
+    window.openModal(100);
+    ok(document.getElementById("modalOverlay").classList.contains("active") && document.getElementById("modalName").textContent.indexOf("Castley") !== -1, "castleyDecantModalOpens", document.getElementById("modalName").textContent);
+    window.closeModal(true);
+    window.openModal(143);
     var modalPrice = document.getElementById("modalPrice");
     ok(modalPrice.querySelector(".price-reference-label").compareDocumentPosition(modalPrice.querySelector(".price-special-label")) & Node.DOCUMENT_POSITION_FOLLOWING, "modalReferenceBeforeSpecial", modalPrice.textContent.trim());
+    window.closeModal(true);
+    // Los sellados retirados NO abren ficha (openModal resuelve contra el
+    // inventario público) — mismo criterio que Narcotic sellado (144).
+    window.openModal(142);
+    ok(!document.getElementById("modalOverlay").classList.contains("active"), "retiredSealedModalClosed", "modal abierto para 142");
     window.closeModal(true);
     // WhatsApp: la condición y el precio no deben perderse al cotizar
     window.openModal(147);

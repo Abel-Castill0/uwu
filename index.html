@@ -138,7 +138,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="styles.css?v=20261001" />
+  <link rel="stylesheet" href="styles.css?v=20261002" />
 </head>
 <body>
   <!-- Loading Screen -->
@@ -641,7 +641,7 @@
       <div class="page-hero-content">
         <div class="section-eyebrow page-hero-eyebrow">Descuento Automático</div>
         <h2 class="section-title page-hero-title">Arma tu Combo</h2>
-        <p class="section-subtitle page-hero-subtitle">Elige 3 o más fragancias, con el tamaño que quieras para cada una, revisa tu selección y continúa al checkout.</p>
+        <p class="section-subtitle page-hero-subtitle">Elige 3 o más fragancias, con la presentación que quieras para cada una, revisa tu selección y continúa al checkout.</p>
       </div>
     </section>
 
@@ -758,6 +758,37 @@
               <label for="chReferencia">Referencia</label>
               <input type="text" id="chReferencia" placeholder="Al costado del banco" />
             </div>
+            <!-- Forma de envío = LOGÍSTICA: vive dentro de "Datos de
+                 entrega" (no junto a "¿Cómo deseas pagar?"). Selección
+                 única: los valores permitidos están cerrados en
+                 script.js (SHIP_METHODS), nunca se leen como texto libre. -->
+            <fieldset class="form-group ship-method" id="shipGroup">
+              <legend class="ship-method__legend">Forma de envío *</legend>
+              <div class="ship-method__grid" role="radiogroup" aria-label="Forma de envío">
+                <label class="ship-option">
+                  <input type="radio" name="chEnvio" value="motorizado" />
+                  <span class="ship-option__card">
+                    <span class="ship-option__radio" aria-hidden="true"></span>
+                    <span class="ship-option__name">Motorizado</span>
+                  </span>
+                </label>
+                <label class="ship-option">
+                  <input type="radio" name="chEnvio" value="olva" />
+                  <span class="ship-option__card">
+                    <span class="ship-option__radio" aria-hidden="true"></span>
+                    <span class="ship-option__name">Olva</span>
+                  </span>
+                </label>
+                <label class="ship-option">
+                  <input type="radio" name="chEnvio" value="shalom" />
+                  <span class="ship-option__card">
+                    <span class="ship-option__radio" aria-hidden="true"></span>
+                    <span class="ship-option__name">Shalom</span>
+                  </span>
+                </label>
+              </div>
+              <p class="ship-method__error" id="shipMethodError">Selecciona una forma de envío para continuar</p>
+            </fieldset>
 <div class="checkout-summary">
         <div class="form-section-title">Resumen del Pedido</div>
         <div id="checkoutSummaryItems"></div>
@@ -1010,7 +1041,7 @@
   <!-- Animation libraries (orden importa: GSAP → ScrollTrigger → app → animations) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
-  <script src="config.js?v=20261001" defer></script>
+  <script src="config.js?v=20261002" defer></script>
   <script>
     /* URLs canónicas dinámicas: respetan la URL real (GitHub Pages, localhost o dominio propio). */
     (function () {
@@ -1024,11 +1055,11 @@
       } catch (e) {}
     })();
   </script>
-  <script src="descuentos.js?v=20261001" defer></script>
-  <script src="productos.js?v=20261001" defer></script>
-  <script src="hero-stats.js?v=20261001" defer></script>
-  <script src="animations.js?v=20261001" defer></script>
-  <script src="script.js?v=20261001" defer></script>
+  <script src="descuentos.js?v=20261002" defer></script>
+  <script src="productos.js?v=20261002" defer></script>
+  <script src="hero-stats.js?v=20261002" defer></script>
+  <script src="animations.js?v=20261002" defer></script>
+  <script src="script.js?v=20261002" defer></script>
 
   <!-- Senja (reseñas reales): terceros, script público, async, se carga una
        sola vez y no bloquea el first paint. iframeResizer solo ajusta la

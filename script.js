@@ -97,7 +97,7 @@
   function packSizesLabel(item) {
     if (!item.isPack || item.size !== "mixto") return sizeLabel(item.size);
     const sizes = Array.from(new Set((item.includedProducts || []).map((p) => p.size).filter(Boolean)));
-    if (sizes.length === 0) return "tallas mixtas";
+    if (sizes.length === 0) return "presentaciones mixtas";
     return sizes
       .map((s) => parseInt(String(s), 10))
       .filter((n) => !isNaN(n))
@@ -1380,9 +1380,9 @@
       const hasChosenSize = isSelected && comboProductHasSize(prod, chosenSize);
       const pending = isSelected && !hasChosenSize;
       const realPrice = hasChosenSize ? prod.decantSizes[chosenSize] : null;
-      const priceHtml = realPrice ? formatPrice(realPrice) : isSelected ? "Sin talla" : "—";
+      const priceHtml = realPrice ? formatPrice(realPrice) : isSelected ? "Sin presentación" : "—";
       const imgSrc = prod.cardImage || cardImg(prod);
-      const options = [`<option value=""${chosenSize ? "" : " selected"}>Elegir talla</option>`]
+      const options = [`<option value=""${chosenSize ? "" : " selected"}>Elegir presentación</option>`]
         .concat(sizes.map((s) => `<option value="${s}"${chosenSize === s ? " selected" : ""}>${s} ml</option>`))
         .join("");
       return `<label class="combo-item${isSelected ? " selected" : ""}${pending ? " pending" : ""}">
@@ -1395,7 +1395,7 @@
           <span class="combo-item__name">${esc(prod.name)}</span>
         </span>
         <span class="combo-item__config">
-          <select class="combo-item__size" data-product-id="${prod.id}" aria-label="Talla de ${esc(prod.name)}">${options}</select>
+          <select class="combo-item__size" data-product-id="${prod.id}" aria-label="Presentación de ${esc(prod.name)}">${options}</select>
           <span class="combo-item__price${hasChosenSize ? "" : " combo-item__price--pending"}">${priceHtml}</span>
         </span>
       </label>`;
@@ -1430,7 +1430,7 @@
     if (dockText) {
       if (selectedCount === 0) dockText.textContent = "0 seleccionadas";
       else if (pendingCount > 0) {
-        dockText.textContent = `${selectedCount} seleccionada${selectedCount === 1 ? "" : "s"} · ${pendingCount} sin talla elegida`;
+        dockText.textContent = `${selectedCount} seleccionada${selectedCount === 1 ? "" : "s"} · ${pendingCount} sin presentación elegida`;
       }
       else if (selectedCount >= COMBO_MIN) dockText.textContent = `${info.count} seleccionadas · ${formatPrice(info.total)}`;
       else {
@@ -1444,7 +1444,7 @@
       const size = comboSelections.get(pid);
       const hasSize = comboProductHasSize(prod, size);
       const unavailClass = hasSize ? "" : " combo-chip--unavail";
-      const label = hasSize ? `${esc(prod.name)} <span class="combo-chip__size">${esc(size)} ml</span>` : `${esc(prod.name)} (sin talla)`;
+      const label = hasSize ? `${esc(prod.name)} <span class="combo-chip__size">${esc(size)} ml</span>` : `${esc(prod.name)} (sin presentación)`;
       return `<span class="combo-chip${unavailClass}">${label} <button type="button" class="combo-chip-x" onclick="comboToggleProduct(${pid})" aria-label="Quitar ${esc(prod.name)}">&times;</button></span>`;
     }).join("");
     if (info.isValid) {
@@ -1465,7 +1465,7 @@
       totalWrap.style.display = "none";
       hintEl.style.display = "block";
       if (info.count >= COMBO_MIN && !info.allSelectedHaveSize) {
-        hintEl.textContent = `Elige la talla de ${pendingCount === 1 ? "la fragancia pendiente" : `las ${pendingCount} fragancias pendientes`} para continuar. Tienes ${info.count} seleccionadas y cada una se valora con su propio tamaño.`;
+        hintEl.textContent = `Elige la presentación de ${pendingCount === 1 ? "la fragancia pendiente" : `las ${pendingCount} fragancias pendientes`} para continuar. Tienes ${info.count} seleccionadas y cada una se valora con su propia presentación.`;
       } else {
         const falta = COMBO_MIN - info.count;
         hintEl.textContent = info.count === 0
@@ -1524,7 +1524,7 @@
     const info = getComboDiscountInfo();
     if (!info.isValid) {
       if (info.count >= COMBO_MIN && !info.allSelectedHaveSize) {
-        showToast(`⚠️ ${info.unavailableSelectedIds.length} fragancia${info.unavailableSelectedIds.length === 1 ? " necesita" : "s necesitan"} su talla. Elige el tamaño de ${info.unavailableSelectedIds.length === 1 ? "la fragancia pendiente" : "las fragancias pendientes"} para continuar.`);
+        showToast(`⚠️ ${info.unavailableSelectedIds.length} fragancia${info.unavailableSelectedIds.length === 1 ? " necesita" : "s necesitan"} su presentación. Elige la presentación de ${info.unavailableSelectedIds.length === 1 ? "la fragancia pendiente" : "las fragancias pendientes"} para continuar.`);
       } else {
         showToast(`⚠️ Elige al menos ${COMBO_MIN} fragancias para tu combo`);
       }
@@ -2532,6 +2532,30 @@
   /* Método de pago seleccionado en checkout: "whatsapp" o "card" */
   let selectedPayMethod = "whatsapp";
 
+  /* Forma de envío (checkout) — catálogo CERRADO de modalidades.
+     Es LOGÍSTICA (sección "Datos de entrega"), no método de pago. Solo se
+     aceptan estos tres valores: lo que venga del DOM sin coincidir con la
+     lista se trata como "sin elegir" (nunca se lee texto libre). Esta
+     captura NO define precios: el costo del envío sigue saliendo de
+     calcularDescuentos() (gratis desde S/199 / a coordinar). */
+  const SHIP_METHODS = Object.freeze({
+    motorizado: "Motorizado",
+    olva: "Olva",
+    shalom: "Shalom",
+  });
+  /* Devuelve la clave válida ("motorizado" | "olva" | "shalom") o null. */
+  function getSelectedShipMethod() {
+    const checked = document.querySelector('input[name="chEnvio"]:checked');
+    const value = checked ? String(checked.value || "").trim().toLowerCase() : "";
+    return Object.prototype.hasOwnProperty.call(SHIP_METHODS, value) ? value : null;
+  }
+  /* Marca/desmarca el estado inválido del grupo (misma señal visual que
+     usan los .form-group, aquí sobre el fieldset). */
+  function setShipMethodInvalid(invalid) {
+    const group = $("shipGroup");
+    if (group) group.classList.toggle("is-invalid", !!invalid);
+  }
+
   function buildOrderMessage() {
     const nombre = $("chNombre")?.value.trim() ?? "";
     const apellido = $("chApellido")?.value.trim() ?? "";
@@ -2592,7 +2616,14 @@
         mensaje += `  ✦ ${m.pct}% · ${m.cant} decants de ${m.marca}: −${formatPrice(m.monto)}\n`;
       });
     }
-    mensaje += `\n🚚 *Envío:* ${d.aplicaEnvioGratis ? "GRATIS" : "A coordinar (Lima Metropolitana)"}\n`;
+    // Modalidad elegida (logística) + costo, en ese orden. La modalidad
+    // viene del formulario; el COSTO sigue calculándose con las reglas
+    // comerciales vigentes (gratis desde S/199 / a coordinar) — este
+    // campo no cambia ningún precio.
+    const shipKey = getSelectedShipMethod();
+    mensaje += `\n`;
+    if (shipKey) mensaje += `🚚 *Forma de envío:* ${SHIP_METHODS[shipKey]}\n`;
+    mensaje += `💸 *Costo de envío:* ${d.aplicaEnvioGratis ? "GRATIS" : "A coordinar (Lima Metropolitana)"}\n`;
     if (d.vialGratisAgregado) {
       mensaje += `🎁 *Vial de regalo incluido (S/ 0.00)*\n`;
     }
@@ -2620,6 +2651,17 @@
       showToast("⚠️ Ingresa un teléfono válido (9 dígitos, ej. 999999999)");
       return;
     }
+    /* DNI: sigue siendo OPCIONAL (vacío = correcto), pero si trae valor
+       debe cumplir la MISMA regla que ya valida setupCheckoutValidation():
+       8 dígitos o 9–12 alfanuméricos. No se guarda en localStorage ni se
+       envía a analytics: solo viaja en este mensaje de WhatsApp. */
+    const dni = $("chDNI")?.value.trim() ?? "";
+    if (dni && !/^\d{8}$/.test(dni) && !/^[A-Za-z0-9]{9,12}$/.test(dni)) {
+      showToast("⚠️ Revisa el DNI: 8 dígitos, o déjalo vacío");
+      const dniEl = $("chDNI");
+      if (dniEl) dniEl.focus();
+      return;
+    }
     if (cart.length === 0) {
       showToast("⚠️ El carrito está vacío");
       return;
@@ -2641,6 +2683,20 @@
       );
       return;
     }
+
+    /* Forma de envío: obligatoria para confirmar (logística). Se valida
+       contra el catálogo cerrado SHIP_METHODS — un valor desconocido del
+       DOM cuenta como "sin elegir". Corta ANTES de abrir WhatsApp y
+       ANTES de iniciar cualquier pago. */
+    const shipMethod = getSelectedShipMethod();
+    if (!shipMethod) {
+      setShipMethodInvalid(true);
+      showToast("⚠️ Selecciona la forma de envío");
+      const firstShip = document.querySelector('input[name="chEnvio"]');
+      if (firstShip) firstShip.focus();
+      return;
+    }
+    setShipMethodInvalid(false);
 
     const mensaje = buildOrderMessage();
     // No se registra "purchase": abrir WhatsApp no confirma que el cliente
@@ -3122,17 +3178,26 @@
       }
       return valid;
     }
-    function allValid() {
+    function othersValid() {
       return ids.every((id) => {
         const el = $(id);
         return el && rules[id](el.value);
       });
+    }
+    function allValid() {
+      // + Forma de envío: obligatoria, pero su estado se pinta sobre el
+      // propio fieldset (no es un input con .form-group).
+      return othersValid() && !!getSelectedShipMethod();
     }
     function refreshButton() {
       if (!confirmBtn) return;
       const ok = allValid();
       confirmBtn.classList.toggle("is-disabled", !ok);
       confirmBtn.setAttribute("aria-disabled", String(!ok));
+      /* El botón es inerte mientras esté inválido (pointer-events:none),
+         así que el grupo de envío muestra su aviso en cuanto el resto del
+         formulario queda listo: sin eso el usuario no sabría qué falta. */
+      setShipMethodInvalid(!getSelectedShipMethod() && othersValid());
     }
 
     fields.forEach((input) => {
@@ -3160,6 +3225,13 @@
       });
       input.addEventListener("blur", () => {
         if (input.value.trim() !== "") validateField(input, true);
+        refreshButton();
+      });
+    });
+    /* Forma de envío: mismo ciclo de validación que los inputs. */
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="chEnvio"]'), (radio) => {
+      radio.addEventListener("change", () => {
+        setShipMethodInvalid(false);
         refreshButton();
       });
     });
