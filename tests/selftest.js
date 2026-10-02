@@ -1193,29 +1193,61 @@ step(function () {
     ok(noDni.indexOf("DNI") === -1, "dniEmptyOmittedFromMessage", noDni.slice(0, 260));
     ok(noDni.indexOf("🚚 *Forma de envío:* Motorizado") !== -1, "shipMotorizadoInMessage", noDni.slice(-320));
 
-    /* 4) DNI inválido: la regla actual lo rechaza y NO genera pedido. */
-    setDni("123");
-    ok(aria() === "true", "dniInvalidDisablesConfirm", "aria=" + aria());
-    window.__opened = null;
-    window.confirmarCompra();
-    ok(window.__opened === null, "dniInvalidBlocksOrder", "window.open=" + window.__opened);
+    /* 4) DNI con valor: SOLO 8 dígitos pasan (regla del campo, sin la rama
+          alfanumérica 9-12 que existía). Corto, 9 dígitos y alfanumérico
+          deben bloquear el pedido. */
+    ["123", "123456789", "ABC123456"].forEach(function (bad) {
+      setDni(bad);
+      ok(aria() === "true", "dniInvalidDisablesConfirm_" + bad, "aria=" + aria());
+      window.__opened = null;
+      window.confirmarCompra();
+      ok(window.__opened === null, "dniInvalidBlocksOrder_" + bad, "window.open=" + window.__opened);
+    });
 
     /* 5) DNI válido: viaja al mensaje de WhatsApp. */
     setDni("12345678");
     ok(aria() === "false", "dniValidEnablesConfirm", "aria=" + aria());
     ok(msg().indexOf("*DNI:* 12345678") !== -1, "dniValidInMessage", msg().slice(0, 260));
+    setDni("");
 
-    /* 6) Las tres modalidades: cada una aparece en el mensaje y el COSTO
-          sigue saliendo de calcularDescuentos() (reglas intactas). */
+    /* 6) Las tres modalidades: cada una aparece UNA sola vez en el
+          mensaje, no aparece ninguna otra, el costo es el mismo con
+          cualquiera (independiente de la modalidad) y sale de
+          calcularDescuentos() (reglas intactas). */
+    var costs = [];
+    var LABELS = { motorizado: "Motorizado", olva: "Olva", shalom: "Shalom" };
     ["motorizado", "olva", "shalom"].forEach(function (value) {
       setShip(value);
       var text = msg();
-      var label = value.charAt(0).toUpperCase() + value.slice(1);
-      ok(text.indexOf("🚚 *Forma de envío:* " + label) !== -1, "shipMethodInMessage_" + value, text.slice(-360));
-      ok(/💸 \*Costo de envío:\* (GRATIS|A coordinar \(Lima Metropolitana\))/.test(text), "shippingCostRuleUnchanged_" + value, text.slice(-360));
+      var label = LABELS[value];
+      var lines = text.split("🚚 *Forma de envío:*").length - 1;
+      ok(lines === 1 && text.indexOf("🚚 *Forma de envío:* " + label) !== -1,
+        "shipMethodInMessage_" + value, "lines=" + lines);
+      var others = ["Motorizado", "Olva", "Shalom"].filter(function (l) { return l !== label; });
+      ok(others.every(function (l) { return text.indexOf("🚚 *Forma de envío:* " + l) === -1; }),
+        "onlyOneShipMethod_" + value, others.join(","));
+      var cost = (text.match(/💸 \*Costo de envío:\* (GRATIS|A coordinar \(Lima Metropolitana\))/) || [])[1] || "";
+      ok(cost !== "", "shippingCostRuleUnchanged_" + value, "cost=" + cost);
       ok(text.indexOf("🚚 *Envío:*") === -1, "oldShippingLineRemoved_" + value, text.slice(-360));
       ok(aria() === "false", "shipMethodEnablesConfirm_" + value, "aria=" + aria());
+      costs.push(cost);
     });
+    ok(costs.length === 3 && costs[0] !== "" && costs[0] === costs[1] && costs[1] === costs[2],
+      "shippingCostIndependentOfMethod", costs.join("|"));
+
+    /* 7) Modalidad desconocida inyectada en el DOM: el catálogo cerrado
+          la rechaza (cuenta como "sin elegir") y corta el pedido. */
+    var tampered = document.querySelector('input[name="chEnvio"][value="shalom"]');
+    if (tampered) {
+      tampered.value = "dhl";
+      tampered.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    ok(aria() === "true", "unknownShipDisablesConfirm", "aria=" + aria());
+    ok(!!shipGroup.classList.contains("is-invalid"), "unknownShipShowsValidation", "sin is-invalid");
+    window.__opened = null;
+    window.confirmarCompra();
+    ok(window.__opened === null, "unknownShipBlocksOrder", "window.open=" + window.__opened);
+    if (tampered) tampered.value = "shalom";
 
     /* Estado limpio para el paso siguiente (13b confirma el pedido). */
     setDni("");

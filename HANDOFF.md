@@ -810,3 +810,32 @@ Pedido del cliente (4 puntos):
 - Imágenes sin relación con esta tarea sin commitear:
   `img/perfumes_optimized/Mefisto Xerjoff*.webp` (4 nuevas) + 3 webp de
   Gris Charnel Extrait modificadas.
+
+### Micro-round de hardening (mismo día, commit siguiente)
+
+- **DNI**: regla endurecida a SOLO `^\d{8}$` cuando hay valor — se
+  elimina la rama alfanumérica 9-12 de las DOS capas (`rules.chDNI` en
+  `setupCheckoutValidation()` y el corte de `confirmarCompra()`).
+  Sigue siendo OPCIONAL (vacío = válido) y sigue sin persistirse (ni
+  localStorage, ni sessionStorage, ni cookies, ni `track()`).
+- **E2E de las 3 modalidades** (`tests/e2e/checkout-shipping.spec.js`):
+  para motorizado/olva/shalom verifica el mensaje exacto
+  `🚚 *Forma de envío:* …`, que hay EXACTAMENTE UNA modalidad por
+  mensaje (las otras dos no aparecen), que el costo es idéntico con las
+  tres (independiente de la modalidad), que una modalidad desconocida
+  inyectada en el DOM (`value="dhl"`) bloquea el pedido, y que < S/199
+  sigue "A coordinar (Lima Metropolitana)" y ≥ S/199 sigue "GRATIS" con
+  las tres modalidades (2 carritos × 3).
+- **selftest**: step 13b0 ampliado — `123`, `123456789` y `ABC123456`
+  inválidos; `12345678` válido; una sola línea de modalidad por mensaje;
+  costo idéntico entre modalidades; `value="dhl"` bloqueado.
+- **Resultado**: `npm test` **344 PASS | 0 FAIL × 6**; `npx playwright test`
+  **196 passed / 2 skipped / 0 failed** (198 tests, 3 proyectos); smoke
+  14/14; qa-catalog **101/101**; test-descuentos **86/86**;
+  release-coherence PASS. (Dos corridas intermedias del full E2E
+  sufrieron timeouts de carga en tests ajenos — `fragrance` Comentarios,
+  y en otra ocasión `combo-mixed`/`checkout-shipping` — todos pasan en
+  aislado y en la corrida final; mismo patrón de flake documentado en la
+  ronda anterior.)
+- **Sin bump de release**: solo cambiaron `script.js` y tests; los tokens
+  `?v=` / `RELEASE` siguen coherentes (20261002 / fo-v86-checkout-shipping).

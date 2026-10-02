@@ -110,12 +110,14 @@ test('DNI: campo opcional, no se persiste y viaja al WhatsApp solo si se llena',
   });
   expect(persisted).toEqual({ hasValue: false, hasKey: false });
 
-  // 3) DNI inválido: la regla de setupCheckoutValidation() lo rechaza y
-  //    confirmarCompra() corta el pedido (no se abre wa.me).
-  await reenterCheckout(page);
-  await dni.fill('123');
-  await expect(page.locator('#payConfirmBtn')).toHaveAttribute('aria-disabled', 'true');
-  expect(await confirmDirect(page)).toBeNull();
+  // 3) DNI con valor: SOLO 8 dígitos. Corto, 9 dígitos y alfanumérico
+  //    (la vieja rama 9-12 ya no existe) bloquean el pedido.
+  for (const bad of ['123', '123456789', 'ABC123456']) {
+    await reenterCheckout(page);
+    await dni.fill(bad);
+    await expect(page.locator('#payConfirmBtn')).toHaveAttribute('aria-disabled', 'true');
+    expect(await confirmDirect(page)).toBeNull();
+  }
 });
 
 test('Forma de envío: catálogo cerrado de 3 modalidades y bloqueo sin selección', async ({ page }) => {
@@ -139,30 +141,59 @@ test('Forma de envío: catálogo cerrado de 3 modalidades y bloqueo sin selecci�
   expect(await confirmDirect(page)).toBeNull();
   await expect(group).toHaveClass(/is-invalid/);
 
-  // Las tres modalidades, una por una: llegan al mensaje y el costo sale
-  // de las reglas comerciales (GRATIS o A coordinar), nunca de otro cálculo.
+  // Las tres modalidades, una por una: UNA sola línea de modalidad por
+  // mensaje (nunca dos ni una de más), y el costo sale de las reglas
+  // comerciales — idéntico con cualquiera de las tres (independiente).
+  const costs = [];
   for (const [value, label] of Object.entries(SHIP_LABELS)) {
     await reenterCheckout(page);
     await selectShip(page, value);
     await expect(page.locator('#payConfirmBtn')).toHaveAttribute('aria-disabled', 'false');
     await expect(group).not.toHaveClass(/is-invalid/);
     const msg = await confirmOrder(page);
+    expect(msg.split('🚚 *Forma de envío:*').length - 1).toBe(1);
     expect(msg).toContain(`🚚 *Forma de envío:* ${label}`);
-    expect(msg).toMatch(/💸 \*Costo de envío:\* (GRATIS|A coordinar \(Lima Metropolitana\))/);
+    for (const otherLabel of Object.values(SHIP_LABELS)) {
+      if (otherLabel !== label) expect(msg).not.toContain(`🚚 *Forma de envío:* ${otherLabel}`);
+    }
+    const cost = (msg.match(/💸 \*Costo de envío:\* (GRATIS|A coordinar \(Lima Metropolitana\))/) || [])[1];
+    expect(cost).toBeTruthy();
     expect(msg).not.toContain('🚚 *Envío:*');
+    costs.push(cost);
   }
+  expect(new Set(costs).size).toBe(1);
+
+  // Modalidad desconocida inyectada en el DOM: el catálogo cerrado la
+  // rechaza (cuenta como "sin elegir") y el pedido queda bloqueado.
+  await reenterCheckout(page);
+  await page.evaluate(() => {
+    const radio = document.querySelector('input[name="chEnvio"][value="shalom"]');
+    radio.value = 'dhl';
+    radio.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await expect(page.locator('#payConfirmBtn')).toHaveAttribute('aria-disabled', 'true');
+  await expect(group).toHaveClass(/is-invalid/);
+  expect(await confirmDirect(page)).toBeNull();
 });
 
 test('Costo de envío conserva la regla comercial: GRATIS desde S/199', async ({ page }) => {
-  // Carrito barato (decant S/59): costo a coordinar.
-  await openCheckout(page, { cart: [[100, 'decant', '5']], ship: 'olva' });
-  const cheapMsg = await confirmOrder(page);
-  expect(cheapMsg).toContain('💸 *Costo de envío:* A coordinar (Lima Metropolitana)');
+  test.setTimeout(150000); // 2 carritos × 3 modalidades (cada confirm exige reabrir checkout)
 
-  // Carrito ≥ S/199 (frasco completo): GRATIS.
-  await openCheckout(page, { cart: [[141, 'full', '100']], ship: 'olva' });
-  const expensiveMsg = await confirmOrder(page);
-  expect(expensiveMsg).toContain('💸 *Costo de envío:* GRATIS');
+  // < S/199 (decant S/59): A coordinar, con CUALQUIER modalidad.
+  for (const value of Object.keys(SHIP_LABELS)) {
+    await openCheckout(page, { cart: [[100, 'decant', '5']], ship: value });
+    const cheapMsg = await confirmOrder(page);
+    expect(cheapMsg).toContain('💸 *Costo de envío:* A coordinar (Lima Metropolitana)');
+    expect(cheapMsg).toContain(`🚚 *Forma de envío:* ${SHIP_LABELS[value]}`);
+  }
+
+  // ≥ S/199 (frasco completo S/875): GRATIS, con CUALQUIER modalidad.
+  for (const value of Object.keys(SHIP_LABELS)) {
+    await openCheckout(page, { cart: [[141, 'full', '100']], ship: value });
+    const expensiveMsg = await confirmOrder(page);
+    expect(expensiveMsg).toContain('💸 *Costo de envío:* GRATIS');
+    expect(expensiveMsg).toContain(`🚚 *Forma de envío:* ${SHIP_LABELS[value]}`);
+  }
 });
 
 test('La forma de envío vive en "Datos de entrega", antes del pago', async ({ page }) => {

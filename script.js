@@ -2653,10 +2653,10 @@
     }
     /* DNI: sigue siendo OPCIONAL (vacío = correcto), pero si trae valor
        debe cumplir la MISMA regla que ya valida setupCheckoutValidation():
-       8 dígitos o 9–12 alfanuméricos. No se guarda en localStorage ni se
-       envía a analytics: solo viaja en este mensaje de WhatsApp. */
+       solo 8 dígitos. No se guarda en localStorage ni se envía a
+       analytics: solo viaja en este mensaje de WhatsApp. */
     const dni = $("chDNI")?.value.trim() ?? "";
-    if (dni && !/^\d{8}$/.test(dni) && !/^[A-Za-z0-9]{9,12}$/.test(dni)) {
+    if (dni && !/^\d{8}$/.test(dni)) {
       showToast("⚠️ Revisa el DNI: 8 dígitos, o déjalo vacío");
       const dniEl = $("chDNI");
       if (dniEl) dniEl.focus();
@@ -3158,7 +3158,7 @@
       chNombre: (v) => v.trim().length >= 3,
       chApellido: (v) => v.trim().length >= 3,
       chTelefono: (v) => /^9\d{8}$/.test(v.trim()),
-      chDNI: (v) => !v.trim() || /^\d{8}$/.test(v.trim()) || /^[A-Za-z0-9]{9,12}$/.test(v.trim()),
+      chDNI: (v) => !v.trim() || /^\d{8}$/.test(v.trim()),
       chDepartamento: (v) => v.trim().length >= 3,
       chProvincia: (v) => v.trim().length >= 3,
       chDireccion: (v) => v.trim().length >= 3,
