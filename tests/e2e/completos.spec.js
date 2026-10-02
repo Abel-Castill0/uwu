@@ -76,7 +76,29 @@ test('Six affected decants share availability and canonical photos in cards and 
   }
   await openNavLink(page, 'Catálogo');
   await page.locator('#catalogSearch').fill('Ani');
-  await expect(page.locator('#catalogGrid [data-product-id="90"]')).toHaveCount(0); // Ani: NO DISPONIBLE (cliente 01/10)
+  // Ani (90) NO DISPONIBLE: SIGUE visible en el catálogo (cliente 01/10),
+  // pero su ficha queda bloqueada para compra.
+  const ani = page.locator('#catalogGrid [data-product-id="90"]');
+  await expect(ani).toBeVisible();
+  await expect(ani.locator('.product-badge').filter({ hasText: 'NO DISPONIBLE' })).toHaveCount(1);
+  await expect(ani.locator('.btn-add')).toBeDisabled();
+  await expect(ani.locator('.btn-add')).toHaveText('NO DISPONIBLE');
+  await expect(ani.locator('.product-price')).toHaveText('No disponible');
+  await ani.click();
+  await expect(page.locator('#modalOverlay')).toHaveClass(/active/);
+  await expect(page.locator('#modalName')).toHaveText('Ani');
+  await expect(page.locator('#modalAddBtn')).toBeDisabled();
+  await expect(page.locator('#modalAddBtn')).toContainText('NO DISPONIBLE');
+  await expect(page.locator('#modalPrice')).toHaveText('No disponible');
+  await expect(page.locator('#modalUnavailableNote')).toBeVisible();
+  // Sin selector de tallas ni precio de compra: no hay forma de agregarlo.
+  await expect(page.locator('#modalSizes .size-option')).toHaveCount(0);
+  await page.locator('#modalOverlay .modal-close').click();
+  // Su "hermana" Ani X (91) no está afectada: sigue comprable.
+  const aniX = page.locator('#catalogGrid [data-product-id="91"]');
+  await expect(aniX).toBeVisible();
+  await expect(aniX.locator('.btn-add')).toBeEnabled();
+  await expect(aniX.locator('.product-badge').filter({ hasText: 'NO DISPONIBLE' })).toHaveCount(0);
   await page.locator('#catalogSearch').fill('Narcotic Delight');
   await expect(page.locator('#catalogGrid [data-product-id="62"]')).toBeVisible();
   await expect(page.locator('#catalogGrid [data-product-id="144"]')).toHaveCount(0);

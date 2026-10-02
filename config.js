@@ -158,8 +158,15 @@ window.FO_CONFIG = {
      Paragon (64), Toucan (137, 20 ml), Castley
      decant (100) y sellado (142), y Narcotic Delight decant (62).
      Narcotic Delight sellado (144) se conserva como dato histórico y está
-     retirado del inventario público mediante public: false en productos.js.
-     Ani decant (90) quedó NO DISPONIBLE (cliente 01/10): también public: false. */
+     retirado del inventario público mediante public: false en productos.js. */
+
+  /* ── NO DISPONIBLE (visible, pero sin venta) ──────────────────
+     A diferencia de PROXIMAMENTE y de public:false, estos ids SIGUEN en
+     el catálogo con su ficha, foto y badge "NO DISPONIBLE": lo que se
+     bloquea es la compra (no se agrega al carrito, no entra a combos y
+     no genera precio de compra). Ids de productos.js.
+     Ejemplo: NO_DISPONIBLE: [90] */
+  NO_DISPONIBLE: [90], // Ani (Nishane) — cliente 01/10
 
   /* ── FRAGANCIAS DESTACADAS (Home) ────────────────────────────────
      Orden EXACTO confirmado por el cliente. Se renderiza vía

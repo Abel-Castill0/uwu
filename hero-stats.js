@@ -14,9 +14,12 @@
   try {
     var products = window.FO_PRODUCTS || [];
     var proximamente = (window.FO_CONFIG && window.FO_CONFIG.PROXIMAMENTE) || [];
-    // "Disponible" = producto real, no tester, no marcado como Próximamente.
+    var noDisponible = (window.FO_CONFIG && window.FO_CONFIG.NO_DISPONIBLE) || [];
+    // "Disponible" = producto real, no tester, no Próximamente y no
+    // marcado como NO DISPONIBLE (ese queda visible pero sin venta).
     var count = products.filter(function (p) {
-      return (!p.type || p.type === "product") && !p.tester && proximamente.indexOf(p.id) === -1;
+      return (!p.type || p.type === "product") && !p.tester &&
+        proximamente.indexOf(p.id) === -1 && noDisponible.indexOf(p.id) === -1;
     }).length;
     if (count > 0) {
       ["heroStatCatalogCount", "statsBarCatalogCount"].forEach(function (id) {

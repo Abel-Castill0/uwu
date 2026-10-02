@@ -641,7 +641,7 @@
       <div class="page-hero-content">
         <div class="section-eyebrow page-hero-eyebrow">Descuento Automático</div>
         <h2 class="section-title page-hero-title">Arma tu Combo</h2>
-        <p class="section-subtitle page-hero-subtitle">Elige 3 o más fragancias del mismo tamaño, revisa tu selección y continúa al checkout.</p>
+        <p class="section-subtitle page-hero-subtitle">Elige 3 o más fragancias, con el tamaño que quieras para cada una, revisa tu selección y continúa al checkout.</p>
       </div>
     </section>
 
@@ -657,13 +657,9 @@
     <!-- Constructor: panel de catálogo (izquierda) + resumen sticky (derecha/abajo en móvil) -->
     <section class="combo-builder" id="comboBuilder" aria-label="Constructor de combo">
       <div class="combo-panel combo-panel--catalog">
-        <div class="combo-size-select" role="group" aria-label="Tamaño del combo">
-          <button type="button" class="combo-size-btn" data-size="1" aria-pressed="false">1 ml</button>
-          <button type="button" class="combo-size-btn" data-size="2" aria-pressed="false">2 ml</button>
-          <button type="button" class="combo-size-btn active" data-size="3" aria-pressed="true">3 ml</button>
-          <button type="button" class="combo-size-btn" data-size="5" aria-pressed="false">5 ml</button>
-          <button type="button" class="combo-size-btn" data-size="10" aria-pressed="false">10 ml</button>
-        </div>
+        <!-- Cada fila de la lista trae SU selector de tallas (uno por
+             producto, con las tallas que existen para ese perfume): ya no
+             existe un tamaño global del combo. -->
         <div class="combo-search-wrap">
           <i class="fa-solid fa-magnifying-glass combo-search-icon" aria-hidden="true"></i>
           <input type="search" id="comboSearchInput" class="combo-search-input" placeholder="Buscar por nombre o marca..." autocomplete="off" />

@@ -569,3 +569,95 @@ Senja (no de datos locales/hardcodeados: se buscó `María G.` en todo el
 repo y no aparece). Conviene que el cliente revise el panel de Senja para
 confirmar si es una reseña real aprobada o si quedó una demo de Senja sin
 moderar.
+
+## Ronda 2026-10-01 — Talla POR PERFUME en el combo + NO DISPONIBLE (Ani)
+
+Pedido: cada perfume del combo debe elegir su **propio tamaño** (se acabó
+el tamaño global del combo), sin perder las demás selecciones al cambiar
+una talla; y **Ani (id 90)** debe seguir visible en el catálogo pero
+bloqueada para cualquier compra (reemplaza el viejo `public:false`).
+
+### Combo: estado y APIs (script.js)
+
+- Estado nuevo: `comboSelections = new Map()` (id → talla|null). No existe
+  "tamaño global": APIs `comboSize`, `comboSetSize`, `window.getComboSize`
+  y los botones `.combo-size-btn`/`.combo-size-select` fueron eliminados.
+- Constantes: `COMBO_SIZES = ["1","2","3","5","10"]`,
+  `COMBO_SIZE_PREFERENCE = ["3","2","5","1","10"]` (talla inicial al
+  marcar un perfume; solo se ofrecen las tallas que el producto tiene en
+  `decantSizes`, sin variantes premium en combo).
+- APIs vigentes: `getComboSelections()`, `comboToggleProduct(id)`,
+  `comboSetProductSize(id, size)` (devuelve `false` si esa talla no existe
+  para ESE producto — se ignora, no arruina la fila; `""` → null =
+  seleccionado pendiente), `getComboDiscountInfo()` (ahora incluye
+  `selections`), `window.comboSelectedIds` (getter que arma el array nuevo
+  en cada acceso), `window.comboToggleProduct`, `window.comboSetProductSize`
+  y las APIs de test `window.__FO_TEST.{getComboSelections,comboSetProductSize,resetCombo,isUnavailable,getComboDiscountInfo}`.
+- UI: una fila `.combo-item` = checkbox + imagen + texto +
+  `<label class="combo-item"><select class="combo-item__size">…</select></label>`
+  (el select SIEMPRE está habilitado: cambiar la talla de un perfume no
+  seleccionado lo selecciona). Opción `value=""` = "Elegir talla" → talla
+  null, mantiene la selección y bloquea "Confirmar" (nunca la elimina).
+- Precios: siguen las reglas de `descuentos.js` (tiers por
+  cantidad/marca, no acumulativo); subtotal = Σ precio(A, tallaA).
+- Pack en carrito: `size` = `"mixto"` si las tallas difieren, si no
+  `<n>ml`; helper `packSizesLabel(item)` usado en carrito, resumen de
+  checkout y mensaje de WhatsApp; los packs siguen excluidos de descuentos
+  por `isPack`.
+
+### NO DISPONIBLE (Ani, id 90)
+
+- `config.js`: `NO_DISPONIBLE: [90]` + helper `isUnavailable(id)` (lee
+  `FO.NO_DISPONIBLE`). `public:false` solo queda en datos históricos
+  (Narcotic 144).
+- Guards: `addToCart`, `isProductStillAvailable`, `getUpsellCandidates`,
+  `getComboEligibleProducts` y el click de `#modalAddBtn` ignoran ids de
+  `NO_DISPONIBLE`.
+- Card: badge "NO DISPONIBLE" (`.product-badge.unavailable`,
+  `.product-card--unavailable`), botón `btn-unavailable` deshabilitado,
+  precio "No disponible", imagen en grayscale.
+- Modal: `sizes={}` (no hay `#modalSizes .size-option`), badge + botón
+  "NO DISPONIBLE" + `#modalUnavailableNote`, precio "No disponible",
+  `promoNote` oculto. `hero-stats.js` excluye `NO_DISPONIBLE` del conteo
+  "Disponible". Ani X (91) no está afectada y sigue comprable.
+
+### CSS (styles.css)
+
+- `.combo-item__config` / `.combo-item__size` (+ media ≤560px: la fila
+  hace wrap y el bloque de configuración baja a su propia línea),
+  `.pending`/`.combo-item__price--pending`, chips `--unavail` (borde
+  discontinuo) + `.combo-chip__size`. Retirados `.combo-size-*`.
+- Bug de layout introducido y corregido: con las 124 filas en línea
+  (`max-height: none` en ≤767px) el documento llegaba a ~16.7k px —
+  rompía `page.screenshot({fullPage})` en iPhone 12 (DPR 3 > 32767 px).
+  Ahora la lista tiene altura acotada también en móvil
+  (`max-height: calc(100dvh - 15rem)`, `padding-bottom: 4.5rem` para no
+  quedar tras el dock fijo) y `.combo-item { flex-shrink: 0 }` en ese
+  bloque para que las filas no se encogen a 44px y desborden su caja.
+  Medido: docH 16758 → 2515 px.
+
+### Tests y resultados de esta ronda
+
+- `tests/selftest.js`: steps 8 (regex `^(S\/ |—$|Sin talla$)`, sin
+  selector global, select por fila), 10 (`:not(.selected)`), 10b
+  (`perSize_*`), 11 (fuerza talla 10ml y verifica pack `mixto` con
+  `includedProducts` con tallas propias vía `localStorage fo_cart_v4`).
+- `tests/e2e/combo.spec.js` reescrito (5 tests: selects por fila sin
+  selector global, tallas mixtas + subtotal, cambio aislado, precio por
+  presentación, sin talla bloquea + dock móvil "3 seleccionadas · 1 sin
+  talla elegida"); `completos.spec.js` (Ani visible/bloqueada + Ani X
+  comprable); `fragrance.spec.js` (bloque `.combo-size-btn` → select por
+  fila); `qa-catalog.js` (parse de `NO_DISPONIBLE` + 2 checks de Ani).
+- Resultado: `npm test` **303 PASS | 0 FAIL × 6 corridas** (warm-up /
+  normal / reduced-motion × 2 targets), `npx playwright test`
+  **166 passed / 2 skipped / 0 failed** (3 proyectos), `npm run smoke`
+  14/14, `node tests/qa-catalog.js` 90/90, `node test-descuentos.js`
+  86/86, `node tests/release-coherence.js` PASS (release `20261001`
+  intacto — NO bumpear).
+- Nota: `tests/e2e/fragrance.spec.js › navbar conserva orden exacto`
+  falló una vez por contenido/concurrencia (2 workers) y pasó solo al
+  re-ejecutarlo; no está relacionado con este cambio.
+- Imágenes sin relación con esta tarea sin commitear:
+  `img/perfumes_optimized/Mefisto Xerjoff*.webp` (nuevas) + 3 webp de
+  Gris Charnel Extrait modificados.
+

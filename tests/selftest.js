@@ -421,10 +421,11 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
   }, 350);
 
-  /* 8. Combo builder: navigate, verify list renders (perfumes elegibles
-     con 3/5/10ml; "SWY Amber" ya no esta en el catalogo -- ver Prompt 35).
-     No se fija el numero exacto: cambia si el catalogo cambia y no es lo
-     que este test protege (solo que la lista realmente pinte algo). */
+  /* 8. Combo builder: navigate, verify list renders (perfumes elegibles;
+     "SWY Amber" ya no esta en el catalogo -- ver Prompt 35). No se fija el
+     numero exacto: cambia si el catalogo cambia y no es lo que este test
+     protege (solo que la lista realmente pinte algo). Cada fila trae SU
+     selector de tallas con las tallas que existen para ese producto. */
   step(function () {
     window.navigateTo("promos");
     var list = document.getElementById("comboList");
@@ -433,8 +434,16 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(items.length > 0, "comboItemsRendered", "items=" + items.length);
     ok(Array.prototype.every.call(items, function (item) {
       var price = item.querySelector(".combo-item__price");
-      return price && price.children.length === 0 && /^(S\/ |Sin \d+ml$)/.test(price.textContent.trim());
+      return price && price.children.length === 0 && /^(S\/ |—$|Sin talla$)/.test(price.textContent.trim());
     }), "comboRowsOnlyCurrentPrice", "filas=" + items.length);
+    /* El selector global de tamaño ya NO existe: cada fila tiene el suyo. */
+    ok(!document.querySelector(".combo-size-select, .combo-size-btn"), "comboNoGlobalSizeSelector", "quedó un selector global");
+    ok(Array.prototype.every.call(items, function (item) {
+      return !!item.querySelector("select.combo-item__size");
+    }), "comboRowsHaveOwnSizeSelect", "filas=" + items.length);
+    ok(Array.prototype.every.call(document.querySelectorAll("#comboList select.combo-item__size"), function (sel) {
+      return sel.options.length >= 2 && sel.querySelector('option[value=""]');
+    }), "comboSizeSelectHasSizes", "sin opcion de talla");
   }, 500);
 
   /* comboToggleProduct() re-renderiza toda la lista (innerHTML) en cada
@@ -492,7 +501,7 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     var count = document.getElementById("comboSummaryCount");
     ok(count && count.textContent === "6 seleccionadas", "comboCount6", "count=" + (count ? count.textContent.trim() : ""));
     ok(window.__FO_TEST.getComboDiscountInfo().discountPct === 10, "combo6Pct10", JSON.stringify(window.__FO_TEST.getComboDiscountInfo()));
-    var selectable = document.querySelectorAll("#comboList .combo-item:not(.selected):not(.disabled)").length;
+    var selectable = document.querySelectorAll("#comboList .combo-item:not(.selected)").length;
     ok(selectable > 0, "comboMoreThan6Selectable", "seleccionables restantes=" + selectable);
     for (var j = 0; j < 3; j++) { var c = firstUncheckedCombo(); if (c) checkCombo(c); }
     ok(document.getElementById("comboSummaryCount").textContent === "9 seleccionadas", "comboCount9", document.getElementById("comboSummaryCount").textContent);
@@ -505,64 +514,99 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
     ok(window.__FO_TEST.getComboDiscountInfo().discountPct === 15, "combo12Pct15", JSON.stringify(window.__FO_TEST.getComboDiscountInfo()));
   }, 400);
 
-  /* 10b. Regression: combo invalid-size dock state. Seleccionar 3
-     productos solo disponibles en 2/3/5 ml, cambiar a 10ml (que no
-     tienen), verificar que las selecciones se preservan, el dock
-     muestra incompatibilidad y el confirm está deshabilitado. */
+  /* 10b. Tallas INDEPENDIENTES por perfume (el pedido real de esta ronda):
+     cada fragancia se valora con SU talla, cambiar la talla de una nunca
+     toca a las demás, y dejar una fragancia SIN talla conserva la
+     selección (no la elimina) pero bloquea la confirmación. */
   step(function () {
-    /* Reset: force different sizes to trigger re-renders */
-    window.comboSetSize("1");
-    window.comboSelectedIds.length = 0;
-    window.comboSetSize("2");
+    window.__FO_TEST.resetCombo();
 
-    /* Verify products 113, 114, 116 are available at 2ml */
-    var p113 = document.querySelector('#comboList input[data-product-id="113"]');
-    ok(p113 && !p113.disabled, "invalidSize_113enabledAt2ml", "disabled=" + (p113 ? p113.disabled : "sin"));
+    /* ids reales del catalogo: 113 solo tiene 2/3/5ml; 1 y 2 llegan a 10ml. */
+    var p1 = window.FO_PRODUCTS.find(function (p) { return p.id === 1; });
+    var p2 = window.FO_PRODUCTS.find(function (p) { return p.id === 2; });
+    var p113 = window.FO_PRODUCTS.find(function (p) { return p.id === 113; });
+    ok(!!p1 && !!p2 && !!p113, "perSize_fixtureProducts", "ids 1/2/113 ausentes");
+    [1, 2, 113].forEach(function (id) { window.comboToggleProduct(id); });
 
-    /* Select them by checking the DOM checkboxes */
-    ["113", "114", "116"].forEach(function (id) {
-      var inp = document.querySelector('#comboList input[data-product-id="' + id + '"]');
-      if (inp && !inp.disabled) { inp.checked = true; inp.dispatchEvent(new Event("change", { bubbles: true })); }
-    });
+    var sel = window.__FO_TEST.getComboSelections();
+    ok(Object.keys(sel).length === 3, "perSize_selected3", JSON.stringify(sel));
+    /* Al marcar entra con una talla inicial (3ml si existe para ese producto). */
+    ok(sel["113"] === "3", "perSize_defaultSizeOnSelect", "113=" + sel["113"]);
+
+    /* Cada perfume con SU talla: 10 / 5 / 2 conviven en el mismo combo. */
+    window.__FO_TEST.comboSetProductSize(1, "10");
+    window.__FO_TEST.comboSetProductSize(2, "5");
+    window.__FO_TEST.comboSetProductSize(113, "2");
+    sel = window.__FO_TEST.getComboSelections();
+    ok(sel["1"] === "10" && sel["2"] === "5" && sel["113"] === "2", "perSize_mixedSizes", JSON.stringify(sel));
 
     var info = window.__FO_TEST.getComboDiscountInfo();
-    ok(info.count === 3, "invalidSize_count3", "count=" + info.count);
-    ok(info.allSelectedHaveSize, "invalidSize_allHaveSize2ml", "allHaveSize=" + info.allSelectedHaveSize);
+    ok(info.count === 3 && info.allSelectedHaveSize && info.isValid, "perSize_validWithMixedSizes", JSON.stringify(info));
+    /* Subtotal = precio(A, tallaA) + precio(B, tallaB) + precio(C, tallaC). */
+    var expectedSub = p1.decantSizes["10"] + p2.decantSizes["5"] + p113.decantSizes["2"];
+    ok(info.subtotal === expectedSub, "perSizeSubtotalUsesOwnSize", "subtotal=" + info.subtotal + " esperado=" + expectedSub);
 
-    /* Switch to 10ml — they should become unavailable */
-    window.comboSetSize("10");
-
+    /* Cambiar la talla de UNA solo reescribe ESA entrada. */
+    window.__FO_TEST.comboSetProductSize(113, "5");
+    sel = window.__FO_TEST.getComboSelections();
+    ok(sel["1"] === "10" && sel["2"] === "5" && sel["113"] === "5", "perSize_changeKeepsOthers", JSON.stringify(sel));
     info = window.__FO_TEST.getComboDiscountInfo();
-    ok(window.comboSelectedIds.length === 3, "invalidSize_preserveSelection", "selected=" + window.comboSelectedIds.length);
-    ok(!info.allSelectedHaveSize, "invalidSize_incompatible", "allHaveSize=" + info.allSelectedHaveSize);
-    ok(info.unavailableSelectedIds.length === 3, "invalidSize_3unavailable", "unavail=" + info.unavailableSelectedIds.length);
+    ok(info.subtotal === p1.decantSizes["10"] + p2.decantSizes["5"] + p113.decantSizes["5"], "perSizeSubtotalAfterChange", "subtotal=" + info.subtotal);
 
-    var comboBtn = document.getElementById("comboConfirmBtn");
-    ok(comboBtn && comboBtn.disabled, "invalidSize_confirmDisabled", "disabled=" + (comboBtn ? comboBtn.disabled : "sin boton"));
+    /* Talla inexistente para ESE producto: no se aplica (queda en la anterior). */
+    window.__FO_TEST.comboSetProductSize(113, "30");
+    sel = window.__FO_TEST.getComboSelections();
+    ok(sel["113"] === "5", "perSize_invalidSizeIgnored", "113=" + sel["113"]);
 
+    /* Dejar una fragancia SIN talla ("Elegir talla"): se conserva la
+       selección de las 3 pero la confirmación queda bloqueada. */
+    window.__FO_TEST.comboSetProductSize(113, "");
+    sel = window.__FO_TEST.getComboSelections();
+    info = window.__FO_TEST.getComboDiscountInfo();
+    ok(Object.keys(sel).length === 3 && sel["113"] === null, "perSizePendingKeptSelected", JSON.stringify(sel));
+    ok(!info.allSelectedHaveSize && info.unavailableSelectedIds.length === 1, "perSizePendingBlocks", JSON.stringify(info.unavailableSelectedIds));
+    var comboBtnPending = document.getElementById("comboConfirmBtn");
+    ok(comboBtnPending && comboBtnPending.disabled, "perSizePendingConfirmDisabled", "sin boton");
     var dockText = document.getElementById("comboDockText");
-    ok(dockText && dockText.textContent.includes("sin"), "invalidSize_dockShowsIncompat", "dock=" + (dockText ? dockText.textContent : "sin elemento"));
-
+    ok(dockText && dockText.textContent.indexOf("sin talla") !== -1, "perSizePendingDock", dockText ? dockText.textContent : "sin dock");
     var dockAmount = document.getElementById("comboDockAmount");
-    ok(dockAmount && dockAmount.textContent.trim() === "", "invalidSize_dockAmountEmpty", "amount=" + (dockAmount ? dockAmount.textContent : "sin elemento"));
+    ok(dockAmount && dockAmount.textContent.trim() === "", "perSizePendingDockAmountEmpty", "amount=" + (dockAmount ? dockAmount.textContent : "sin elemento"));
 
-    /* Switch back to 2ml: confirm re-enables */
-    window.comboSetSize("2");
+    /* Restaurar la talla: vuelve a ser valido sin re-seleccionar nada. */
+    window.__FO_TEST.comboSetProductSize(113, "2");
     info = window.__FO_TEST.getComboDiscountInfo();
-    ok(info.allSelectedHaveSize, "invalidSize_restored", "allHaveSize=" + info.allSelectedHaveSize);
+    ok(info.isValid && info.allSelectedHaveSize, "perSizeRestored", JSON.stringify(info));
 
-    /* Restore state: re-select products that work at 10ml for step 11 */
-    window.comboSelectedIds.length = 0;
-    window.comboSetSize("10");
+    /* Preparacion del paso 11: combo de 12 (tallas por defecto, validas). */
+    window.__FO_TEST.resetCombo();
     for (var r = 0; r < 12; r++) { var rb = firstUncheckedCombo(); if (rb) checkCombo(rb); }
-  }, 600);
+  }, 700);
 
-  /* 11. Combo: confirmar agrega un pack temporal y lleva al checkout único. */
+  /* 11. Combo: confirmar agrega un pack temporal y lleva al checkout único.
+     Antes de confirmar se fuerza UNA talla distinta (10ml) para comprobar
+     que el pack viaja con tallas individuales: item.size "mixto" y cada
+     perfume con SU talla en includedProducts. */
   step(function () {
+    window.__FO_TEST.comboSetProductSize(1, "10");
+    var finalSel = window.__FO_TEST.getComboSelections();
+    var finalIds = Object.keys(finalSel);
+    ok(finalIds.length === 12 && finalSel["1"] === "10", "comboMixedSizesBeforeConfirm", JSON.stringify(finalSel));
+    ok(window.__FO_TEST.getComboDiscountInfo().isValid, "comboValidBeforeConfirm", JSON.stringify(window.__FO_TEST.getComboDiscountInfo()));
     var comboBtn = document.getElementById("comboConfirmBtn");
     ok(comboBtn && !comboBtn.disabled, "comboConfirmEnabled", "disabled=" + (comboBtn ? comboBtn.disabled : "sin boton"));
     if (comboBtn) { comboBtn.click(); }
     ok(document.getElementById("page-checkout").classList.contains("active"), "comboGoesCheckout", "checkout no activo");
+
+    var stored = [];
+    try { stored = JSON.parse(localStorage.getItem("fo_cart_v4") || "[]"); } catch (e) { /* noop */ }
+    var pack = stored.filter(function (i) { return i.isPack; }).pop();
+    ok(!!pack, "comboPackInCart", "sin pack en localStorage");
+    if (pack) {
+      ok(pack.size === "mixto", "comboPackSizeLabelMixed", "size=" + pack.size);
+      var sizes = (pack.includedProducts || []).map(function (p) { return p.size; });
+      ok(sizes.length === 12 && sizes.indexOf("10ml") !== -1 && sizes.indexOf("3ml") !== -1,
+        "comboPackEachPerfumeOwnSize", "sizes=" + sizes.join(","));
+    }
   }, 300);
 
   /* 12. carrito lateral. El combo queda en el carrito como un pack,

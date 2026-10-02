@@ -70,6 +70,16 @@
     const list = FO.PROXIMAMENTE;
     return Array.isArray(list) && list.some((x) => String(x) === String(id));
   }
+  /* ── "NO DISPONIBLE" ─────────────────────────────────────────
+     A diferencia de public:false (que BORRA el producto del inventario
+     y lo desaparece del catálogo), esta marca lo mantiene visible con
+     su propio badge y lo bloquea para compra: no se agrega al carrito,
+     no entra a combos y no genera precio de compra. Ids en config.js
+     (FO_CONFIG.NO_DISPONIBLE). */
+  function isUnavailable(id) {
+    const list = FO.NO_DISPONIBLE;
+    return Array.isArray(list) && list.some((x) => String(x) === String(id));
+  }
   function baseSizeOf(size) {
     return isPremiumSize(size) ? size.replace("_premium", "") : size;
   }
@@ -78,6 +88,33 @@
     const base = isPremiumSize(size) ? baseSizeOf(size) : size;
     const baseLabel = /^\d+$/.test(base) ? base + "ml" : base;
     return isPremiumSize(size) ? baseLabel + " decant premium" : baseLabel;
+  }
+  /* Etiqueta de talla para un pack en carrito/checkout/WhatsApp.
+     Los combos ya no llevan "una talla global": cada perfume dentro del
+     pack tiene SU talla (item.includedProducts[].size). Si todas son
+     iguales se muestra esa; si difieren, las tallas únicas ordenadas.
+     Los packs estáticos (promos) conservan su size normal. */
+  function packSizesLabel(item) {
+    if (!item.isPack || item.size !== "mixto") return sizeLabel(item.size);
+    const sizes = Array.from(new Set((item.includedProducts || []).map((p) => p.size).filter(Boolean)));
+    if (sizes.length === 0) return "tallas mixtas";
+    return sizes
+      .map((s) => parseInt(String(s), 10))
+      .filter((n) => !isNaN(n))
+      .sort((a, b) => a - b)
+      .map((n) => n + "ml")
+      .join(" / ");
+  }
+  /* Precio real de UN producto dentro de un pack (carrito, checkout y
+     mensaje de WhatsApp): usa el precio congelado al confirmar el combo
+     y, si el item vino de un localStorage antiguo sin ese campo, lo
+     recalcula contra el catalogo con la talla individual del perfume. */
+  function includedProductPrice(p) {
+    if (p && typeof p.price === "number") return p.price;
+    const prod = p && p.id != null ? getProductById(p.id) : null;
+    const size = p && p.size != null ? String(p.size).replace(/ml$/i, "") : "";
+    if (!prod || !prod.decantSizes || prod.decantSizes[size] == null) return null;
+    return prod.decantSizes[size];
   }
   function getPremiumUplift(basePrice) {
     if (typeof basePrice !== "number") return 0;
@@ -222,11 +259,24 @@
   function stripAccents(s) {
     return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
-  /* ── Pack Builder state ── */
-  let comboSize = "3";
-  let comboSelectedIds = [];
+  /* ── Pack Builder state ─────────────────────────────────────────
+     NO existe un "tamano global del combo". El estado es un mapa
+     id -> tallaIndividual: un perfume esta seleccionado SI está en el
+     mapa, y SU talla es el valor guardado para ese id (null = seleccionado
+     todavia sin talla, caso que bloquea confirmar pero nunca elimina la
+     seleccion). Cambiar la talla de un perfume solo reescribe SU entrada.
+     Ejemplo valido: { 12: "2", 34: "3", 56: "5", 78: "10" }. */
+  let comboSelections = new Map();
   let comboSearchQuery = "";
   const COMBO_MIN = 3;
+  /* Universo comercial de tallas de combo (mismo que ofrecia el antiguo
+     selector global). Cada fila muestra SOLO las que existen en
+     decantSizes de ese producto. */
+  const COMBO_SIZES = ["1", "2", "3", "5", "10"];
+  /* Talla por defecto al marcar un perfume: 3ml si existe, si no la
+     primera disponible del universo. Solo es un punto de partida — la
+     talla final siempre la decide el usuario por perfume. */
+  const COMBO_SIZE_PREFERENCE = ["3", "2", "5", "1", "10"];
   /* currentSearchTerm eliminado — búsqueda removida */
 
   try {
@@ -331,8 +381,9 @@
     return products.find((p) => p.id === id);
   }
   /* ── Contrato de negocio ──────────────────────────────────────────
-     El carrito es una representación TEMPORAL del catálogo. El catálogo
-     actual (products + FO_CONFIG.PROXIMAMENTE) siempre tiene autoridad
+      El carrito es una representación TEMPORAL del catálogo. El catálogo
+      actual (products + FO_CONFIG.PROXIMAMENTE + FO_CONFIG.NO_DISPONIBLE)
+      siempre tiene autoridad
      sobre disponibilidad, presentación y precio — nunca un valor viejo
      persistido en localStorage. sanitizeCartAvailability() es la única
      fuente de verdad que aplica ese contrato; se llama al cargar el
@@ -343,7 +394,7 @@
      elegibilidad en getEligibleProducts(). */
   function isProductStillAvailable(id) {
     const prod = getProductById(id);
-    return prod && !isComingSoon(id) ? prod : null;
+    return prod && !isComingSoon(id) && !isUnavailable(id) ? prod : null;
   }
   // Precio vigente para (producto, tipo, talla) según el catálogo actual,
   // o undefined si esa talla ya no existe (ítem inválido).
@@ -460,6 +511,11 @@
   function addToCart(productId, type, size, qty = 1) {
     const product = getProductById(productId);
     if (!product) return;
+    // Producto "NO DISPONIBLE": visible en catálogo, pero sin venta.
+    if (isUnavailable(productId)) {
+      showToast("⚠️ " + product.name + " no está disponible por el momento");
+      return;
+    }
     const sizes = type === "full" ? product.fullSizes : product.decantSizes;
     if (!sizes || Object.keys(sizes).length === 0) {
       showToast("⚠️ Este producto solo está disponible en presentación completa");
@@ -561,7 +617,7 @@
         }
         let nameHtml = `<div class="cart-item-name">${esc(item.name)}</div>`;
         const typeTxt = item.type === "full" ? "Caja Sellada" : item.type === "decant" ? "Decant" : "Pack";
-        const metaSize = item.type === "decant" && isPremiumSize(item.size) ? sizeLabel(item.size) : typeTxt + " " + sizeLabel(item.size);
+        const metaSize = item.type === "decant" && isPremiumSize(item.size) ? sizeLabel(item.size) : typeTxt + " " + packSizesLabel(item);
         let metaHtml = `<div class="cart-item-meta">${esc(item.brand)} · ${esc(metaSize)}</div>`;
         if (hasGift) {
           metaHtml += `<div class="cart-gift-note"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="13" rx="2"/><path d="M12 7.5V20.5M3.5 12.5h17M12 7.5c-2.8 0-4.6-1-4.6-2.7S9.2 2 12 2s4.6 1 4.6 2.8-1.8 2.7-4.6 2.7z"/></svg> Incluye: ${esc(item.gift.name)} (${esc(item.gift.size)})</div>`;
@@ -571,14 +627,20 @@
           extraProductsHtml = `
             <div class="cart-pack-strip">
               ${item.includedProducts
-              .map(
-                (p) => `
+              .map((p) => {
+                const pPrice = includedProductPrice(p);
+                const pMeta = [p.size ? sizeLabel(p.size) : "", pPrice != null ? formatPrice(pPrice) : ""]
+                  .filter(Boolean).join(" · ");
+                return `
                 <div class="cart-pack-item">
                   <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" decoding="async"
                        class="cart-pack-thumb" onerror="this.src='${PLACEHOLDER_IMG}'" />
-                  <div class="cart-pack-name">${esc(p.name)}</div>
-                </div>`,
-              )
+                  <div class="cart-pack-info">
+                    <div class="cart-pack-name">${esc(p.name)}</div>
+                    ${pMeta ? `<div class="cart-pack-meta">${esc(pMeta)}</div>` : ""}
+                  </div>
+                </div>`;
+              })
               .join("")}
             </div>`;
         }
@@ -629,7 +691,7 @@
     const cartItems = items || cart;
     const inCart = new Set(cartItems.filter((i) => i.type === "decant").map((i) => i.productId));
     return products.filter(
-      (p) => !p.tester && !isComingSoon(p.id) && resolveCurrentPrice(p, "decant", "2") !== undefined && !inCart.has(p.id),
+      (p) => !p.tester && !isComingSoon(p.id) && !isUnavailable(p.id) && resolveCurrentPrice(p, "decant", "2") !== undefined && !inCart.has(p.id),
     );
   }
   function renderUpsell() {
@@ -885,8 +947,11 @@
     if (tabFull) tabFull.style.display = hasFull ? "" : "none";
     if (tabDecant) tabDecant.style.display = hasDecants ? "" : "none";
     if (!hasFull && !hasDecants) return;
+    // Producto "NO DISPONIBLE" (visible, pero sin venta): se muestra su
+    // ficha completa sin selector de tallas ni precio de compra.
+    const unavailable = isUnavailable(product.id);
     const isFull = currentModalView === "full";
-    const sizes = isFull ? product.fullSizes : getDisplayDecantSizes(product);
+    const sizes = unavailable ? {} : isFull ? product.fullSizes : getDisplayDecantSizes(product);
     if (!sizes || Object.keys(sizes).length === 0) {
       currentModalSize = null;
     } else if (!sizes[currentModalSize]) {
@@ -936,6 +1001,9 @@
       sizeLabelEl.textContent = "Tamaño";
       sizeContainer.parentNode.insertBefore(sizeLabelEl, sizeContainer);
     }
+    // Sin venta → sin selector de tallas ni etiqueta (nada que elegir).
+    sizeLabelEl.style.display = unavailable ? "none" : "";
+    sizeContainer.style.display = unavailable ? "none" : "";
     sizeContainer.innerHTML = sizeKeys
       .map((size) => {
         const price = sizes[size];
@@ -955,10 +1023,10 @@
       ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : price
       ? `${esc(formatPrice(price))} <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
-      : "Selecciona tamaño";
+      : unavailable ? "No disponible" : "Selecciona tamaño";
     // Botón principal: cotizar por WhatsApp (frasco) o añadir al carrito (decant)
     const addBtn = $("modalAddBtn");
-    const isQuote = isFull && FO.FRASCO_COMPLETO_WHATSAPP !== false;
+    const isQuote = isFull && FO.FRASCO_COMPLETO_WHATSAPP !== false && !unavailable;
     addBtn.classList.toggle("btn-add-wa", isQuote);
     addBtn.innerHTML = isQuote
       ? `<i class="fab fa-whatsapp" aria-hidden="true"></i><span>Cotizar Frasco por WhatsApp</span>`
@@ -985,6 +1053,28 @@
       addBtn.classList.remove("btn-soon");
       if (soonNote) soonNote.remove();
     }
+    /* Producto "NO DISPONIBLE": la ficha sigue visible, pero el CTA queda
+       bloqueado y no existe precio de compra ni forma de agregarlo. */
+    let unavailNote = document.getElementById("modalUnavailableNote");
+    if (unavailable) {
+      addBtn.disabled = true;
+      addBtn.classList.add("btn-unavailable");
+      addBtn.classList.remove("btn-add-wa");
+      addBtn.innerHTML = `<i class="fa-solid fa-ban" aria-hidden="true"></i><span>NO DISPONIBLE</span>`;
+      if (soonNote) soonNote.remove();
+      if (!unavailNote) {
+        unavailNote = document.createElement("p");
+        unavailNote.id = "modalUnavailableNote";
+        const priceEl = $("modalPrice");
+        if (priceEl) priceEl.after(unavailNote);
+      }
+      if (unavailNote) {
+        unavailNote.textContent = "Este producto no está disponible por el momento.";
+      }
+    } else {
+      addBtn.classList.remove("btn-unavailable");
+      if (unavailNote) unavailNote.remove();
+    }
     // Educación promocional sensible a la presentación seleccionada.
     let promoNote = document.getElementById("modalPromoNote");
     if (!promoNote) {
@@ -994,7 +1084,7 @@
       var priceEl2 = $("modalPrice");
       if (priceEl2) priceEl2.parentNode.insertBefore(promoNote, priceEl2.nextSibling);
     }
-    if (hasDecantPromoEligible(product) && !isFull && !soon && isDiscountEligibleSize(currentModalSize)) {
+    if (hasDecantPromoEligible(product) && !isFull && !soon && !unavailable && isDiscountEligibleSize(currentModalSize)) {
       var pc2 = FO_CONFIG.DESCUENTOS && FO_CONFIG.DESCUENTOS.POR_CANTIDAD;
       var pctMax = (pc2 && pc2.activo === true && pc2.min10) || 15;
       promoNote.classList.remove("modal-promo-note--excluded");
@@ -1059,6 +1149,10 @@
   $("modalAddBtn").addEventListener("click", function () {
     if (!currentModalProduct || !currentModalSize) {
       showToast("⚠️ Selecciona un tamaño");
+      return;
+    }
+    if (isUnavailable(currentModalProduct.id)) {
+      showToast("⚠️ " + currentModalProduct.name + " no está disponible por el momento");
       return;
     }
     // Frasco completo → cotización por WhatsApp (nunca se agrega al carrito)
@@ -1148,23 +1242,45 @@
   ══════════════════════════════════════════════════════════════ */
   function getComboEligibleProducts() {
     return products.filter((p) =>
-      !p.tester && !isComingSoon(p.id) && p.decantSizes &&
-      (p.decantSizes["1"] !== undefined || p.decantSizes["2"] !== undefined || p.decantSizes["3"] !== undefined || p.decantSizes["5"] !== undefined || p.decantSizes["10"] !== undefined)
+      !p.tester && !isComingSoon(p.id) && !isUnavailable(p.id) && comboProductSizes(p).length > 0
     );
   }
+  /* Tallas de combo que EXISTEN para este producto (productos.js). Cada
+     fila del combo solo puede ofrecer las suyas: nunca las de otro. */
+  function comboProductSizes(prod) {
+    if (!prod || !prod.decantSizes) return [];
+    return COMBO_SIZES.filter((s) => prod.decantSizes[s] !== undefined);
+  }
   function comboProductHasSize(prod, size) {
-    return !!(prod && prod.decantSizes && prod.decantSizes[size] !== undefined);
+    return !!(prod && prod.decantSizes && size && prod.decantSizes[size] !== undefined);
+  }
+  /* Talla con la que entra un perfume recién marcado (solo un punto de
+     partida: la talla final siempre es por perfume). */
+  function comboDefaultSize(prod) {
+    const sizes = comboProductSizes(prod);
+    return COMBO_SIZE_PREFERENCE.find((s) => sizes.indexOf(s) > -1) || sizes[0] || null;
+  }
+  /* Selección actual como objeto plano { id: "2" | null } (solo lectura). */
+  function getComboSelections() {
+    const out = {};
+    comboSelections.forEach((size, id) => { out[id] = size; });
+    return out;
   }
   function getComboDiscountInfo() {
-    const count = comboSelectedIds.length;
-    const selectedProducts = comboSelectedIds.map((pid) => getProductById(pid)).filter(Boolean);
+    const entries = Array.from(comboSelections.entries());
+    const count = entries.length;
     const unavailableSelectedIds = [];
     const items = [];
-    selectedProducts.forEach((prod) => {
-      if (comboProductHasSize(prod, comboSize)) {
-        items.push({ brand: prod.brand, price: prod.decantSizes[comboSize], id: prod.id });
+    const selections = {};
+    entries.forEach(([pid, size]) => {
+      selections[pid] = size;
+      const prod = getProductById(pid);
+      // Cada perfume se valora con SU talla individual; si no tiene talla
+      // elegida/válida, queda como "falta talla" sin eliminarlo del combo.
+      if (prod && comboProductHasSize(prod, size)) {
+        items.push({ brand: prod.brand, price: prod.decantSizes[size], id: prod.id, size: size });
       } else {
-        unavailableSelectedIds.push(prod.id);
+        unavailableSelectedIds.push(pid);
       }
     });
     const allSelectedHaveSize = unavailableSelectedIds.length === 0;
@@ -1186,37 +1302,55 @@
     const brandWins = brandPct > qtyPct;
     const ruleLabel = brandWins ? `${brandPct}% en ${brandName}` : (qtyPct > 0 ? `${qtyPct}% por cantidad` : "");
     const nextTier = tiers.find((tier) => tier.count > count && tier.pct > discountPct) || null;
-    return { count, discountPct, subtotal, discountAmount, total, isValid, ruleLabel, brandWins, brandName, nextTier, unavailableSelectedIds, allSelectedHaveSize };
+    return { count, discountPct, subtotal, discountAmount, total, isValid, ruleLabel, brandWins, brandName, nextTier, unavailableSelectedIds, allSelectedHaveSize, selections };
   }
+  /* Marcar/desmarcar un perfume. Al marcarlo entra con una talla inicial
+     (solo un punto de partida); al desmarcarlo se borra SU entrada — las
+     demás selecciones no se tocan. */
   function comboToggleProduct(productId) {
-    const idx = comboSelectedIds.indexOf(productId);
-    if (idx > -1) {
-      comboSelectedIds.splice(idx, 1);
+    if (comboSelections.has(productId)) {
+      comboSelections.delete(productId);
     } else {
       const prod = getProductById(productId);
-      if (!comboProductHasSize(prod, comboSize)) return;
-      comboSelectedIds.push(productId);
+      if (!prod || comboProductSizes(prod).length === 0) return;
+      comboSelections.set(productId, comboDefaultSize(prod));
     }
     renderComboList();
     renderComboSummary();
   }
   window.comboToggleProduct = comboToggleProduct;
-  function comboSetSize(size) {
-    if (comboSize === size) return;
-    comboSize = size;
-    /* Cambiar el tamano NO elimina selecciones: las preserva y muestra
-       cuales no estan disponibles en la nueva talla. */
-    document.querySelectorAll(".combo-size-btn").forEach((btn) => {
-      const active = btn.dataset.size === comboSize;
-      btn.classList.toggle("active", active);
-      btn.setAttribute("aria-pressed", String(active));
-    });
+  /* Cambia la talla de UN perfume (y solo ese). Si aún no estaba marcado,
+     se marca. Una talla vacía deja el perfume seleccionado SIN talla: no
+     se elimina, solo bloquea la confirmación hasta completarlo. Una talla
+     que ese producto no tiene se ignora (no arruina la fila). */
+  function comboSetProductSize(productId, size) {
+    const prod = getProductById(productId);
+    if (!prod) return false;
+    const sizes = comboProductSizes(prod);
+    if (sizes.length === 0) return false;
+    const raw = size === null || size === undefined ? "" : String(size);
+    let validSize;
+    if (raw === "") {
+      validSize = null; // "Elegir talla" → seleccionado, pendiente de talla
+    } else if (sizes.indexOf(raw) > -1) {
+      validSize = raw;
+    } else {
+      return false; // esa talla no existe para ESTE producto: nada que tocar
+    }
+    if (!comboSelections.has(productId)) comboSelections.set(productId, comboDefaultSize(prod));
+    comboSelections.set(productId, validSize);
     renderComboList();
     renderComboSummary();
+    return true;
   }
-  window.comboSetSize = comboSetSize;
-  window.comboSelectedIds = comboSelectedIds;
-  window.getComboSize = function () { return comboSize; };
+  window.comboSetProductSize = comboSetProductSize;
+  /* Diagnóstico (QA/E2E): la selección como { id: talla }, de solo lectura.
+     No existe ningún "tamaño global" al que redirigir estas tallas. */
+  window.getComboSelections = getComboSelections;
+  Object.defineProperty(window, "comboSelectedIds", {
+    get: function () { return Array.from(comboSelections.keys()); },
+    configurable: true,
+  });
   function renderComboList() {
     const list = $("comboList");
     if (!list) return;
@@ -1235,17 +1369,24 @@
        sitio (cardImage real, o el monograma SVG de marca si no hay foto
        -- nunca un icono roto). loading="lazy" es obligatorio aqui: son
        hasta ~140 filas, sin lazy el navegador pediria todas las imagenes
-       de golpe. */
+       de golpe.
+       Cada fila lleva SU selector de tallas con las tallas que existen
+       para ESE producto (no hay selector global) y muestra el precio de
+       la talla elegida. */
     list.innerHTML = eligible.map((prod) => {
-      const isSelected = comboSelectedIds.includes(prod.id);
-      const hasSize = comboProductHasSize(prod, comboSize);
-      const unavail = isSelected && !hasSize;
-      const disabled = !hasSize && !isSelected;
-      const realPrice = hasSize ? prod.decantSizes[comboSize] : null;
-      const priceHtml = realPrice ? formatPrice(realPrice) : `Sin ${comboSize}ml`;
+      const isSelected = comboSelections.has(prod.id);
+      const chosenSize = isSelected ? comboSelections.get(prod.id) : null;
+      const sizes = comboProductSizes(prod);
+      const hasChosenSize = isSelected && comboProductHasSize(prod, chosenSize);
+      const pending = isSelected && !hasChosenSize;
+      const realPrice = hasChosenSize ? prod.decantSizes[chosenSize] : null;
+      const priceHtml = realPrice ? formatPrice(realPrice) : isSelected ? "Sin talla" : "—";
       const imgSrc = prod.cardImage || cardImg(prod);
-      return `<label class="combo-item${isSelected ? " selected" : ""}${unavail ? " unavail" : ""}${!isSelected && !hasSize ? " disabled" : ""}">
-        <input type="checkbox" data-product-id="${prod.id}"${isSelected ? " checked" : ""}${disabled ? " disabled" : ""} />
+      const options = [`<option value=""${chosenSize ? "" : " selected"}>Elegir talla</option>`]
+        .concat(sizes.map((s) => `<option value="${s}"${chosenSize === s ? " selected" : ""}>${s} ml</option>`))
+        .join("");
+      return `<label class="combo-item${isSelected ? " selected" : ""}${pending ? " pending" : ""}">
+        <input type="checkbox" data-product-id="${prod.id}"${isSelected ? " checked" : ""} />
         <span class="combo-item__check" aria-hidden="true"></span>
         <img class="combo-item__img" src="${esc(imgSrc)}" alt="" loading="lazy" decoding="async"
              onerror="this.src='${PLACEHOLDER_IMG}';" />
@@ -1253,7 +1394,10 @@
           <span class="combo-item__brand">${esc(prod.brand)}</span>
           <span class="combo-item__name">${esc(prod.name)}</span>
         </span>
-        <span class="combo-item__price${unavail ? " combo-item__price--unavail" : ""}">${priceHtml}</span>
+        <span class="combo-item__config">
+          <select class="combo-item__size" data-product-id="${prod.id}" aria-label="Talla de ${esc(prod.name)}">${options}</select>
+          <span class="combo-item__price${hasChosenSize ? "" : " combo-item__price--pending"}">${priceHtml}</span>
+        </span>
       </label>`;
     }).join("");
   }
@@ -1274,30 +1418,33 @@
        Sin esto, tapaba el footer de forma permanente incluso con el combo
        vacio. En desktop es sticky dentro del grid, la clase no tiene
        efecto visual ahi. */
-    if (summaryEl) summaryEl.classList.toggle("visible", comboSelectedIds.length > 0);
+    const selectedIds = Array.from(comboSelections.keys());
+    const selectedCount = selectedIds.length;
+    if (summaryEl) summaryEl.classList.toggle("visible", selectedCount > 0);
     /* Si el combo se vacia (ultimo item quitado), colapsa el sheet: no
        tiene sentido dejarlo "abierto" mostrando un panel vacio. */
-    if (summaryEl && comboSelectedIds.length === 0) comboSetSheetExpanded(false);
-    countEl.textContent = `${comboSelectedIds.length} seleccionada${comboSelectedIds.length === 1 ? "" : "s"}`;
+    if (summaryEl && selectedCount === 0) comboSetSheetExpanded(false);
+    countEl.textContent = `${selectedCount} seleccionada${selectedCount === 1 ? "" : "s"}`;
     const info = getComboDiscountInfo();
+    const pendingCount = info.unavailableSelectedIds.length;
     if (dockText) {
-      if (comboSelectedIds.length === 0) dockText.textContent = "0 seleccionadas";
-      else if (!info.allSelectedHaveSize) {
-        const unavailCount = info.unavailableSelectedIds.length;
-        dockText.textContent = `${comboSelectedIds.length} seleccionada${comboSelectedIds.length === 1 ? "" : "s"} · ${unavailCount} sin ${comboSize} ml`;
+      if (selectedCount === 0) dockText.textContent = "0 seleccionadas";
+      else if (pendingCount > 0) {
+        dockText.textContent = `${selectedCount} seleccionada${selectedCount === 1 ? "" : "s"} · ${pendingCount} sin talla elegida`;
       }
-      else if (comboSelectedIds.length >= COMBO_MIN) dockText.textContent = `${info.count} seleccionadas · ${formatPrice(info.total)}`;
+      else if (selectedCount >= COMBO_MIN) dockText.textContent = `${info.count} seleccionadas · ${formatPrice(info.total)}`;
       else {
-        const falta = COMBO_MIN - comboSelectedIds.length;
-        dockText.textContent = `${comboSelectedIds.length} seleccionada${comboSelectedIds.length === 1 ? "" : "s"} · Te falta${falta === 1 ? "" : "n"} ${falta} para continuar`;
+        const falta = COMBO_MIN - selectedCount;
+        dockText.textContent = `${selectedCount} seleccionada${selectedCount === 1 ? "" : "s"} · Te falta${falta === 1 ? "" : "n"} ${falta} para continuar`;
       }
     }
-    chipsEl.innerHTML = comboSelectedIds.map((pid) => {
+    chipsEl.innerHTML = selectedIds.map((pid) => {
       const prod = getProductById(pid);
       if (!prod) return "";
-      const hasSize = comboProductHasSize(prod, comboSize);
+      const size = comboSelections.get(pid);
+      const hasSize = comboProductHasSize(prod, size);
       const unavailClass = hasSize ? "" : " combo-chip--unavail";
-      const label = hasSize ? esc(prod.name) : `${esc(prod.name)} (sin ${comboSize}ml)`;
+      const label = hasSize ? `${esc(prod.name)} <span class="combo-chip__size">${esc(size)} ml</span>` : `${esc(prod.name)} (sin talla)`;
       return `<span class="combo-chip${unavailClass}">${label} <button type="button" class="combo-chip-x" onclick="comboToggleProduct(${pid})" aria-label="Quitar ${esc(prod.name)}">&times;</button></span>`;
     }).join("");
     if (info.isValid) {
@@ -1318,8 +1465,7 @@
       totalWrap.style.display = "none";
       hintEl.style.display = "block";
       if (info.count >= COMBO_MIN && !info.allSelectedHaveSize) {
-        const unavailCount = info.unavailableSelectedIds.length;
-        hintEl.textContent = `${unavailCount} fragancia${unavailCount === 1 ? " seleccionada no está" : "s seleccionadas no están"} disponible${unavailCount === 1 ? "" : "s"} en ${comboSize} ml. Cambia la presentación o reemplázal${unavailCount === 1 ? "a" : "as"} para continuar.`;
+        hintEl.textContent = `Elige la talla de ${pendingCount === 1 ? "la fragancia pendiente" : `las ${pendingCount} fragancias pendientes`} para continuar. Tienes ${info.count} seleccionadas y cada una se valora con su propio tamaño.`;
       } else {
         const falta = COMBO_MIN - info.count;
         hintEl.textContent = info.count === 0
@@ -1345,16 +1491,12 @@
   }
   window.comboToggleSheet = comboToggleSheet;
   function initComboBuilder() {
-    comboSize = "3";
-    comboSelectedIds.length = 0;
+    /* Estado por-perfume: se vacía por completo (no existe un tamaño
+       global que heredar de la visita anterior). */
+    comboSelections = new Map();
     comboSearchQuery = "";
     const searchEl = $("comboSearchInput");
     if (searchEl) searchEl.value = "";
-    document.querySelectorAll(".combo-size-btn").forEach((btn) => {
-      const active = btn.dataset.size === "3";
-      btn.classList.toggle("active", active);
-      btn.setAttribute("aria-pressed", String(active));
-    });
     renderComboList();
     renderComboBenefits();
     renderComboSummary();
@@ -1382,21 +1524,30 @@
     const info = getComboDiscountInfo();
     if (!info.isValid) {
       if (info.count >= COMBO_MIN && !info.allSelectedHaveSize) {
-        showToast(`⚠️ ${info.unavailableSelectedIds.length} fragancia${info.unavailableSelectedIds.length === 1 ? " no está" : "s no están"} disponible${info.unavailableSelectedIds.length === 1 ? "" : "s"} en ${comboSize} ml. Cambia la presentación o reemplázal${info.unavailableSelectedIds.length === 1 ? "a" : "as"}.`);
+        showToast(`⚠️ ${info.unavailableSelectedIds.length} fragancia${info.unavailableSelectedIds.length === 1 ? " necesita" : "s necesitan"} su talla. Elige el tamaño de ${info.unavailableSelectedIds.length === 1 ? "la fragancia pendiente" : "las fragancias pendientes"} para continuar.`);
       } else {
         showToast(`⚠️ Elige al menos ${COMBO_MIN} fragancias para tu combo`);
       }
       return;
     }
-    const includedProducts = comboSelectedIds.map((pid) => {
+    const includedProducts = [];
+    const sizeSet = {};
+    comboSelections.forEach((size, pid) => {
       const prod = getProductById(pid);
-      return prod ? { id: prod.id, name: prod.name, brand: prod.brand, size: comboSize + "ml", image: prod.cardImage || cardImg(prod) } : null;
-    }).filter(Boolean);
+      if (!prod) return;
+      sizeSet[size] = true;
+      includedProducts.push({ id: prod.id, name: prod.name, brand: prod.brand, size: size + "ml", price: prod.decantSizes[size], image: prod.cardImage || cardImg(prod) });
+    });
+    /* Etiqueta de talla del pack en el carrito/checkout: "mixto" cuando
+       las tallas individuales no coinciden, o la talla única si todas son
+       iguales. Así se refleja el tamaño independiente de cada perfume. */
+    const distinctSizes = Object.keys(sizeSet);
+    const packSizeLabel = distinctSizes.length === 1 ? distinctSizes[0] + "ml" : "mixto";
     const mainImage = includedProducts.length > 0 ? includedProducts[0].image : "fondo_promos.webp";
     cart.push({
       productId: "combo-" + Date.now(), type: "pack", isPack: true,
       name: `Combo curado · ${info.count} fragancias`, brand: "FRAGRANCE OBSESSION",
-      image: mainImage, size: comboSize + "ml", price: info.total, qty: 1,
+      image: mainImage, size: packSizeLabel, price: info.total, qty: 1,
       subtotal: info.subtotal, discount: info.discountAmount, discountPct: info.discountPct,
       discountLabel: info.ruleLabel, includedProducts,
     });
@@ -1495,7 +1646,10 @@
 
   /* Una card comunica una sola señal comercial, en orden de prioridad.
      Los datos son la fuente de verdad: `featured` nunca altera el precio. */
-  function merchandisingBadge(product, soon, hasFull, hasDecants) {
+  function merchandisingBadge(product, soon, hasFull, hasDecants, unavail) {
+    // "NO DISPONIBLE" manda sobre cualquier otra señal comercial: el
+    // producto queda visible pero nunca se lee como comprable.
+    if (unavail) return { className: "unavailable", label: "NO DISPONIBLE" };
     if (soon) return { className: "soon", label: "Próximamente" };
     if (hasFull && !hasDecants) return { className: "condition", label: fullPresentationLabel(product) };
     if (product.bestseller === true) return { className: "bestseller", label: product.bestsellerLabel || "Más vendido" };
@@ -1557,25 +1711,28 @@
       ? Math.min(...Object.values(product.decantSizes))
       : hasFull ? Math.min(...Object.values(product.fullSizes)) : null;
     const soon = isComingSoon(product.id);
-    const badge = merchandisingBadge(product, soon, hasFull, hasDecants);
+    const unavail = isUnavailable(product.id);
+    const badge = merchandisingBadge(product, soon, hasFull, hasDecants, unavail);
     const badgeHTML = badge
       ? `<span class="product-badge ${esc(badge.className)}">${esc(badge.label)}</span>`
       : "";
-    const specialPrice = hasFull && !hasDecants && !soon;
-    // Precio: promo real o precio normal
-    const promo = soon ? null : productPromoInfo(product);
+    const specialPrice = hasFull && !hasDecants && !soon && !unavail;
+    // Precio: promo real o precio normal (sin venta → sin precio de compra)
+    const promo = soon || unavail ? null : productPromoInfo(product);
     const priceText = promo
       ? `<span class="price-reference-label">Precio referencial</span><span class="price-regular">${esc(formatPrice(promo.regularPrice))}</span><span class="price-pct">−${promo.pct}%</span><span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(promo.price))}</span>`
       : specialPrice && minPrice
       ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(minPrice))}</span>`
+      : unavail ? "No disponible"
       : minPrice ? `Desde ${formatPrice(minPrice)}` : "Consultar";
     const catLabel =
       product.category === "nicho" ? "Nicho"
       : product.category === "deluxe" ? "Deluxe"
       : "Diseñador";
-    const stockText = Number.isFinite(product.stock) && product.stock > 0 ? `Stock: ${product.stock}` : "";
+    const stockText = !unavail && Number.isFinite(product.stock) && product.stock > 0 ? `Stock: ${product.stock}` : "";
+    const btnLabel = unavail ? "NO DISPONIBLE" : soon ? "Próximamente" : hasDecants ? "Ver y Comprar" : fullPresentationLabel(product) === "Frasco completo" ? "Comprar Sellado" : `Comprar ${fullPresentationLabel(product)}`;
     return `
-      <div class="product-card reveal-item" data-product-id="${product.id}">
+      <div class="product-card reveal-item${unavail ? " product-card--unavailable" : ""}" data-product-id="${product.id}">
         <div class="img-wrapper">
           ${badgeHTML}
           <img src="${esc(product.cardImage || cardImg(product))}" alt="${esc(product.name)} - ${esc(product.brand)}" loading="lazy" decoding="async" onload="this.classList.add('img-loaded'); this.closest('.img-wrapper').classList.add('skeleton-done');" onerror="if(this.src!=='${PLACEHOLDER_IMG}'){this.src='${PLACEHOLDER_IMG}';}else{this.style.display='none'; this.closest('.img-wrapper').classList.add('skeleton-done');}" />
@@ -1586,10 +1743,10 @@
           <div class="product-brand">${esc(product.brand)}</div>
           <div class="product-price-block">
             <span class="product-price">${priceText}</span>
-            ${hasDecants && !soon ? decantPromoBadgeHTML(product) : ""}
+            ${hasDecants && !soon && !unavail ? decantPromoBadgeHTML(product) : ""}
             ${stockText ? `<span class="product-stock">${esc(stockText)}</span>` : ""}
           </div>
-          <button class="btn-add${soon ? " btn-soon" : ""}" data-add-id="${product.id}"${soon ? " disabled" : ""}>${soon ? "Próximamente" : hasDecants ? "Ver y Comprar" : fullPresentationLabel(product) === "Frasco completo" ? "Comprar Sellado" : `Comprar ${fullPresentationLabel(product)}`}</button>
+          <button class="btn-add${soon ? " btn-soon" : ""}${unavail ? " btn-unavailable" : ""}" data-add-id="${product.id}"${soon || unavail ? " disabled" : ""}>${esc(btnLabel)}</button>
         </div>
       </div>`;
   }
@@ -1801,10 +1958,24 @@
   /* ══════════════════════════════════════════════════════════════
      PACK BUILDER — event handlers
   ══════════════════════════════════════════════════════════════ */
-  /* Selector de tamano del combo (3/5/10ml, global para todo el combo) */
-  document.querySelectorAll(".combo-size-btn").forEach((btn) => {
-    btn.addEventListener("click", function () { comboSetSize(this.dataset.size); });
-  });
+  /* Lista de productos: checkboxes nativos (label+input) + selector de
+     talla POR FILA, delegados al contenedor estable de la lista. Cambiar
+     la talla de una fila solo reescribe el tamaño de ESE perfume: no
+     existe un tamaño global del combo ni se tocan las demás filas. */
+  const comboListEl = $("comboList");
+  if (comboListEl) {
+    comboListEl.addEventListener("change", function (e) {
+      const select = e.target.closest ? e.target.closest("select.combo-item__size") : null;
+      if (select) {
+        comboSetProductSize(Number(select.dataset.productId), select.value);
+        return;
+      }
+      const input = e.target.closest('input[type="checkbox"][data-product-id]');
+      if (!input) return;
+      const id = parseInt(input.dataset.productId, 10);
+      if (id) comboToggleProduct(id);
+    });
+  }
 
   /* Busqueda */
   const comboSearchInputEl = $("comboSearchInput");
@@ -1817,18 +1988,6 @@
         comboSearchQuery = val.trim();
         renderComboList();
       }, 200);
-    });
-  }
-
-  /* Lista de productos: checkboxes nativos (label+input), delegado al
-     contenedor estable -- accesible por teclado/click sin markup extra. */
-  const comboListEl = $("comboList");
-  if (comboListEl) {
-    comboListEl.addEventListener("change", function (e) {
-      const input = e.target.closest('input[type="checkbox"][data-product-id]');
-      if (!input) return;
-      const id = parseInt(input.dataset.productId, 10);
-      if (id) comboToggleProduct(id);
     });
   }
 
@@ -1868,12 +2027,18 @@
                   loading="lazy" decoding="async" onerror="this.src='${PLACEHOLDER_IMG}'" />`,
               )
               .join("");
+            const perLine = item.includedProducts.map((p) => {
+              const pPrice = includedProductPrice(p);
+              const parts = [p.size ? sizeLabel(p.size) : "", pPrice != null ? formatPrice(pPrice) : ""].filter(Boolean);
+              return `<div style="font-size:.72rem;color:var(--text-muted);">• ${esc(p.name)}${parts.length ? " · " + esc(parts.join(" · ")) : ""}</div>`;
+            }).join("");
             infoHtml = `
             <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
               <div style="display:flex;">${miniImgs}</div>
               <div>
                 <div style="font-weight:600;font-size:.85rem;">${esc(item.name)}</div>
-                <div style="font-size:.75rem;color:var(--text-secondary);">${item.includedProducts.length} × ${esc(sizeLabel(item.size))}</div>
+                <div style="font-size:.75rem;color:var(--text-secondary);">${item.includedProducts.length} fragancias · ${esc(packSizesLabel(item))}</div>
+                ${perLine}
               </div>
             </div>`;
           } else if (hasGift) {
@@ -2396,10 +2561,17 @@
     cart.forEach((item) => {
       const szTxt = isPremiumSize(item.size)
         ? sizeLabel(item.size)
-        : (item.type === "full" ? "Frasco" : item.type === "decant" ? "Decant" : "Pack") + " " + sizeLabel(item.size);
+        : (item.type === "full" ? "Frasco" : item.type === "decant" ? "Decant" : "Pack") + " " + packSizesLabel(item);
       mensaje += `\n  ✦ ${item.name} (${szTxt})\n`;
       if (item.isPack && item.includedProducts && item.includedProducts.length > 0) {
-        const lista = item.includedProducts.map((p) => `      • ${p.name}`).join("\n");
+        // Cada perfume del pack con SU talla individual y SU precio.
+        const lista = item.includedProducts
+          .map((p) => {
+            const pPrice = includedProductPrice(p);
+            const priceTxt = pPrice != null ? " · " + formatPrice(pPrice) : "";
+            return `      • ${p.name}${p.size ? " (" + sizeLabel(p.size) + ")" : ""}${priceTxt}`;
+          })
+          .join("\n");
         mensaje += `${lista}\n`;
         if (item.gift) {
           mensaje += `      🎁 *Regalo:* ${item.gift.name} (${item.gift.size})\n`;
@@ -2686,6 +2858,12 @@
     buildOrderMessage: buildOrderMessage,
     productPromoInfo: productPromoInfo,
     getComboDiscountInfo: getComboDiscountInfo,
+    /* Combo: estado POR PERFUME (id -> talla). No existe tamaño global:
+       no hay getter "getComboSize" al que redirigir estas tallas. */
+    getComboSelections: getComboSelections,
+    comboSetProductSize: comboSetProductSize,
+    resetCombo: function () { comboSelections = new Map(); comboSearchQuery = ""; renderComboList(); renderComboSummary(); },
+    isUnavailable: isUnavailable,
   };
 
   /* ══════════════════════════════════════════════════════════════

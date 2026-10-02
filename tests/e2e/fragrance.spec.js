@@ -542,12 +542,29 @@ test.describe('Guardas visuales P1', () => {
     await page.click('#hamburger');
     await page.click('#navThemeDark');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    const selectedSizeStyle = await page.locator('.combo-size-btn.active').evaluate((el) => {
-      const style = getComputedStyle(el);
-      return { backgroundImage: style.backgroundImage, color: style.color };
+    // Talla POR FILA (ya no existe el selector global del combo): cada
+    // fragancia tiene su <select> operativo y legible en dark mode.
+    const perRowSize = await page.evaluate(() => {
+      const rows = document.querySelectorAll('#comboList .combo-item');
+      const sel = rows[0] && rows[0].querySelector('select.combo-item__size');
+      const style = sel ? getComputedStyle(sel) : null;
+      return {
+        rows: rows.length,
+        hasSelect: !!sel,
+        disabled: sel ? sel.disabled : null,
+        options: sel ? sel.options.length : 0,
+        background: style ? style.backgroundColor : '',
+        color: style ? style.color : '',
+        globalSelectors: document.querySelectorAll('.combo-size-select, .combo-size-btn').length,
+      };
     });
-    expect(selectedSizeStyle.backgroundImage).not.toBe('none');
-    expect(selectedSizeStyle.color).toBe('rgb(26, 18, 11)');
+    expect(perRowSize.rows).toBeGreaterThan(0);
+    expect(perRowSize.hasSelect).toBe(true);
+    expect(perRowSize.disabled).toBe(false);
+    expect(perRowSize.options).toBeGreaterThanOrEqual(2);
+    expect(perRowSize.background).not.toBe('rgba(0, 0, 0, 0)');
+    expect(perRowSize.color).not.toBe('');
+    expect(perRowSize.globalSelectors).toBe(0);
     await page.screenshot({ path: testInfo.outputPath('combo-dark-mobile.png'), fullPage: true });
 
     await page.click('#nav a[data-page="home"]');

@@ -11,6 +11,11 @@ const proxLine = cfg.split("\n").find(l => l.trim().startsWith("PROXIMAMENTE:"))
 const proxArr = proxLine ? proxLine.match(/\[([^\]]+)\]/)[1].split(",").map(s => Number(s.trim())) : [];
 console.log("PROXIMAMENTE:", JSON.stringify(proxArr));
 
+// NO_DISPONIBLE: visible en catálogo, pero bloqueado para venta/combo.
+const noDispLine = cfg.split("\n").find(l => l.trim().startsWith("NO_DISPONIBLE:"));
+const noDispArr = noDispLine ? noDispLine.match(/\[([^\]]+)\]/)[1].split(",").map(s => Number(s.trim())) : [];
+console.log("NO_DISPONIBLE:", JSON.stringify(noDispArr));
+
 let passed = 0, failed = 0;
 function check(name, cond, detail) {
   if (cond) { passed++; console.log("PASS " + name); }
@@ -187,7 +192,11 @@ requested.forEach(([id, name, soon]) => {
 });
 check("Narcotic full bottle retained as historical data", inventory.some((p) => p.id === 144 && p.fullSizes[90] === 860), "");
 check("Narcotic full bottle absent from public inventory", !inventory.filter((p) => p.public !== false && p.sealed).some((p) => p.id === 144), "");
-check("Ani(90) NO DISPONIBLE: retirado del inventario público", inventory.some((p) => p.id === 90 && p.public === false) && !proxArr.includes(90), "");
+/* Ani(90) "NO DISPONIBLE" (cliente 01/10): debe seguir en el inventario
+   (public !== false, con su ficha y badge) y quedar listado en
+   NO_DISPONIBLE — nunca en PROXIMAMENTE ni oculto con public:false. */
+check("Ani(90) visible en el inventario público", inventory.some((p) => p.id === 90 && p.public !== false), "");
+check("Ani(90) NO DISPONIBLE listado y fuera de PROXIMAMENTE", noDispArr.includes(90) && !proxArr.includes(90), "noDisp=" + JSON.stringify(noDispArr));
 check("Toucan 20ml (decant) with its own image", inventory.some((p) => p.id === 137 && p.decantSizes[20] && /Toucan 20ml\.webp$/.test(p.sizeImages["20"])), "");
 [[151, "Birth of Venus", "Argos", 100, 950], [152, "Dream Sea", "Lorenzo Pazzaglia", 50, 675], [153, "Gris Charnel EDP", "BDK Parfums", 100, 799]].forEach(([id, name, brand, ml, price]) => {
   const p = inventory.find((x) => x.id === id);
