@@ -1380,8 +1380,10 @@ step(function () {
     ok(badge(148) === "Parcial · 99% de contenido", "condParcial148", "badge=" + badge(148));
     ok(badge(141) === "Frasco completo", "condSelladoNormal141", "badge=" + badge(141));
     /* Set DERIVADO del inventario público: sellados con public !== false.
-       Tras la retirada del 02/10 quedan 8 (142 Castley y 152 Dream Sea ya
-       no aparecen) — el número no se fija a mano. */
+       Tras la retirada del 02/10 quedaban 8 (142 Castley y 152 Dream Sea
+       ya no aparecen); el 08/10 suman 11 con Tropikalys Karma (154),
+       Vibrato (155) y French Riviera (156) — el número se mantiene
+       sincronizado con productos.js, la lista no se inventa a mano. */
     var visibleIds = Array.prototype.map.call(document.querySelectorAll('#catalogGrid .product-card[data-product-id]'), function (card) {
       return Number(card.dataset.productId);
     });
@@ -1389,7 +1391,7 @@ step(function () {
       return p.sealed === true && p.public !== false;
     }).map(function (p) { return p.id; });
     var sortNums = function (a, b) { return a - b; };
-    ok(JSON.stringify(visibleIds.slice().sort(sortNums)) === JSON.stringify(expectedIds.slice().sort(sortNums)) && expectedIds.length === 8,
+    ok(JSON.stringify(visibleIds.slice().sort(sortNums)) === JSON.stringify(expectedIds.slice().sort(sortNums)) && expectedIds.length === 11,
       "fullBottlesSetMatchesInventory", "visibles=" + visibleIds.join(",") + " esperado=" + expectedIds.join(","));
     ok(visibleIds.indexOf(142) === -1 && visibleIds.indexOf(152) === -1, "sealedRetiredNotInGrid", "visibles=" + visibleIds.join(","));
     // El DECANT de Castley (100) no es sellado: no entra en Completos…

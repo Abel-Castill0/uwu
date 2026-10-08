@@ -162,6 +162,9 @@
     { id: 151, name: "Birth of Venus", brand: "Argos", category: "nicho", gender: "unisex", notes: "Miel, cítricos y ámbar: el nacimiento luminoso de la diosa.", description: "Frasco sellado original 100ml. Incluye caja y empaque original. Envío con seguro.", fullSizes: {100:950}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "sellado", sealedSize: "100ml", featured: false, badge: null, badgeText: "" },
     { id: 152, public: false, name: "Dream Sea", brand: "Lorenzo Pazzaglia", category: "nicho", gender: "unisex", notes: "Melón, notas marinas y ámbar: un sueño salado y frutal.", description: "Frasco sellado original 50ml. Incluye caja y empaque original. Envío con seguro.", fullSizes: {50:675}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "sellado", sealedSize: "50ml", featured: false, badge: null, badgeText: "" },
     { id: 153, name: "Gris Charnel EDP", brand: "BDK Parfums", category: "nicho", gender: "unisex", notes: "Cardamomo, té negro y sándalo: la piel gris, cremosa y sensual.", description: "Frasco sellado original 100ml. Incluye caja y empaque original. Envío con seguro.", fullSizes: {100:799}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "sellado", sealedSize: "100ml", featured: false, badge: null, badgeText: "" },
+    { id: 154, name: "Tropikalys Karma", brand: "Lorenzo Pazzaglia", category: "nicho", gender: "unisex", notes: "Fruta tropical y ámbar dorado: karma dulce y radiante.", description: "Frasco sellado original 50ml. Incluye caja y empaque original. Envío con seguro.", fullSizes: {50:675}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "sellado", sealedSize: "50ml", featured: false, badge: null, badgeText: "" },
+    { id: 155, name: "Vibrato", brand: "Sospiro", category: "nicho", gender: "unisex", notes: "Bergamota, incienso y ámbar: vibrante y luminoso.", description: "Frasco sellado original 100ml. Incluye caja y empaque original. Envío con seguro.", fullSizes: {100:795}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "sellado", sealedSize: "100ml", featured: false, badge: null, badgeText: "" },
+    { id: 156, name: "French Riviera", brand: "Mancera", category: "nicho", gender: "unisex", notes: "Cítricos, notas marinas y madera: la costa francesa, fresca y solar.", description: "Frasco sellado original 125ml. Incluye caja y empaque original. Envío con seguro.", fullSizes: {125:375}, decantSizes: {}, fullImage: "", decantImage: "", cardImage: "", sealed: true, sealedStatus: "sellado", sealedSize: "125ml", featured: false, badge: null, badgeText: "" },
 
 
   ];
@@ -252,7 +255,7 @@
     48: { main: "img/perfumes_optimized/MANGOMINA D.webp", sizes: { "10_premium": "img/perfumes_optimized/MANGOMINA D decant premium 10 ml.webp", "20": "img/perfumes_optimized/MANGOMINA D 20ml.webp", "5_premium": "img/perfumes_optimized/MANGOMINA D decant premium 5ml.webp" } },
     49: { main: "img/perfumes_optimized/TALCO.webp", sizes: { "10_premium": "img/perfumes_optimized/TALCO decant premium 10 ml.webp", "20": "img/perfumes_optimized/TALCO 20ml.webp", "5_premium": "img/perfumes_optimized/TALCO decant premium 5ml.webp" } },
     50: { main: "img/perfumes_optimized/COCKTAIL MARACUJA.webp", sizes: { "10_premium": "img/perfumes_optimized/COCKTAIL MARACUJA decant premium 10 ml.webp", "20": "img/perfumes_optimized/COCKTAIL MARACUJA 20ml.webp", "5_premium": "img/perfumes_optimized/COCKTAIL MARACUJA decant premium 5ml.webp" } },
-    51: { main: "img/perfumes_optimized/BIRTH OF VENUS.webp", sizes: { "10_premium": "img/perfumes_optimized/BIRTH OF VENUS decant premium 10 ml.webp", "30": "img/perfumes_optimized/BIRTH OF VENUS 30ml.webp", "5_premium": "img/perfumes_optimized/BIRTH OF VENUS decant premium 5ml.webp" } },
+    51: { main: "img/perfumes_optimized/BIRTH OF VENUS DECANTS.webp", sizes: { "10_premium": "img/perfumes_optimized/BIRTH OF VENUS decant premium 10 ml.webp", "30": "img/perfumes_optimized/BIRTH OF VENUS 30ml.webp", "5_premium": "img/perfumes_optimized/BIRTH OF VENUS decant premium 5ml.webp" } },
     52: { main: "img/perfumes_optimized/La primavera.webp", sizes: { "10_premium": "img/perfumes_optimized/La primavera decant premium 10 ml.webp", "30": "img/perfumes_optimized/La primavera 30ml.webp", "5_premium": "img/perfumes_optimized/La primavera decant premium 5ml.webp" } },
     53: { main: "img/perfumes_optimized/NARCISSUS OBSESSION.webp", sizes: { "10_premium": "img/perfumes_optimized/NARCISSUS OBSESSION decant premium 10 ml.webp", "30": "img/perfumes_optimized/NARCISSUS OBSESSION 30ml.webp", "5_premium": "img/perfumes_optimized/NARCISSUS OBSESSION decant premium 5ml.webp" } },
     54: { main: "img/perfumes_optimized/JUPITER’S LIGHTNING.webp", sizes: { "10_premium": "img/perfumes_optimized/JUPITER’S LIGHTNING decant premium 10 ml.webp", "30": "img/perfumes_optimized/JUPITER’S LIGHTNING 30ml.webp", "5_premium": "img/perfumes_optimized/JUPITER’S LIGHTNING decant premium 5ml.webp" } },
@@ -354,6 +357,9 @@
     151: { main: "img/perfumes_optimized/BIRTH OF VENUS.webp", sizes: {} },
     152: { main: "img/perfumes_optimized/DREAM SEA.webp", sizes: {} },
     153: { main: "img/perfumes_optimized/GRIS CHARNEL EDP.webp", sizes: {} },
+    154: { main: "img/perfumes_optimized/TROPIKALYS KARMA.webp", sizes: {} },
+    155: { main: "img/perfumes_optimized/VIBRATO 100ML SELLADO.webp", sizes: {} },
+    156: { main: "img/perfumes_optimized/FRENCH RIVIERA 125ML SELLADO.webp", sizes: {} },
   };
   Object.entries(w.FO_PRODUCT_IMAGES).forEach(([id, imgs]) => {
     const p = w.FO_PRODUCTS.find((x) => x.id === Number(id));

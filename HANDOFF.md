@@ -839,3 +839,61 @@ Pedido del cliente (4 puntos):
   ronda anterior.)
 - **Sin bump de release**: solo cambiaron `script.js` y tests; los tokens
   `?v=` / `RELEASE` siguen coherentes (20261002 / fo-v86-checkout-shipping).
+
+## Ronda 2026-10-08 - Fotos del cliente, 3 sellados nuevos, Tropikalys Karma disponible
+
+Los 5 puntos del cliente quedaron cerrados:
+
+1. **Birth of Venus - foto nueva (frasco + decants)**: se generó
+   `img/perfumes_optimized/BIRTH OF VENUS DECANTS.webp` desde
+   `img/perfumes/BIRTH OF VENUS.png` con los mismos parámetros del job
+   `perfumes` de `tools/optimize-images.js` (1000px, q82) y se conectó SOLO
+   al decant (id 51) en `FO_PRODUCT_IMAGES`. El sellado (151) conserva la
+   foto de caja + frasco (`BIRTH OF VENUS.webp`) - decisión explícita del
+   cliente.
+2. **Tropikalys Karma sellado (nuevo id 154)**: Lorenzo Pazzaglia, nicho,
+   `sealed: true`, `sealedStatus: "sellado"`, `sealedSize: "50ml"`,
+   `fullSizes: {50:675}` - el mismo precio que tenía Dream Sea (50ml).
+   `FO_PRODUCT_IMAGES[154]` usa la foto limpia nueva: la anterior
+   `TROPIKALYS KARMA.webp` traía el sello "PRÓXIMAMENTE" impreso en el
+   archivo y ya se regeneró sin él.
+3. **Tropikalys Karma decant (id 60) disponible**: el id 60 salió de
+   `FO_CONFIG.PROXIMAMENTE` (array + comentario), así que el decant ya no
+   muestra badge "Próximamente" ni botón bloqueado. Fotos por tamaño
+   (5/10/20ml) intactas.
+4. **Vibrato sellado (nuevo id 155)**: Sospiro, nicho, `sealedSize:
+   "100ml"` (leído de la caja en la foto), `fullSizes: {100:795}`. Foto
+   nueva `VIBRATO 100ML SELLADO.webp` (caja + frasco); el decant (68)
+   sigue con `VIBRATO.webp` (frasco + decants).
+5. **French Riviera sellado (nuevo id 156)**: Mancera, nicho,
+   `sealedSize: "125ml"` (declarado en la caja de la foto),
+   `fullSizes: {125:375}`. Foto nueva `FRENCH RIVIERA 125ML SELLADO.webp`.
+   Es un id nuevo: French Riviera no existía ni como decant.
+
+- **Release bumpeada 20261002 -> 20261008** en `index.html` (7),
+  `admin.html` (2), `offline.html` (1), `sw.js` (`RELEASE`) y
+  `tests/release-coherence.js` (2); SW `fo-v86-checkout-shipping` ->
+  **`fo-v87-catalog-update`**. El bump es obligatorio: `productos.js` es un
+  asset cacheado con `?v=`, sin él los clientes con SW viejo no verían los
+  productos nuevos.
+- **Tests actualizados** (los contadores fijos ya no dan 8):
+  `tests/qa-catalog.js` inventario sellado publico 8 -> **11**, mas los
+  checks de nombre/marca/talla/precio de 154/155/156 y
+  `Tropikalys Karma decant(60) NOT in PROXIMAMENTE` (**108 PASS | 0
+  FAIL**); `tests/e2e/completos.spec.js` lista de ids ->
+  `[141,143,145,146,147,148,151,153,154,155,156]`, `toBe(11)`, y test
+  nuevo **"Nuevos sellados 08/10"** (card + precio + badge "Frasco
+  completo" + boton "Comprar Sellado" + foto cargada + modal "Cotizar
+  Frasco" en los 3 proyectos, decant 60 sin badge y foto 51 vs 151);
+  `tests/selftest.js` `fullBottlesSetMatchesInventory` 8 -> 11.
+- **Resultado**: `npm test` **344 PASS | 0 FAIL x 6**; `npx playwright test`
+  **199 passed / 2 skipped / 0 failed** (201 tests, 3 proyectos); smoke
+  14/14; qa-catalog **108/108**; test-descuentos **86/86**;
+  `node tools/audit-images.js` **PASS** (155 productos, 1050
+  presentaciones, 3 DUPLICATE_SUSPICIOUS - los mismos patrones aceptados:
+  Dream Sea 58/152, Tropikalys Karma 60/154 y Gris Charnel EDP 81/153
+  comparten foto entre decant y sellado); release-coherence PASS.
+- **Imágenes sin relacion con esta tarea sin commitear**: 4 webp de Gris
+  Charnel Extrait modificadas + 4 webp `Mefisto Xerjoff*` nuevas (mismo
+  criterio de las rondas anteriores; `img/perfumes/` es fuente y sigue en
+  .gitignore).

@@ -31,7 +31,7 @@ test('Completos nav clears stale filters, wraps vertically and survives Back/For
     (window.FO_PRODUCTS || []).filter((p) => p.sealed === true && p.public !== false).map((p) => p.id));
   await expect(cards).toHaveCount(publicSealedIds.length);
   expect(await cards.evaluateAll((els) => els.map((el) => Number(el.dataset.productId)))).toEqual(publicSealedIds);
-  expect(publicSealedIds).toEqual([141, 143, 145, 146, 147, 148, 151, 153]);
+  expect(publicSealedIds).toEqual([141, 143, 145, 146, 147, 148, 151, 153, 154, 155, 156]);
   // Retirados (cliente 02/10): sus ids NO están en el grid.
   for (const id of [142, 152]) {
     expect(publicSealedIds).not.toContain(id);
@@ -60,6 +60,57 @@ test('Completos nav clears stale filters, wraps vertically and survives Back/For
   await page.locator('#catalogGrid [data-product-id="143"]').click();
   await expect(page.locator('#modalName')).toHaveText('Erba Gold');
   await expect(page.locator('#modalAddBtn')).toContainText('Cotizar Frasco');
+});
+
+test('Nuevos sellados 08/10: Tropikalys Karma, Vibrato y French Riviera', async ({ page }) => {
+  test.setTimeout(120000);
+  await openNavLink(page, 'Completos');
+  const grid = page.locator('#catalogGrid');
+  const expected = [
+    [154, 'Tropikalys Karma', 'Lorenzo Pazzaglia', 'S/ 675.00'],
+    [155, 'Vibrato', 'Sospiro', 'S/ 795.00'],
+    [156, 'French Riviera', 'Mancera', 'S/ 375.00'],
+  ];
+  for (const [id, name, brand, price] of expected) {
+    const card = grid.locator(`[data-product-id="${id}"]`);
+    await expect(card).toBeVisible();
+    await expect(card.locator('.product-name')).toHaveText(name);
+    await expect(card.locator('.product-brand')).toHaveText(brand);
+    await expect(card.locator('.product-price')).toContainText(price);
+    await expect(card.locator('.product-badge')).toHaveText('Frasco completo');
+    await expect(card.locator('.btn-add')).toHaveText('Comprar Sellado');
+    // Las fotos nuevas van al final del grid y usan loading="lazy": primero
+    // entran al viewport para que WebKit móvil dispare la carga.
+    await card.scrollIntoViewIfNeeded();
+    await expect.poll(() => card.locator('img').evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
+    const src = await card.locator('img').getAttribute('src');
+    await card.click();
+    await expect(page.locator('#modalOverlay')).toHaveClass(/active/);
+    await expect(page.locator('#modalName')).toHaveText(name);
+    await expect(page.locator('#modalImage img')).toHaveAttribute('src', src);
+    await expect(page.locator('#modalAddBtn')).toContainText('Cotizar Frasco');
+    await page.locator('#modalOverlay .modal-close').click();
+  }
+
+  // Tropikalys Karma decant (60): sale de Próximamente y su foto ya no
+  // trae el sello impreso.
+  await openNavLink(page, 'Catálogo');
+  await page.locator('#catalogSearch').fill('Tropikalys Karma');
+  const decant = page.locator('#catalogGrid [data-product-id="60"]');
+  await expect(decant).toBeVisible();
+  await expect(decant.locator('.product-badge').filter({ hasText: 'Próximamente' })).toHaveCount(0);
+  await expect(decant.locator('.btn-add')).toBeEnabled();
+  await decant.scrollIntoViewIfNeeded();
+  await expect.poll(() => decant.locator('img').evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
+
+  // Birth of Venus: el decant (51) usa la foto nueva frasco + decants y el
+  // sellado (151) conserva la foto de caja + frasco.
+  await page.locator('#catalogSearch').fill('Birth of Venus');
+  await expect(page.locator('#catalogGrid [data-product-id="51"] img'))
+    .toHaveAttribute('src', /BIRTH OF VENUS DECANTS\.webp/);
+  await openNavLink(page, 'Completos');
+  await expect(page.locator('#catalogGrid [data-product-id="151"] img'))
+    .toHaveAttribute('src', /BIRTH OF VENUS\.webp/);
 });
 
 test('Six affected decants share availability and canonical photos in cards and modals', async ({ page }) => {
@@ -123,7 +174,7 @@ test('Header fits and Completos wraps across the requested responsive widths', a
   test.skip(testInfo.project.name !== 'chromium', 'The viewport matrix runs once on desktop Chromium.');
   const publicSealedCount = await page.evaluate(() =>
     (window.FO_PRODUCTS || []).filter((p) => p.sealed === true && p.public !== false).length);
-  expect(publicSealedCount).toBe(8); // 141, 143, 145, 146, 147, 148, 151, 153
+  expect(publicSealedCount).toBe(11); // 141, 143, 145, 146, 147, 148, 151, 153 + nuevos 154, 155, 156 (08/10)
   for (const width of [320, 360, 390, 430, 768, 900, 1024, 1280, 1366, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await openNavLink(page, 'Completos');

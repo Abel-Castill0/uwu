@@ -153,14 +153,17 @@ window.FO_CONFIG = {
      a la venta: se mostrarán con el badge "Próximamente", botón
      deshabilitado y aviso de reserva en el modal.
      Ejemplo: PROXIMAMENTE: [42, 73] */
-  PROXIMAMENTE: [9, 10, 19, 37, 40, 41, 55, 60, 63, 78, 79, 95, 101, 103, 138, 150], // Ichigo Ichie, Last Birthday Cake, Mango Kiss, Que Chimba, Speachless, Evil Angel, Porthole, Tropikalys Karma, Musk Therapy, Gentle Fluidity Silver, Grand Soir, Wulong Cha X, Sedley, Malibú Party, Loverbird, Mefisto Gentiluomo
+  PROXIMAMENTE: [9, 10, 19, 37, 40, 41, 55, 63, 78, 79, 95, 101, 103, 138, 150], // Ichigo Ichie, Last Birthday Cake, Mango Kiss, Que Chimba, Speachless, Evil Angel, Porthole, Musk Therapy, Gentle Fluidity Silver, Grand Soir, Wulong Cha X, Sedley, Malibú Party, Loverbird, Mefisto Gentiluomo
   /* Disponibles: Fierezza (140), Gris Charnel EDP (81), Birth of Venus (51),
      Paragon (64), Toucan (137, 20 ml), Castley
-     decant (100) y Narcotic Delight decant (62).
+     decant (100), Narcotic Delight decant (62) y Tropikalys Karma decant
+     (60) — cliente 08/10: sale de Próximamente con foto limpia.
      Narcotic Delight sellado (144), Castley sellado (142) y Dream Sea
      sellado (152) se conservan como dato histórico y están retirados del
      inventario público mediante public: false en productos.js
-     (cliente 02/10). El decant de Castley (100) NO está afectado. */
+     (cliente 02/10). El decant de Castley (100) NO está afectado.
+     Nuevos frascos completos (cliente 08/10): Tropikalys Karma sellado
+     (154), Vibrato sellado (155) y French Riviera sellado (156). */
 
   /* ── NO DISPONIBLE (visible, pero sin venta) ──────────────────
      A diferencia de PROXIMAMENTE y de public:false, estos ids SIGUEN en

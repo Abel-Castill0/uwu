@@ -172,6 +172,8 @@ check("Castley decant(100) NOT in PROXIMAMENTE", !proxArr.includes(100), "");
 check("Castley sellado(142) NOT in PROXIMAMENTE", !proxArr.includes(142), "");
 // Fierezza pasa a disponible manteniendo su lugar en Featured.
 check("Fierezza(140) available and still featured", !proxArr.includes(140) && featArr.includes(140), "");
+// Tropikalys Karma decant disponible (cliente 08/10): foto limpia, sin Próximamente.
+check("Tropikalys Karma decant(60) NOT in PROXIMAMENTE", !proxArr.includes(60), "");
 
 // Inventario confirmado el 17/09: evalúa el mapa canónico aplicado al catálogo.
 const vm = require("vm");
@@ -198,7 +200,9 @@ check("Narcotic full bottle absent from public inventory", !inventory.filter((p)
 check("Ani(90) visible en el inventario público", inventory.some((p) => p.id === 90 && p.public !== false), "");
 check("Ani(90) NO DISPONIBLE listado y fuera de PROXIMAMENTE", noDispArr.includes(90) && !proxArr.includes(90), "noDisp=" + JSON.stringify(noDispArr));
 check("Toucan 20ml (decant) with its own image", inventory.some((p) => p.id === 137 && p.decantSizes[20] && /Toucan 20ml\.webp$/.test(p.sizeImages["20"])), "");
-[[151, "Birth of Venus", "Argos", 100, 950], [153, "Gris Charnel EDP", "BDK Parfums", 100, 799]].forEach(([id, name, brand, ml, price]) => {
+[[151, "Birth of Venus", "Argos", 100, 950], [153, "Gris Charnel EDP", "BDK Parfums", 100, 799],
+ [154, "Tropikalys Karma", "Lorenzo Pazzaglia", 50, 675], [155, "Vibrato", "Sospiro", 100, 795],
+ [156, "French Riviera", "Mancera", 125, 375]].forEach(([id, name, brand, ml, price]) => {
   const p = inventory.find((x) => x.id === id);
   check(`Sealed ${name} ${ml}ml S/${price}`, !!p && p.name === name && p.brand === brand && p.sealed && p.sealedStatus === "sellado" && p.sealedSize === ml + "ml" && p.fullSizes[ml] === price && p.public !== false && !proxArr.includes(id), "");
   check(`Sealed ${name} image exists`, !!p && fs.existsSync(path.join(ROOT, p.cardImage)), "");
@@ -219,7 +223,7 @@ check("Toucan 20ml (decant) with its own image", inventory.some((p) => p.id === 
 /* Los decants de esos nombres NO se tocaron. */
 check("Castley decant(100) still public", inventory.some((p) => p.id === 100 && p.public !== false && Object.keys(p.decantSizes).length > 0), "");
 check("Dream Sea decant(58) still public", inventory.some((p) => p.id === 58 && p.public !== false && Object.keys(p.decantSizes).length > 0), "");
-check("public sealed inventory = 8", inventory.filter((p) => p.sealed === true && p.public !== false).length === 8, "count=" + inventory.filter((p) => p.sealed === true && p.public !== false).length);
+check("public sealed inventory = 11", inventory.filter((p) => p.sealed === true && p.public !== false).length === 11, "count=" + inventory.filter((p) => p.sealed === true && p.public !== false).length);
 check("Narcotic decant stays public", inventory.some((p) => p.id === 62 && p.public !== false && Object.keys(p.decantSizes).length > 0), "");
 
 console.log("\n=== RESULTADO ===");
