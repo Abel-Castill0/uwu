@@ -496,6 +496,32 @@ test.describe('Modal Producto', () => {
   });
 });
 
+// ─── Fotos por tamaño (regresión 10/10) ───────────────────────
+test.describe('Fotos por tamaño', () => {
+  test('Oud Maracuja: card con el frasco y cada tamaño con su vial', async ({ page }) => {
+    await page.goto('/');
+    await waitForHydration(page);
+    await navigateTo(page, 'catalogo');
+    await page.fill('#catalogSearch', 'Oud Maracuja');
+    const card = page.locator('#catalogGrid [data-product-id="15"]');
+    await expect(card).toBeVisible();
+    await expect(card.locator('img')).toHaveAttribute('src', 'img/perfumes_optimized/OUD MARACUJA.webp');
+    await card.click();
+    await page.waitForSelector('.modal-overlay.active', { timeout: 5000 });
+    // Cada tamaño tiene su propia foto: el 10ml antes caía a la del 5ml
+    // porque solo existía la key "10_premium".
+    const porTamaño = [
+      ['5', 'img/perfumes_optimized/OUD MARACUJA decant premium 5ml.webp'],
+      ['10', 'img/perfumes_optimized/OUD MARACUJA decant premium 10 ml.webp'],
+      ['20', 'img/perfumes_optimized/OUD MARACUJA decant 20 ml.webp'],
+    ];
+    for (const [size, src] of porTamaño) {
+      await page.locator(`#modalSizes .size-option[data-size="${size}"]`).click();
+      await expect(page.locator('#modalImage img')).toHaveAttribute('src', src);
+    }
+  });
+});
+
 // ─── Guardas visuales P1 (móvil) ─────────────────────────────
 test.describe('Guardas visuales P1', () => {
   test('Combo no desborda y el modal no oculta sus controles', async ({ page }, testInfo) => {

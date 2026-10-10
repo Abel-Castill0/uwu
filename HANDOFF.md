@@ -897,3 +897,68 @@ Los 5 puntos del cliente quedaron cerrados:
   Charnel Extrait modificadas + 4 webp `Mefisto Xerjoff*` nuevas (mismo
   criterio de las rondas anteriores; `img/perfumes/` es fuente y sigue en
   .gitignore).
+
+## Ronda 2026-10-10 - Fotos: Oud Maracuja y Tropikalys Karma sellado
+
+Dos pedidos del cliente, ambos de fotos de catálogo:
+
+1. **Oud Maracuja (id 15): "no está tomando la correcta"**. Diagnóstico en
+   dos capas:
+   - **Card / destacados**: el `main` era
+     `OUD MARACUJA decant premium 5ml.webp` (frasco + vialito) porque no
+     existía foto base del frasco (era el único producto del catálogo con
+     `main` = vial). Se generó **`OUD MARACUJA.webp`**: recorte del frasco
+     con sharp desde `img/perfumes/OUD MARACUJA decant premium 5ml.png`
+     (extract 360,100,330x900 + trim), recompuesto centrado sobre lienzo
+     blanco 4:5 (1000x1250) para que encaje en `.product-image`
+     (`aspect-ratio: 4/5`, `object-fit: contain`).
+   - **Modal**: al elegir **10ml** se mostraba la foto del 5ml. Causa:
+     `sizeImages` solo tenía la key `"10_premium"`, y `sizeImage()` cae a
+     `cardImage` cuando no encuentra `"10"` / `"10ml"` / `"10 ml"`. Se
+     añadieron las keys planas `"5"` y `"10"` apuntando a los mismos
+     viales que `_premium` (convención ya usada por los ids 5, 6, 7, 149,
+     150). 1/2/3ml siguen cayendo al frasco (no hay foto por tamaño).
+   - **Alcance**: 136 productos del catálogo comparten el patrón "solo
+     existe `*_premium`", pero en todos los demás el `main` ya es una foto
+     de frasco, así que el fallback se ve bien. Solo se corrigió el 15;
+     si el cliente repite la queja en otro perfume, repetir el mismo
+     patrón de keys planas.
+2. **Tropikalys Karma en "Perfumes completos" (id 154)**: la card usaba
+   `TROPIKALYS KARMA.webp` = frasco + 5 decants (foto pensada para el
+   decant, igual que Dream Sea / Vibrato usan caja + frasco). Se generó
+   **`TROPIKALYS KARMA 50ML SELLADO.webp`** recortando solo el frasco de
+   la foto limpia del 08/10 (`img/perfumes/TROPIKALYS KARMA.png`,
+   segmentación por perfil de columnas: frasco en x=153..570, y=147..906)
+   y recomponiéndolo sobre lienzo blanco 4:5. El decant (60) conserva la
+   foto con viales.
+3. **Bonus detectado en la investigación**: las tres fotos por tamaño del
+   decant Karma (5ml / 10ml / 20ml, del lote 08/26) seguían con el sello
+   rojo "PRÓXIMAMENTE" impreso del cliente, y el id 60 ya estaba a la
+   venta. Se **regeneraron los tres webps sin sello** recomponiendo
+   frasco + vial desde la foto limpia del 08/10 (viales en x=831/953/1063,
+   misma línea base y fondo blanco). No había foto limpia equivalente en
+   `img/perfumes/` (el sello está quemado en el PNG original).
+
+- **Datos**: `productos.js` solo cambió `FO_PRODUCT_IMAGES[15]`,
+  `[60]` (keys planas) y `[154]` (main sellado); el comentario de la
+  fusión (línea 367) ya no menciona a Oud Maracuja como ejemplo de "sin
+  foto base".
+- **Release bumpeada 20261008 -> 20261010** en `index.html` (7),
+  `admin.html` (2), `offline.html` (1), `sw.js` (`RELEASE`) y
+  `tests/release-coherence.js` (2); SW `fo-v87-catalog-update` ->
+  **`fo-v88-photo-fixes`** (obligatorio: `productos.js` va con `?v=`).
+- **Tests**: `tests/e2e/fragrance.spec.js` test nuevo **"Oud Maracuja:
+  card con el frasco y cada tamaño con su vial"** (describe "Fotos por
+  tamaño"): card = `OUD MARACUJA.webp` y modal 5/10/20ml con su vial
+  exacto; `tests/e2e/completos.spec.js` "Nuevos sellados 08/10" ahora
+  además fija `TROPIKALYS KARMA 50ML SELLADO.webp` en la card 154 y las
+  fotos sin sello del modal del decant 60 (20ml y 10ml).
+- **Resultado**: `npm test` **344 PASS | 0 FAIL x 6**; `npx playwright test`
+  **202 passed / 2 skipped / 0 failed** (204 tests: el nuevo "Fotos por
+  tamaño" corre en los 3 proyectos; la suite de completos pasó también en
+  las 3); smoke **14/14**; qa-catalog **108/108**; test-descuentos
+  **86/86**; `node tools/audit-images.js` **PASS** (155 productos, 1050
+  presentaciones, 2 DUPLICATE_SUSPICIOUS); release-coherence **PASS**.
+- **Nota**: el par 60/154 dejó de compartir foto, así que
+  `tools/audit-images.js` baja a **2 DUPLICATE_SUSPICIOUS** (siguen
+  Dream Sea 58/152 y Gris Charnel EDP 81/153).

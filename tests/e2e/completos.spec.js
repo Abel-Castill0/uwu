@@ -92,6 +92,9 @@ test('Nuevos sellados 08/10: Tropikalys Karma, Vibrato y French Riviera', async 
     await page.locator('#modalOverlay .modal-close').click();
   }
 
+  // La card del sellado Karma usa la foto del frasco solo (sin decants).
+  await expect(grid.locator('[data-product-id="154"] img')).toHaveAttribute('src', 'img/perfumes_optimized/TROPIKALYS KARMA 50ML SELLADO.webp');
+
   // Tropikalys Karma decant (60): sale de Próximamente y su foto ya no
   // trae el sello impreso.
   await openNavLink(page, 'Catálogo');
@@ -102,6 +105,15 @@ test('Nuevos sellados 08/10: Tropikalys Karma, Vibrato y French Riviera', async 
   await expect(decant.locator('.btn-add')).toBeEnabled();
   await decant.scrollIntoViewIfNeeded();
   await expect.poll(() => decant.locator('img').evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
+
+  // Los tamaños se recomponen desde la foto limpia: nada de sello rojo.
+  await decant.click();
+  await expect(page.locator('#modalOverlay')).toHaveClass(/active/);
+  await page.locator('#modalSizes .size-option[data-size="20"]').click();
+  await expect(page.locator('#modalImage img')).toHaveAttribute('src', 'img/perfumes_optimized/TROPIKALYS KARMA 20ml.webp');
+  await page.locator('#modalSizes .size-option[data-size="10"]').click();
+  await expect(page.locator('#modalImage img')).toHaveAttribute('src', 'img/perfumes_optimized/TROPIKALYS KARMA decant premium 10 ml.webp');
+  await page.locator('#modalOverlay .modal-close').click();
 
   // Birth of Venus: el decant (51) usa la foto nueva frasco + decants y el
   // sellado (151) conserva la foto de caja + frasco.

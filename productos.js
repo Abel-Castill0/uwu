@@ -219,7 +219,7 @@
     12: { main: "img/perfumes_optimized/GOLD JUICE.webp", sizes: { "10_premium": "img/perfumes_optimized/GOLD JUICE decant premium 10 ml.webp", "30": "img/perfumes_optimized/GOLD JUICE decant 30 ml.webp", "5_premium": "img/perfumes_optimized/GOLD JUICE decant premium 5ml.webp" } },
     13: { main: "img/perfumes_optimized/INDECENT CHERRY.webp", sizes: { "10_premium": "img/perfumes_optimized/INDECENT CHERRY decant premium 10 ml.webp", "30": "img/perfumes_optimized/INDECENT CHERRY decant 30 ml.webp", "5_premium": "img/perfumes_optimized/INDECENT CHERRY decant premium 5ml.webp" } },
     14: { main: "img/perfumes_optimized/BLACK GUAVA.webp", sizes: { "10_premium": "img/perfumes_optimized/BLACK GUAVA decant premium 10 ml.webp", "20": "img/perfumes_optimized/BLACK GUAVA decant 20 ml.webp", "5_premium": "img/perfumes_optimized/BLACK GUAVA decant premium 5ml.webp" } },
-    15: { main: "img/perfumes_optimized/OUD MARACUJA decant premium 5ml.webp", sizes: { "10_premium": "img/perfumes_optimized/OUD MARACUJA decant premium 10 ml.webp", "20": "img/perfumes_optimized/OUD MARACUJA decant 20 ml.webp", "5_premium": "img/perfumes_optimized/OUD MARACUJA decant premium 5ml.webp" } },
+    15: { main: "img/perfumes_optimized/OUD MARACUJA.webp", sizes: { "5": "img/perfumes_optimized/OUD MARACUJA decant premium 5ml.webp", "5_premium": "img/perfumes_optimized/OUD MARACUJA decant premium 5ml.webp", "10": "img/perfumes_optimized/OUD MARACUJA decant premium 10 ml.webp", "10_premium": "img/perfumes_optimized/OUD MARACUJA decant premium 10 ml.webp", "20": "img/perfumes_optimized/OUD MARACUJA decant 20 ml.webp" } },
     16: { main: "img/perfumes_optimized/Venom Incarnat.webp", sizes: { "10_premium": "img/perfumes_optimized/Venom Incarnat decant premium 10 ml.webp", "20": "img/perfumes_optimized/Venom Incarnat 20ml.webp", "5_premium": "img/perfumes_optimized/Venom Incarnat decant premium 5ml.webp" } },
     17: { main: "img/perfumes_optimized/GOD OF FIRE.webp", sizes: { "10_premium": "img/perfumes_optimized/GOD OF FIRE decant premium 10 ml.webp", "20": "img/perfumes_optimized/GOD OF FIRE 20ml.webp", "5_premium": "img/perfumes_optimized/GOD OF FIRE decant premium 5ml.webp" } },
     18: { main: "img/perfumes_optimized/Sand Dance.webp", sizes: { "10_premium": "img/perfumes_optimized/Sand Dance decant premium 10 ml.webp", "20": "img/perfumes_optimized/Sand Dance 20ml.webp", "5_premium": "img/perfumes_optimized/Sand Dance decant premium 5ml.webp" } },
@@ -264,7 +264,7 @@
     57: { main: "img/perfumes_optimized/VAN SEA.webp", sizes: { "10_premium": "img/perfumes_optimized/VAN SEA decant premium 10 ml.webp", "20": "img/perfumes_optimized/VAN SEA 20ml.webp", "5_premium": "img/perfumes_optimized/VAN SEA decant premium 5ml.webp" } },
     58: { main: "img/perfumes_optimized/DREAM SEA.webp", sizes: { "10_premium": "img/perfumes_optimized/DREAM SEA decant premium 10 ml.webp", "20": "img/perfumes_optimized/DREAM SEA 20ml.webp", "5_premium": "img/perfumes_optimized/DREAM SEA decant premium 5ml.webp" } },
     59: { main: "img/perfumes_optimized/SEX SEA.webp", sizes: { "10_premium": "img/perfumes_optimized/SEX SEA decant premium 10 ml.webp", "20": "img/perfumes_optimized/SEX SEA 20ml.webp", "5_premium": "img/perfumes_optimized/SEX SEA decant premium 5ml.webp" } },
-    60: { main: "img/perfumes_optimized/TROPIKALYS KARMA.webp", sizes: { "10_premium": "img/perfumes_optimized/TROPIKALYS KARMA decant premium 10 ml.webp", "20": "img/perfumes_optimized/TROPIKALYS KARMA 20ml.webp", "5_premium": "img/perfumes_optimized/TROPIKALYS KARMA decant premium 5ml.webp" } },
+    60: { main: "img/perfumes_optimized/TROPIKALYS KARMA.webp", sizes: { "5": "img/perfumes_optimized/TROPIKALYS KARMA decant premium 5ml.webp", "5_premium": "img/perfumes_optimized/TROPIKALYS KARMA decant premium 5ml.webp", "10": "img/perfumes_optimized/TROPIKALYS KARMA decant premium 10 ml.webp", "10_premium": "img/perfumes_optimized/TROPIKALYS KARMA decant premium 10 ml.webp", "20": "img/perfumes_optimized/TROPIKALYS KARMA 20ml.webp" } },
     61: { main: "img/perfumes_optimized/BAHAR.webp", sizes: { "10_premium": "img/perfumes_optimized/BAHAR decant premium 10 ml.webp", "20": "img/perfumes_optimized/BAHAR 20ml.webp", "5_premium": "img/perfumes_optimized/BAHAR decant premium 5ml.webp" } },
     62: { main: "img/perfumes_optimized/NARCOTIC DELIGHT.webp", sizes: { "10_premium": "img/perfumes_optimized/NARCOTIC DELIGHT decant premium 10 ml.webp", "30": "img/perfumes_optimized/NARCOTIC DELIGHT 30ml.webp", "5_premium": "img/perfumes_optimized/NARCOTIC DELIGHT decant premium 5ml.webp" } },
     63: { main: "img/perfumes_optimized/MUSK THERAPY.webp", sizes: { "10_premium": "img/perfumes_optimized/MUSK THERAPY decant premium 10 ml.webp", "20": "img/perfumes_optimized/MUSK THERAPY 20ml.webp", "30": "img/perfumes_optimized/MUSK THERAPY 30ml.webp", "5_premium": "img/perfumes_optimized/MUSK THERAPY decant premium 5ml.webp" } },
@@ -357,14 +357,14 @@
     151: { main: "img/perfumes_optimized/BIRTH OF VENUS.webp", sizes: {} },
     152: { main: "img/perfumes_optimized/DREAM SEA.webp", sizes: {} },
     153: { main: "img/perfumes_optimized/GRIS CHARNEL EDP.webp", sizes: {} },
-    154: { main: "img/perfumes_optimized/TROPIKALYS KARMA.webp", sizes: {} },
+    154: { main: "img/perfumes_optimized/TROPIKALYS KARMA 50ML SELLADO.webp", sizes: {} },
     155: { main: "img/perfumes_optimized/VIBRATO 100ML SELLADO.webp", sizes: {} },
     156: { main: "img/perfumes_optimized/FRENCH RIVIERA 125ML SELLADO.webp", sizes: {} },
   };
   Object.entries(w.FO_PRODUCT_IMAGES).forEach(([id, imgs]) => {
     const p = w.FO_PRODUCTS.find((x) => x.id === Number(id));
     if (!p) return;
-    /* Sin foto base (ej. Oud Maracuja) se usa el vial 5ml como imagen principal */
+    /* Sin foto base (main vacío) se cae a la variante 5ml si existe */
     const main = imgs.main || imgs.sizes["5"] || "";
     p.cardImage = main;
     p.fullImage = main;
