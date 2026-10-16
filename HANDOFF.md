@@ -1021,3 +1021,36 @@ Dos observaciones del cliente; solo una requirió tocar archivos versionados.
   presentaciones, 2 DUPLICATE_SUSPICIOUS); release-coherence **PASS**.
 - **Sin commitear (fuera de alcance)**: 4 webp de Gris Charnel Extrait
   modificadas + 4 webp `Mefisto Xerjoff*` nuevas.
+
+## Micro-ronda 2026-10-16 (2) - Cache-bust de la foto de Oud Maracuja
+
+- **Contexto**: el cliente volvió a reportar que la card de Oud Maracuja no
+  mostraba la foto de presentación (frasco + decants), aunque en producción
+  ya servía ese archivo. Verificación en vivo (`sw.js` = `fo-v89`,
+  `productos.js?v=20261016` y capturas de card/modal) confirmó que card,
+  home y modal 1ml apuntaban al mismo webp: el síntoma era **caché vieja
+  bajo la misma URL** (bytes previos del recorte "frasco solo" en
+  `img-${VERSION}` del SW / caché HTTP del cliente).
+- **Solución (cache-bust por URL nueva)**:
+  - `img/perfumes_optimized/OUD MARACUJA.webp` -> **`OUD MARACUJA DECANTS.webp`**
+    (`git mv`, mismo contenido 1000x720; patrón `BIRTH OF VENUS DECANTS.webp`
+    ya existente). El original gitignorado `img/perfumes/OUD MARACUJA.png`
+    se renombró a `OUD MARACUJA DECANTS.png` para que futuras corridas del
+    job `perfumes` de `optimize-images.js` regeneren el mismo nombre.
+  - `productos.js`: `FO_PRODUCT_IMAGES[15].main` -> `OUD MARACUJA DECANTS.webp`
+    (sizes 5/10/20 y premium intactos). La URL es nueva, así que ningún
+    cliente la tiene cacheada: todos reciben los bytes frescos sin depender
+    del revalidate del SW.
+- **Tests**: `tests/e2e/fragrance.spec.js` actualizado a la ruta nueva en el
+  aserto de la card y en la constante `principal` (fallback 1/2/3ml).
+- **Release bumpeada 20261016 -> 20261017** en `index.html` (7),
+  `admin.html` (2), `offline.html` (1), `sw.js` (`RELEASE`) y
+  `tests/release-coherence.js` (2); SW `fo-v89-oud-maracuja-photo` ->
+  **`fo-v90-oud-maracuja-decants`** (además purga la caché `img-*` de todos
+  los dispositivos que sí actualicen el SW).
+- **Resultado**: `npm test` **344 PASS | 0 FAIL x 6**; `npx playwright test`
+  **202 passed / 2 skipped / 0 failed**; smoke **14/14**; qa-catalog
+  **108/108**; test-descuentos **86/86**; `node tools/audit-images.js`
+  **PASS** (2 DUPLICATE_SUSPICIOUS); release-coherence **PASS**.
+- **Nota**: los webp de Gris Charnel Extrait y `Mefisto Xerjoff*` siguen
+  fuera de alcance, igual que en la ronda anterior.

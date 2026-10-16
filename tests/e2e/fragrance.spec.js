@@ -507,7 +507,7 @@ test.describe('Fotos por tamaño', () => {
     await expect(card).toBeVisible();
     // Ruta exacta de la foto principal: la de presentación que subió el
     // cliente (frasco + 5 decants), no el recorte de frasco solo.
-    await expect(card.locator('img')).toHaveAttribute('src', 'img/perfumes_optimized/OUD MARACUJA.webp');
+    await expect(card.locator('img')).toHaveAttribute('src', 'img/perfumes_optimized/OUD MARACUJA DECANTS.webp');
     // El grid se re-renderiza con debounce (200ms) tras la búsqueda y el
     // nodo se reemplaza: el scroll se reintenta hasta quedar estable.
     await expect.poll(async () => {
@@ -535,7 +535,7 @@ test.describe('Fotos por tamaño', () => {
     }
     // Presentaciones sin foto propia (1, 2 y 3 ml) caen a la principal
     // y nunca quedan con imagen rota.
-    const principal = 'img/perfumes_optimized/OUD MARACUJA.webp';
+    const principal = 'img/perfumes_optimized/OUD MARACUJA DECANTS.webp';
     for (const size of ['1', '2', '3']) {
       await page.locator(`#modalSizes .size-option[data-size="${size}"]`).click();
       await expect(page.locator('#modalImage img')).toHaveAttribute('src', principal);
