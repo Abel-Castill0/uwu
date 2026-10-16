@@ -92,15 +92,18 @@ test('Nuevos sellados 08/10: Tropikalys Karma, Vibrato y French Riviera', async 
     await page.locator('#modalOverlay .modal-close').click();
   }
 
-  // La card del sellado Karma usa la foto del frasco solo (sin decants).
+  // La card del sellado Karma usa la foto individual del frasco de 50 ml
+  // y nunca la imagen destinada al decant (verificada abajo para el 60).
   await expect(grid.locator('[data-product-id="154"] img')).toHaveAttribute('src', 'img/perfumes_optimized/TROPIKALYS KARMA 50ML SELLADO.webp');
 
   // Tropikalys Karma decant (60): sale de Próximamente y su foto ya no
-  // trae el sello impreso.
+  // trae el sello impreso. Separación visual: el decant conserva la foto
+  // de frasco + decants, distinta a la del sellado 154.
   await openNavLink(page, 'Catálogo');
   await page.locator('#catalogSearch').fill('Tropikalys Karma');
   const decant = page.locator('#catalogGrid [data-product-id="60"]');
   await expect(decant).toBeVisible();
+  await expect(decant.locator('img')).toHaveAttribute('src', 'img/perfumes_optimized/TROPIKALYS KARMA.webp');
   await expect(decant.locator('.product-badge').filter({ hasText: 'Próximamente' })).toHaveCount(0);
   await expect(decant.locator('.btn-add')).toBeEnabled();
   await decant.scrollIntoViewIfNeeded();

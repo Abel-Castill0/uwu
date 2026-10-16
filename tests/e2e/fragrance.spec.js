@@ -496,19 +496,32 @@ test.describe('Modal Producto', () => {
   });
 });
 
-// ─── Fotos por tamaño (regresión 10/10) ───────────────────────
+// ─── Fotos por tamaño (regresión 10/10, refuerzo 16/10) ────────
 test.describe('Fotos por tamaño', () => {
-  test('Oud Maracuja: card con el frasco y cada tamaño con su vial', async ({ page }) => {
+  test('Oud Maracuja: card con la foto de presentación (frasco + decants)', async ({ page }) => {
     await page.goto('/');
     await waitForHydration(page);
     await navigateTo(page, 'catalogo');
     await page.fill('#catalogSearch', 'Oud Maracuja');
     const card = page.locator('#catalogGrid [data-product-id="15"]');
     await expect(card).toBeVisible();
+    // Ruta exacta de la foto principal: la de presentación que subió el
+    // cliente (frasco + 5 decants), no el recorte de frasco solo.
     await expect(card.locator('img')).toHaveAttribute('src', 'img/perfumes_optimized/OUD MARACUJA.webp');
+    // El grid se re-renderiza con debounce (200ms) tras la búsqueda y el
+    // nodo se reemplaza: el scroll se reintenta hasta quedar estable.
+    await expect.poll(async () => {
+      try {
+        await card.scrollIntoViewIfNeeded();
+        return true;
+      } catch {
+        return false;
+      }
+    }, { timeout: 15000 }).toBe(true);
+    await expect.poll(() => card.locator('img').evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
     await card.click();
     await page.waitForSelector('.modal-overlay.active', { timeout: 5000 });
-    // Cada tamaño tiene su propia foto: el 10ml antes caía a la del 5ml
+    // Cada tamaño con su vial específico: el 10ml antes caía a la del 5ml
     // porque solo existía la key "10_premium".
     const porTamaño = [
       ['5', 'img/perfumes_optimized/OUD MARACUJA decant premium 5ml.webp'],
@@ -518,6 +531,15 @@ test.describe('Fotos por tamaño', () => {
     for (const [size, src] of porTamaño) {
       await page.locator(`#modalSizes .size-option[data-size="${size}"]`).click();
       await expect(page.locator('#modalImage img')).toHaveAttribute('src', src);
+      await expect.poll(() => page.locator('#modalImage img').evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
+    }
+    // Presentaciones sin foto propia (1, 2 y 3 ml) caen a la principal
+    // y nunca quedan con imagen rota.
+    const principal = 'img/perfumes_optimized/OUD MARACUJA.webp';
+    for (const size of ['1', '2', '3']) {
+      await page.locator(`#modalSizes .size-option[data-size="${size}"]`).click();
+      await expect(page.locator('#modalImage img')).toHaveAttribute('src', principal);
+      await expect.poll(() => page.locator('#modalImage img').evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
     }
   });
 });

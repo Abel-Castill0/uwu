@@ -962,3 +962,62 @@ Dos pedidos del cliente, ambos de fotos de catálogo:
 - **Nota**: el par 60/154 dejó de compartir foto, así que
   `tools/audit-images.js` baja a **2 DUPLICATE_SUSPICIOUS** (siguen
   Dream Sea 58/152 y Gris Charnel EDP 81/153).
+
+## Micro-ronda 2026-10-16 - Foto de presentación de Oud Maracuja (cliente)
+
+Dos observaciones del cliente; solo una requirió tocar archivos versionados.
+
+1. **Oud Maracuja: la card debe mostrar el frasco + los decants de
+   distintos tamaños** (foto de presentación, como el resto del catálogo).
+   - **Archivo original localizado**: `img/perfumes/OUD MARACUJA.png`
+     (1500x1080, 246 KB, subido 2026-10-16 01:45). Se verificó visualmente
+     (no por el nombre): frasco + 5 decants de tamaños graduados, fondo
+     blanco, mismo estilo de las presentaciones de Karma / Dream Sea.
+     Es el primer archivo "OUD MARACUJA.*" sin calificativo en el repo.
+   - **Procesado con el flujo del proyecto**: job `perfumes` de
+     `tools/optimize-images.js` (resize **1000px sin ampliación** + webp
+     **q82**, no destructivo; se replicó el `processFile` exacto para un
+     solo archivo en vez de correr las 739 imágenes del job). Sale
+     `img/perfumes_optimized/OUD MARACUJA.webp` (1000x720, ~10 KB); el
+     PNG original queda intacto en `img/perfumes/`.
+   - **Ojo con el nombre**: `OUD MARACUJA.webp` era el recorte de "frasco
+     solo" que habíamos generado en la ronda 10/10. El nombre del pipeline
+     choca y el archivo se sobrescribió con la foto del cliente (el
+     recorte sigue en el historial de git; nada lo referenciaba además de
+     `main`).
+   - **`FO_PRODUCT_IMAGES[15].main` no requirió cambios**: ya apuntaba a
+     `img/perfumes_optimized/OUD MARACUJA.webp`, así que la ficha, la
+     tarjeta y el fallback de 1/2/3ml ahora muestran la foto de
+     presentación. `productos.js` quedó intacto en esta micro-ronda.
+   - **Presentaciones de Oud Maracuja**: 5ml y 5ml premium ->
+     `...decant premium 5ml.webp`; 10ml y 10ml premium ->
+     `...decant premium 10 ml.webp`; 20ml -> `...decant 20 ml.webp`; 1,
+     2 y 3ml caen a la principal. Ninguna presentación con imagen rota.
+2. **Tropikalys Karma en "Perfumes completos"**: sin cambios de datos. El
+   sellado (154) conserva `TROPIKALYS KARMA 50ML SELLADO.webp` y el
+   decant (60) conserva `TROPIKALYS KARMA.webp` (frasco + decants); la
+   separación visual entre ambos ahora queda fijada por test.
+
+- **Tests**: `tests/e2e/fragrance.spec.js` ("Fotos por tamaño") renombrado
+  a **"Oud Maracuja: card con la foto de presentación (frasco + decants)"**:
+  ruta exacta del `main`, `naturalWidth > 0` tras scroll (el grid se
+  re-renderiza con debounce de 200ms, por eso el scroll se reintenta con
+  `expect.poll`), 5/10/20ml con su vial exacto + carga, y 1/2/3ml cayendo
+  a la principal sin imagen rota. `tests/e2e/completos.spec.js` ahora
+  además fija la card del decant 60 en `TROPIKALYS KARMA.webp` (distinta a
+  la del sellado 154).
+- **Release bumpeada 20261010 -> 20261016** en `index.html` (7),
+  `admin.html` (2), `offline.html` (1), `sw.js` (`RELEASE`) y
+  `tests/release-coherence.js` (2); SW `fo-v88-photo-fixes` ->
+  **`fo-v89-oud-maracuja-photo`**. El bump es necesario aunque
+  `productos.js` no cambie: los webp se sirven desde la caché
+  `img-${VERSION}` del service worker.
+- **Resultado**: `npm test` **344 PASS | 0 FAIL x 6**; `npx playwright test`
+  **202 passed / 2 skipped / 0 failed** (204 tests, 3 proyectos; la primera
+  corrida completa tuvo 1 flake de "Home carga en < 3s (FCP)" en chromium
+  por carga paralela, pasó en aislamiento y la segunda corrida completa
+  salió limpia); smoke **14/14**; qa-catalog **108/108**; test-descuentos
+  **86/86**; `node tools/audit-images.js` **PASS** (155 productos, 1050
+  presentaciones, 2 DUPLICATE_SUSPICIOUS); release-coherence **PASS**.
+- **Sin commitear (fuera de alcance)**: 4 webp de Gris Charnel Extrait
+  modificadas + 4 webp `Mefisto Xerjoff*` nuevas.
