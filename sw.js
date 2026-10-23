@@ -7,7 +7,7 @@
  * DEBE bumpear VERSION o los clientes se quedan con código viejo.
  */
 const RELEASE = "20261017";
-const VERSION = "fo-v91-ghpages";
+const VERSION = "fo-v92-vercel";
 const CORE_CACHE = `core-${VERSION}`;
 const IMG_CACHE = `img-${VERSION}`;
 const FONT_CACHE = `font-${VERSION}`;
