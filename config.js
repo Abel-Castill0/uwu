@@ -153,7 +153,7 @@ window.FO_CONFIG = {
      a la venta: se mostrarán con el badge "Próximamente", botón
      deshabilitado y aviso de reserva en el modal.
      Ejemplo: PROXIMAMENTE: [42, 73] */
-  PROXIMAMENTE: [9, 10, 19, 37, 40, 41, 55, 63, 78, 79, 95, 101, 103, 138, 150], // Ichigo Ichie, Last Birthday Cake, Mango Kiss, Que Chimba, Speachless, Evil Angel, Porthole, Musk Therapy, Gentle Fluidity Silver, Grand Soir, Wulong Cha X, Sedley, Malibú Party, Loverbird, Mefisto Gentiluomo
+   PROXIMAMENTE: [10, 19, 37, 40, 41, 55, 63, 78, 79, 95, 101, 103, 138, 150], // Last Birthday Cake, Mango Kiss, Que Chimba, Speachless, Evil Angel, Porthole, Musk Therapy, Gentle Fluidity Silver, Grand Soir, Wulong Cha X, Sedley, Malibú Party, Loverbird, Mefisto Gentiluomo
   /* Disponibles: Fierezza (140), Gris Charnel EDP (81), Birth of Venus (51),
      Paragon (64), Toucan (137, 20 ml), Castley
      decant (100), Narcotic Delight decant (62) y Tropikalys Karma decant
@@ -171,7 +171,7 @@ window.FO_CONFIG = {
      bloquea es la compra (no se agrega al carrito, no entra a combos y
      no genera precio de compra). Ids de productos.js.
      Ejemplo: NO_DISPONIBLE: [90] */
-  NO_DISPONIBLE: [90], // Ani (Nishane) — cliente 01/10
+   NO_DISPONIBLE: [90], // Ani (Nishane) — cliente 01/10
 
   /* ── FRAGANCIAS DESTACADAS (Home) ────────────────────────────────
      Orden EXACTO confirmado por el cliente. Se renderiza vía

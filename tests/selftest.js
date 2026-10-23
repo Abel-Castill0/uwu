@@ -412,7 +412,8 @@ ok(gridCount() === 24, "catalogBackInitial24", "initial grid=" + gridCount());
   /* 7b. Próximamente conserva disponibilidad y no se presenta como oferta. */
   step(function () { window.navigateTo("catalogo"); }, 250);
   step(function () {
-    var soonCard = document.querySelector('#catalogGrid .product-card[data-product-id="9"]');
+    var soonCard = document.querySelector('#catalogGrid .product-card[data-product-id="10"]');
+
     if (soonCard) soonCard.click();
     ok(!!soonCard, "soonCardRendered", "id=9 ausente");
     ok(soonCard && soonCard.querySelectorAll(".product-badge").length === 1 && soonCard.querySelector(".product-badge").textContent.trim() === "Próximamente", "soonOneBadge", "badge=" + (soonCard && soonCard.querySelector(".product-badge") ? soonCard.querySelector(".product-badge").textContent : ""));
@@ -1391,7 +1392,8 @@ step(function () {
       return p.sealed === true && p.public !== false;
     }).map(function (p) { return p.id; });
     var sortNums = function (a, b) { return a - b; };
-    ok(JSON.stringify(visibleIds.slice().sort(sortNums)) === JSON.stringify(expectedIds.slice().sort(sortNums)) && expectedIds.length === 11,
+    ok(JSON.stringify(visibleIds.slice().sort(sortNums)) === JSON.stringify(expectedIds.slice().sort(sortNums)) && expectedIds.length === 13,
+
       "fullBottlesSetMatchesInventory", "visibles=" + visibleIds.join(",") + " esperado=" + expectedIds.join(","));
     ok(visibleIds.indexOf(142) === -1 && visibleIds.indexOf(152) === -1, "sealedRetiredNotInGrid", "visibles=" + visibleIds.join(","));
     // El DECANT de Castley (100) no es sellado: no entra en Completos…

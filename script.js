@@ -1053,6 +1053,26 @@
       addBtn.classList.remove("btn-soon");
       if (soonNote) soonNote.remove();
     }
+    /* Frasco completo agotado: solo bloquea la vista de frasco, los
+       decants siguen vendiéndose normalmente. */
+    let soldOutNote = document.getElementById("modalSoldOutNote");
+    if (isFull && product.fullSoldOut) {
+      addBtn.disabled = true;
+      addBtn.classList.add("btn-soldout");
+      addBtn.classList.remove("btn-add-wa");
+      addBtn.innerHTML = `<i class="fa-solid fa-ban" aria-hidden="true"></i><span>Agotado</span>`;
+      if (!soldOutNote) {
+        soldOutNote = document.createElement("p");
+        soldOutNote.id = "modalSoldOutNote";
+        const priceEl = $("modalPrice");
+        if (priceEl) priceEl.after(soldOutNote);
+      }
+      if (soldOutNote) soldOutNote.textContent = "Frasco completo agotado. Los decants siguen disponibles.";
+    } else {
+      addBtn.classList.remove("btn-soldout");
+      if (soldOutNote) soldOutNote.remove();
+    }
+
     /* Producto "NO DISPONIBLE": la ficha sigue visible, pero el CTA queda
        bloqueado y no existe precio de compra ni forma de agregarlo. */
     let unavailNote = document.getElementById("modalUnavailableNote");

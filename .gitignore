@@ -18,3 +18,5 @@ img/perfumes_backup_optimized/
 # Artefactos generados por Playwright (screenshots/traces de corridas)
 test-results/
 playwright-report/
+
+.vercel
