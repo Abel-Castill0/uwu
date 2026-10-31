@@ -5,7 +5,7 @@ Tienda online estática (HTML/CSS/JS puro) de decants premium de perfumes árabe
 ## Producción
 
 - **Hosting:** Vercel
-- **Repositorio:** `Abel-Castill0/uwu`
+- **Repositorio:** [`Abel-Castill0/uwu`](https://github.com/Abel-Castill0/uwu)
 - **Rama de producción:** `master`
 - **Canonical:** `https://www.fraganceobession.com/`
 - **Apex:** `https://fraganceobession.com/` → `308` → `https://www.fraganceobession.com/`
@@ -98,3 +98,11 @@ Los runners ahora viven en `tests/`; consulta `tests/README.md` para requisitos 
 | `tools/generate-admin-hash.js` | Genera el `ADMIN_HASH` (SHA-256) para `config.js` |
 | `DEPLOY.md`, `ACCEPTANCE_CHECKLIST.md` | Guía de despliegue y checklist de pruebas de aceptación |
 | `tests/shots/` | 50 capturas de auditoría (5 vistas × 5 viewports × claro/oscuro) |
+
+---
+
+### Desarrollado por
+
+**Abel Castillo**
+
+🌐 [Portafolio profesional](https://portafolio-henna-mu.vercel.app/)
