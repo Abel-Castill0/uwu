@@ -6,8 +6,8 @@
  * OJO: si algún día se vuelve a cache-first para assets, CADA deploy
  * DEBE bumpear VERSION o los clientes se quedan con código viejo.
  */
-const RELEASE = "20261101";
-const VERSION = "fo-v94-catalog-stock-logo";
+const RELEASE = "20261101b";
+const VERSION = "fo-v95-confirmed-prices";
 const CORE_CACHE = `core-${VERSION}`;
 const IMG_CACHE = `img-${VERSION}`;
 const FONT_CACHE = `font-${VERSION}`;
