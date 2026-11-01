@@ -24,8 +24,15 @@ for (const id of [68, 81, 101]) {
 assert.ok(!config.PROXIMAMENTE.includes(101), "Sedley decant está disponible");
 assert.ok(config.PROXIMAMENTE.includes(159), "Perseus permanece próximamente, como en sus fotos");
 assert.equal(Object.keys(product(159).decantSizes).length, 0, "No inventar precios de Perseus");
-assert.ok(product(160).sealed && product(160).quoteOnly, "Sedley sellado se cotiza sin precio inventado");
-assert.ok(product(161).quoteOnly && !product(161).sealed, "Valero decant se consulta sin precio inventado");
+assert.ok(product(160).sealed && !product(160).quoteOnly, "Sedley sellado tiene precio confirmado");
+assert.equal(product(160).fullSizes[125], 950, "Sedley sellado 125ml S/950");
+assert.equal(product(160).sealedSize, "125ml", "Sedley incluye presentación completa");
+assert.equal(Object.keys(product(160).fullSizes).length, 1, "Sedley no anuncia tamaños no confirmados");
+assert.ok(!product(161).quoteOnly && !product(161).sealed, "Valero decant habilitado para compra directa");
+for (const [size, price] of Object.entries({1:25,2:49,3:69,5:105,10:209,30:525})) {
+  assert.equal(product(161).decantSizes[size], price, `Valero ${size}ml S/${price}`);
+}
+assert.equal(Object.keys(product(161).decantSizes).length, 6, "Valero conserva exactamente las seis presentaciones informadas");
 assert.equal(product(162).fullSizes[100], 1250, "Valero sellado 100ml S/1250 confirmado en foto");
 assert.equal(product(162).regularPrice, undefined, "Sin precio referencial inventado");
 
