@@ -223,7 +223,7 @@ check("Toucan 20ml (decant) with its own image", inventory.some((p) => p.id === 
 /* Los decants de esos nombres NO se tocaron. */
 check("Castley decant(100) still public", inventory.some((p) => p.id === 100 && p.public !== false && Object.keys(p.decantSizes).length > 0), "");
 check("Dream Sea decant(58) still public", inventory.some((p) => p.id === 58 && p.public !== false && Object.keys(p.decantSizes).length > 0), "");
-check("public sealed inventory = 11", inventory.filter((p) => p.sealed === true && p.public !== false).length === 11, "count=" + inventory.filter((p) => p.sealed === true && p.public !== false).length);
+check("public sealed inventory = 15", inventory.filter((p) => p.sealed === true && p.public !== false).length === 15, "count=" + inventory.filter((p) => p.sealed === true && p.public !== false).length);
 check("Narcotic decant stays public", inventory.some((p) => p.id === 62 && p.public !== false && Object.keys(p.decantSizes).length > 0), "");
 
 console.log("\n=== RESULTADO ===");

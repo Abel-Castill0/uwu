@@ -80,6 +80,15 @@
     const list = FO.NO_DISPONIBLE;
     return Array.isArray(list) && list.some((x) => String(x) === String(id));
   }
+  /* El agotamiento del frasco es independiente del decant del mismo perfume.
+     Solo un producto sin decants propios queda fuera de venta en la card. */
+  function isFullBottleSoldOut(product) {
+    return !!product && product.fullSoldOut === true &&
+      Object.keys(product.decantSizes || {}).length === 0;
+  }
+  function catalogStockRank(product) {
+    return isComingSoon(product.id) || isUnavailable(product.id) || isFullBottleSoldOut(product) ? 1 : 0;
+  }
   function baseSizeOf(size) {
     return isPremiumSize(size) ? size.replace("_premium", "") : size;
   }
@@ -419,6 +428,7 @@
       if (it.isPack) { cleaned.push(it); return; }
       const prod = isProductStillAvailable(it.productId);
       if (!prod) { removed++; return; }
+      if (it.type === "full" && prod.fullSoldOut === true) { removed++; return; }
       const price = resolveCurrentPrice(prod, it.type, it.size);
       if (price === undefined) { removed++; return; }
       const qty = normalizeQty(it.qty);
@@ -512,7 +522,7 @@
     const product = getProductById(productId);
     if (!product) return;
     // Producto "NO DISPONIBLE": visible en catálogo, pero sin venta.
-    if (isUnavailable(productId)) {
+    if (isComingSoon(productId) || isUnavailable(productId) || (type === "full" && product.fullSoldOut === true)) {
       showToast("⚠️ " + product.name + " no está disponible por el momento");
       return;
     }
@@ -939,14 +949,15 @@
       Object.keys(product.decantSizes).length > 0;
     const hasFull =
       product.fullSizes && Object.keys(product.fullSizes).length > 0;
-    if (!hasDecants) currentModalView = "full";
+    if (!hasDecants && (hasFull || product.sealed)) currentModalView = "full";
     const tabSwitch = $("tabSwitch");
     if (tabSwitch) tabSwitch.style.display = hasDecants || hasFull ? "" : "none";
     const tabFull = $("tabFull");
     const tabDecant = $("tabDecant");
     if (tabFull) tabFull.style.display = hasFull ? "" : "none";
     if (tabDecant) tabDecant.style.display = hasDecants ? "" : "none";
-    if (!hasFull && !hasDecants) return;
+    // Los registros de consulta y próximos pueden existir sin precios: el
+    // modal debe mostrar su ficha, nunca ofrecer una talla/importe ficticio.
     // Producto "NO DISPONIBLE" (visible, pero sin venta): se muestra su
     // ficha completa sin selector de tallas ni precio de compra.
     const unavailable = isUnavailable(product.id);
@@ -1002,8 +1013,8 @@
       sizeContainer.parentNode.insertBefore(sizeLabelEl, sizeContainer);
     }
     // Sin venta → sin selector de tallas ni etiqueta (nada que elegir).
-    sizeLabelEl.style.display = unavailable ? "none" : "";
-    sizeContainer.style.display = unavailable ? "none" : "";
+    sizeLabelEl.style.display = unavailable || !sizeKeys.length ? "none" : "";
+    sizeContainer.style.display = unavailable || !sizeKeys.length ? "none" : "";
     sizeContainer.innerHTML = sizeKeys
       .map((size) => {
         const price = sizes[size];
@@ -1015,21 +1026,22 @@
       })
       .join("");
     const price = currentModalSize ? sizes[currentModalSize] : null;
-    const modalPromo = isFull && !isComingSoon(product.id) ? productPromoInfo(product) : null;
-    const specialPrice = isFull && price && !isComingSoon(product.id);
-    $("modalPrice").innerHTML = modalPromo
+    const soldOutFull = isFull && product.fullSoldOut === true;
+    const modalPromo = isFull && !isComingSoon(product.id) && !soldOutFull ? productPromoInfo(product) : null;
+    const specialPrice = isFull && price && !isComingSoon(product.id) && !soldOutFull;
+    $("modalPrice").innerHTML = soldOutFull ? "No disponible" : product.quoteOnly ? "Consultar precio por WhatsApp" : modalPromo
       ? `<span class="price-reference-label">Precio referencial</span><span class="price-regular">${esc(formatPrice(modalPromo.regularPrice))}</span><span class="price-pct">−${esc(modalPromo.pct)}%</span><span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(modalPromo.price))}</span><span class="price-product-savings">Ahorras ${esc(formatPrice(modalPromo.ahorro))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : specialPrice
       ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(price))}</span> <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
       : price
       ? `${esc(formatPrice(price))} <span class="price-size-badge">${esc(sizeLabel(currentModalSize))}</span>`
-      : unavailable ? "No disponible" : "Selecciona tamaño";
+      : unavailable ? "No disponible" : isComingSoon(product.id) ? "Próximamente" : "Selecciona tamaño";
     // Botón principal: cotizar por WhatsApp (frasco) o añadir al carrito (decant)
     const addBtn = $("modalAddBtn");
-    const isQuote = isFull && FO.FRASCO_COMPLETO_WHATSAPP !== false && !unavailable;
+    const isQuote = (product.quoteOnly === true || (isFull && FO.FRASCO_COMPLETO_WHATSAPP !== false)) && !unavailable && !soldOutFull;
     addBtn.classList.toggle("btn-add-wa", isQuote);
     addBtn.innerHTML = isQuote
-      ? `<i class="fab fa-whatsapp" aria-hidden="true"></i><span>Cotizar Frasco por WhatsApp</span>`
+      ? `<i class="fab fa-whatsapp" aria-hidden="true"></i><span>${product.quoteOnly && !product.sealed ? "Consultar decants por WhatsApp" : "Cotizar Frasco por WhatsApp"}</span>`
       : `<i class="fa-solid fa-bag-shopping" aria-hidden="true"></i><span>${price ? `Añadir ${esc(sizeLabel(currentModalSize))} — ${esc(formatPrice(price))}` : "Añadir al Carrito"}</span>`;
     // Producto "Próximamente": sin stock, no agregable (solo aviso + reserva)
     const soon = isComingSoon(currentModalProduct.id);
@@ -1056,18 +1068,18 @@
     /* Frasco completo agotado: solo bloquea la vista de frasco, los
        decants siguen vendiéndose normalmente. */
     let soldOutNote = document.getElementById("modalSoldOutNote");
-    if (isFull && product.fullSoldOut) {
+    if (soldOutFull) {
       addBtn.disabled = true;
       addBtn.classList.add("btn-soldout");
       addBtn.classList.remove("btn-add-wa");
-      addBtn.innerHTML = `<i class="fa-solid fa-ban" aria-hidden="true"></i><span>Agotado</span>`;
+      addBtn.innerHTML = `<i class="fa-solid fa-ban" aria-hidden="true"></i><span>NO DISPONIBLE</span>`;
       if (!soldOutNote) {
         soldOutNote = document.createElement("p");
         soldOutNote.id = "modalSoldOutNote";
         const priceEl = $("modalPrice");
         if (priceEl) priceEl.after(soldOutNote);
       }
-      if (soldOutNote) soldOutNote.textContent = "Frasco completo agotado. Los decants siguen disponibles.";
+      if (soldOutNote) soldOutNote.textContent = "Este frasco completo está agotado. Consulta los decants por separado.";
     } else {
       addBtn.classList.remove("btn-soldout");
       if (soldOutNote) soldOutNote.remove();
@@ -1121,11 +1133,15 @@
     }
     // Enlace de cotización: visible cuando el producto NO tiene frasco completo
     const quoteLink = $("modalQuoteLink");
-    if (quoteLink) quoteLink.style.display = !hasFull && FO.FRASCO_COMPLETO_WHATSAPP !== false ? "" : "none";
+    if (quoteLink) quoteLink.style.display = !hasFull && !product.quoteOnly && !soon && FO.FRASCO_COMPLETO_WHATSAPP !== false ? "" : "none";
   }
   /* Cotización de frasco completo por WhatsApp (botón del modal y enlace). */
   function openWhatsAppQuote(product) {
     if (!product) return;
+    if (isComingSoon(product.id) || isUnavailable(product.id) || product.fullSoldOut === true) {
+      showToast("⚠️ " + product.name + " no está disponible por el momento");
+      return;
+    }
     // La condición (Tester/Parcial) y el precio no deben perderse al pasar
     // a WhatsApp -- pedido explícito del cliente, el mensaje ya no puede
     // ser solo "nombre + marca".
@@ -1135,7 +1151,9 @@
       : Object.keys(product.fullSizes || {})[0];
     const price = sizeForPrice ? product.fullSizes[sizeForPrice] : null;
     const priceText = typeof price === "number" ? formatPrice(price) : "";
-    const msg = typeof FO.WHATSAPP_COTIZAR_MSG === "function"
+    const msg = product.quoteOnly && !product.sealed
+      ? `Hola, quiero consultar tamaños, precios y disponibilidad de los decants de ${product.name} (${product.brand}).`
+      : typeof FO.WHATSAPP_COTIZAR_MSG === "function"
       ? FO.WHATSAPP_COTIZAR_MSG(product.name, product.brand, condition, priceText)
       : `Hola, quiero cotizar el frasco completo de ${product.name} (${product.brand}). ¿Me pueden dar más información?`;
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
@@ -1167,11 +1185,16 @@
     updateModalContent();
   });
   $("modalAddBtn").addEventListener("click", function () {
+    if (currentModalProduct && currentModalProduct.quoteOnly === true) {
+      openWhatsAppQuote(currentModalProduct);
+      return;
+    }
     if (!currentModalProduct || !currentModalSize) {
       showToast("⚠️ Selecciona un tamaño");
       return;
     }
-    if (isUnavailable(currentModalProduct.id)) {
+    if (isComingSoon(currentModalProduct.id) || isUnavailable(currentModalProduct.id) ||
+        (currentModalView === "full" && currentModalProduct.fullSoldOut === true)) {
       showToast("⚠️ " + currentModalProduct.name + " no está disponible por el momento");
       return;
     }
@@ -1669,8 +1692,10 @@
   function merchandisingBadge(product, soon, hasFull, hasDecants, unavail) {
     // "NO DISPONIBLE" manda sobre cualquier otra señal comercial: el
     // producto queda visible pero nunca se lee como comprable.
-    if (unavail) return { className: "unavailable", label: "NO DISPONIBLE" };
+    if (unavail || isFullBottleSoldOut(product)) return { className: "unavailable", label: "NO DISPONIBLE" };
     if (soon) return { className: "soon", label: "Próximamente" };
+    if (product.quoteOnly && product.sealed) return { className: "condition", label: "Frasco sellado" };
+    if (product.quoteOnly) return { className: "condition", label: "Consultar" };
     if (hasFull && !hasDecants) return { className: "condition", label: fullPresentationLabel(product) };
     if (product.bestseller === true) return { className: "bestseller", label: product.bestsellerLabel || "Más vendido" };
     if (product.featured && product.highlightLabel) return { className: "highlight", label: product.highlightLabel };
@@ -1731,7 +1756,8 @@
       ? Math.min(...Object.values(product.decantSizes))
       : hasFull ? Math.min(...Object.values(product.fullSizes)) : null;
     const soon = isComingSoon(product.id);
-    const unavail = isUnavailable(product.id);
+    const unavail = isUnavailable(product.id) || isFullBottleSoldOut(product);
+    const quoteOnly = product.quoteOnly === true;
     const badge = merchandisingBadge(product, soon, hasFull, hasDecants, unavail);
     const badgeHTML = badge
       ? `<span class="product-badge ${esc(badge.className)}">${esc(badge.label)}</span>`
@@ -1739,18 +1765,19 @@
     const specialPrice = hasFull && !hasDecants && !soon && !unavail;
     // Precio: promo real o precio normal (sin venta → sin precio de compra)
     const promo = soon || unavail ? null : productPromoInfo(product);
-    const priceText = promo
+    const priceText = quoteOnly ? "Consultar precio" : promo
       ? `<span class="price-reference-label">Precio referencial</span><span class="price-regular">${esc(formatPrice(promo.regularPrice))}</span><span class="price-pct">−${promo.pct}%</span><span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(promo.price))}</span>`
       : specialPrice && minPrice
       ? `<span class="price-special-label">Precio especial</span><span class="price-final">${esc(formatPrice(minPrice))}</span>`
       : unavail ? "No disponible"
+      : soon ? "Próximamente"
       : minPrice ? `Desde ${formatPrice(minPrice)}` : "Consultar";
     const catLabel =
       product.category === "nicho" ? "Nicho"
       : product.category === "deluxe" ? "Deluxe"
       : "Diseñador";
     const stockText = !unavail && Number.isFinite(product.stock) && product.stock > 0 ? `Stock: ${product.stock}` : "";
-    const btnLabel = unavail ? "NO DISPONIBLE" : soon ? "Próximamente" : hasDecants ? "Ver y Comprar" : fullPresentationLabel(product) === "Frasco completo" ? "Comprar Sellado" : `Comprar ${fullPresentationLabel(product)}`;
+    const btnLabel = unavail ? "NO DISPONIBLE" : soon ? "Próximamente" : quoteOnly ? "Consultar por WhatsApp" : hasDecants ? "Ver y Comprar" : fullPresentationLabel(product) === "Frasco completo" ? "Comprar Sellado" : `Comprar ${fullPresentationLabel(product)}`;
     return `
       <div class="product-card reveal-item${unavail ? " product-card--unavailable" : ""}" data-product-id="${product.id}">
         <div class="img-wrapper">
@@ -1828,7 +1855,9 @@
         `${p.name} ${p.brand} ${p.notes || ""} ${p.category}`.toLowerCase().includes(query),
       );
     }
-    return filtered;
+    // Orden estable: disponibles primero, próximos/agotados/no disponibles al final.
+    // Conserva el orden original dentro de cada grupo en cualquier filtro o búsqueda.
+    return filtered.sort((a, b) => catalogStockRank(a) - catalogStockRank(b));
   }
 
   function renderCatalogBrandIndex() {

@@ -153,8 +153,8 @@ window.FO_CONFIG = {
      a la venta: se mostrarán con el badge "Próximamente", botón
      deshabilitado y aviso de reserva en el modal.
      Ejemplo: PROXIMAMENTE: [42, 73] */
-   PROXIMAMENTE: [10, 19, 37, 40, 41, 55, 63, 78, 79, 95, 101, 103, 138, 150], // Last Birthday Cake, Mango Kiss, Que Chimba, Speachless, Evil Angel, Porthole, Musk Therapy, Gentle Fluidity Silver, Grand Soir, Wulong Cha X, Sedley, Malibú Party, Loverbird, Mefisto Gentiluomo
-  /* Disponibles: Fierezza (140), Gris Charnel EDP (81), Birth of Venus (51),
+   PROXIMAMENTE: [10, 19, 37, 40, 41, 55, 63, 78, 79, 95, 103, 138, 150, 159], // Last Birthday Cake, Mango Kiss, Que Chimba, Speachless, Evil Angel, Porthole, Musk Therapy, Gentle Fluidity Silver, Grand Soir, Wulong Cha X, Malibú Party, Loverbird, Mefisto Gentiluomo, Perseus
+  /* Disponibles: Sedley decant (101), Fierezza (140), Gris Charnel EDP (81), Birth of Venus (51),
      Paragon (64), Toucan (137, 20 ml), Castley
      decant (100), Narcotic Delight decant (62) y Tropikalys Karma decant
      (60) — cliente 08/10: sale de Próximamente con foto limpia.
